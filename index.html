@@ -90,12 +90,14 @@
   }
 
   .class-grid,
+  .difficulty-grid,
   .subject-grid {
     display: grid;
     gap: 10px;
   }
 
-  .class-grid {
+  .class-grid,
+  .difficulty-grid {
     grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   }
 
@@ -636,6 +638,15 @@
         <div class="subject-grid" id="subject-grid"></div>
       </div>
 
+      <div class="select-block">
+        <div class="select-title">Уровень подготовки</div>
+        <div class="difficulty-grid" id="difficulty-grid">
+          <button class="choice active" data-difficulty="basic">Начальная подготовка</button>
+          <button class="choice" data-difficulty="middle">Средняя подготовка</button>
+          <button class="choice" data-difficulty="general">Генеральная подготовка</button>
+        </div>
+      </div>
+
       <div class="start-panel">
         <div class="selected-note" id="selected-note">Сначала выбери предмет.</div>
         <button class="btn-start" id="startbtn" onclick="startTest()" disabled>Начать тест</button>
@@ -696,8 +707,15 @@ const TEST_SECONDS = 45 * 60;
 const LAST_TEST_PREFIX = 'school-tests-last-variant-';
 const letters = ['А','Б','В','Г'];
 
+const difficultyLevels = {
+  basic: { name: 'Начальная подготовка', shortName: 'начальная', count: 10, pool: ['basic'] },
+  middle: { name: 'Средняя подготовка', shortName: 'средняя', count: 16, pool: ['basic', 'middle'] },
+  general: { name: 'Генеральная подготовка', shortName: 'генеральная', count: 24, pool: ['middle', 'general'] }
+};
+
 const subjects = {
   geography: { name: 'География' },
+  history: { name: 'История' },
   biology: { name: 'Биология' },
   informatics: { name: 'Информатика' },
   math: { name: 'Математика' },
@@ -1118,7 +1136,54 @@ const questionBanksByGrade = {
   '6': grade6QuestionBanks
 };
 
+questionBanksByGrade['5'].history = makeBank([
+  ["История изучает", "прошлое человечества", "только строение Земли", "только правила языка", "только живую природу", "История — наука о прошлом людей, общества и государств."],
+  ["Учёный, который изучает прошлое по источникам, называется", "историк", "географ", "биолог", "астроном", "Историк исследует события прошлого по разным историческим источникам."],
+  ["Предмет, созданный или изменённый человеком и найденный археологами, называется", "артефакт", "атмосфера", "формула", "параллель", "Артефакт помогает узнать о жизни людей прошлого."],
+  ["Наука, изучающая прошлое по вещественным источникам, называется", "археология", "ботаника", "фонетика", "геометрия", "Археология изучает древности, раскопки, орудия, жилища и захоронения."],
+  ["Исторический источник — это", "всё, что сообщает о прошлом", "только современный учебник", "только карта погоды", "только математическая задача", "Историческими источниками могут быть вещи, документы, надписи, изображения, предания."],
+  ["Лента времени нужна, чтобы", "располагать события в хронологическом порядке", "измерять температуру", "сравнивать растения", "строить окружности", "Лента времени помогает увидеть последовательность событий."],
+  ["Век — это", "100 лет", "10 лет", "1000 лет", "365 дней", "Один век равен ста годам."],
+  ["Тысячелетие — это", "1000 лет", "10 лет", "100 лет", "50 лет", "Тысячелетие состоит из десяти веков."],
+  ["Счёт лет до нашей эры идёт", "в обратном порядке", "как обычный счёт после нашей эры", "только по месяцам", "только по неделям", "Чем больше число до нашей эры, тем раньше событие."],
+  ["Первые люди добывали пищу главным образом", "собирательством и охотой", "работой на фабриках", "выращиванием риса на заводах", "печатью книг", "Древнейшие люди занимались охотой, рыболовством и собирательством."],
+  ["Переход людей к земледелию и скотоводству называется", "неолитическая революция", "промышленная революция", "географическое открытие", "книжная реформа", "Неолитическая революция изменила образ жизни людей: появились земледелие, скотоводство и поселения."],
+  ["Древнейшие государства возникали чаще всего", "в долинах крупных рек", "на ледниках", "в открытом океане", "на вершинах вулканов", "Реки давали воду, плодородные почвы и пути сообщения."],
+  ["Одна из древнейших систем письма в Египте — это", "иероглифы", "кириллица", "латиница", "азбука Морзе", "Египтяне использовали иероглифическое письмо."],
+  ["Пирамиды Древнего Египта были", "гробницами фараонов", "театрами", "школами", "рынками", "Пирамиды строили как величественные гробницы правителей."],
+  ["Фараон — это", "правитель Древнего Египта", "римский воин", "греческий философ", "средневековый ремесленник", "Фараоном называли царя Древнего Египта."],
+  ["Клинопись возникла в", "Месопотамии", "Антарктиде", "Скандинавии", "Австралии", "Клинописью пользовались жители Древней Месопотамии."],
+  ["Полис в Древней Греции — это", "город-государство", "вид корабля", "египетская гробница", "римская дорога", "Полис был самостоятельным городом-государством с окрестностями."],
+  ["Демократия в Афинах означала", "участие граждан в управлении", "власть одного царя без законов", "полное отсутствие собраний", "правление только жрецов", "Афинская демократия давала гражданам право участвовать в народном собрании."],
+  ["Олимпийские игры зародились в", "Древней Греции", "Древнем Египте", "Древнем Китае", "Древней Индии", "Олимпийские игры были важным праздником греческого мира."],
+  ["Римская республика — это период, когда", "важную роль играли выборные органы власти", "Римом управляли только фараоны", "не было законов", "все решения принимали жрецы Египта", "В республике власть распределялась между магистратами, сенатом и народными собраниями."]
+]);
+
+questionBanksByGrade['6'].history = makeBank([
+  ["Главная тема истории Средних веков в 6 классе — это", "развитие общества после падения Западной Римской империи", "только каменный век", "только история космоса", "только история компьютеров", "В 6 классе обычно изучают Средние века и раннюю историю Руси."],
+  ["Средние века в Европе начались после", "падения Западной Римской империи", "изобретения телефона", "строительства пирамид", "открытия электричества", "476 год часто считают условной датой начала Средневековья в Европе."],
+  ["Феод — это", "земельное владение, полученное за службу", "городская площадь", "вид древнего письма", "церковная книга", "Феод давался вассалу за службу сеньору."],
+  ["Вассал — это", "человек, получивший землю и обязанный служить сеньору", "морской путешественник", "древний земледелец", "римский гладиатор", "Вассальные отношения были важной частью феодального общества."],
+  ["Сеньор — это", "крупный феодал, покровитель вассала", "ученик в монастыре", "ремесленник цеха", "житель древнего Египта", "Сеньор давал вассалу защиту и землю, получая службу."],
+  ["Средневековый замок служил", "жилищем феодала и укреплением", "только театром", "только рынком", "только библиотекой", "Замок защищал владельца и окрестное население во время опасности."],
+  ["Рыцарь в Средние века — это", "воин-феодал", "земледелец без земли", "монах-летописец", "купец из цеха", "Рыцари служили в войске и владели землёй."],
+  ["Цех в средневековом городе — это", "объединение ремесленников одной профессии", "отряд рыцарей", "крестьянская община", "королевский дворец", "Цехи контролировали качество изделий и обучение мастеров."],
+  ["Мастер, подмастерье и ученик связаны с", "ремесленной мастерской", "рыцарским турниром", "монастырским орденом", "военным флотом", "В ремесле ученик обучался, подмастерье работал, мастер имел собственную мастерскую."],
+  ["Монастырь в Средние века был", "религиозным центром, где жили монахи", "только военной крепостью", "только рынком", "местом спортивных игр", "Монастыри сохраняли книги, обучали и занимались хозяйством."],
+  ["Крестовые походы были направлены главным образом", "на Восточное Средиземноморье и Святую землю", "в Антарктиду", "в Америку до Колумба", "на Луну", "Крестовые походы связывали религиозные, политические и экономические цели."],
+  ["Ислам возник на Аравийском полуострове в", "VII веке", "I веке до н. э.", "XVI веке", "XX веке", "Возникновение ислама связано с VII веком и пророком Мухаммедом."],
+  ["Франкский король Карл Великий был провозглашён императором в", "800 году", "476 году", "988 году", "1240 году", "Коронация Карла Великого произошла в 800 году."],
+  ["Викинги — это", "скандинавские мореходы и воины", "египетские писцы", "римские сенаторы", "китайские чиновники", "Викинги совершали походы, торговали и основывали поселения."],
+  ["Путь «из варяг в греки» связывал", "Балтику и Византию", "Египет и Индию", "Китай и Японию", "Африку и Америку", "Этот торговый путь проходил через земли восточных славян."],
+  ["Князь в Древней Руси — это", "правитель и военный руководитель", "римский раб", "средневековый ремесленник", "египетский писец", "Князь управлял землёй, собирал дань и возглавлял дружину."],
+  ["Дружина князя — это", "вооружённые приближённые и воины", "группа земледельцев", "собрание монахов", "цех ремесленников", "Дружина помогала князю управлять и воевать."],
+  ["Крещение Руси произошло при князе", "Владимире", "Олеге", "Игоре", "Ярославе Осмомысле", "Крещение Руси связано с князем Владимиром и 988 годом."],
+  ["Русская Правда связана с именем", "Ярослава Мудрого", "Карла Великого", "Юлия Цезаря", "Хаммурапи", "Русская Правда — ранний сборник законов Древней Руси."],
+  ["Раздробленность Руси означала", "усиление самостоятельности отдельных княжеств", "полное отсутствие городов", "переход к каменному веку", "исчезновение торговли", "В период раздробленности княжества стали более самостоятельными."]
+]);
+
 function addRows(grade, subject, rows) {
+  if (!questionBanksByGrade[grade][subject]) questionBanksByGrade[grade][subject] = [];
   questionBanksByGrade[grade][subject].push(...makeBank(rows));
 }
 
@@ -1223,6 +1288,44 @@ const termSets = {
       ['приток', 'река, впадающая в другую реку'],
       ['природная зона', 'крупная территория с похожим климатом, почвами, растениями и животными'],
       ['условный знак', 'символ на карте или плане, обозначающий объект местности']
+    ],
+    history: [
+      ['история', 'наука, изучающая прошлое человечества'],
+      ['историк', 'учёный, исследующий прошлое по источникам'],
+      ['исторический источник', 'любой предмет, текст или изображение, сообщающие о прошлом'],
+      ['вещественный источник', 'предмет прошлого, который можно изучать'],
+      ['письменный источник', 'текст, документ или надпись, сообщающие о прошлом'],
+      ['археология', 'наука, изучающая прошлое по вещественным источникам'],
+      ['археолог', 'учёный, проводящий раскопки и изучающий древние вещи'],
+      ['артефакт', 'предмет, созданный или изменённый человеком'],
+      ['хронология', 'порядок исторических событий во времени'],
+      ['лента времени', 'схема для расположения событий в последовательности'],
+      ['эра', 'большой период летоисчисления'],
+      ['век', 'период времени в сто лет'],
+      ['тысячелетие', 'период времени в тысячу лет'],
+      ['до нашей эры', 'время до условной даты рождения Христа'],
+      ['наша эра', 'время после начала принятого летоисчисления'],
+      ['первобытность', 'древнейший период истории человечества'],
+      ['собирательство', 'добывание пищи путём сбора растений, ягод, плодов'],
+      ['охота', 'добывание животных человеком'],
+      ['земледелие', 'выращивание культурных растений'],
+      ['скотоводство', 'разведение домашних животных'],
+      ['неолитическая революция', 'переход к земледелию, скотоводству и оседлой жизни'],
+      ['родовая община', 'коллектив родственников, живших и трудившихся вместе'],
+      ['государство', 'организация власти на определённой территории'],
+      ['фараон', 'правитель Древнего Египта'],
+      ['иероглифы', 'знаки древнеегипетского письма'],
+      ['папирус', 'материал для письма в Древнем Египте'],
+      ['пирамида', 'гробница египетского фараона'],
+      ['клинопись', 'письмо Древней Месопотамии из клиновидных знаков'],
+      ['полис', 'город-государство в Древней Греции'],
+      ['демократия', 'форма правления, при которой граждане участвуют в управлении'],
+      ['олимпийские игры', 'спортивные состязания, зародившиеся в Древней Греции'],
+      ['республика', 'форма правления, где важны выборные органы власти'],
+      ['сенат', 'важный совет в Древнем Риме'],
+      ['легион', 'основная военная единица римской армии'],
+      ['империя', 'крупное государство, объединяющее разные земли и народы'],
+      ['гражданин', 'человек, обладающий правами и обязанностями в государстве']
     ],
     biology: [
       ['биология', 'наука о живых организмах'],
@@ -1415,6 +1518,44 @@ const termSets = {
       ['муссон', 'сезонный ветер, меняющий направление два раза в год'],
       ['конденсация', 'переход водяного пара в капли воды'],
       ['круговорот воды', 'непрерывное перемещение воды между океаном, сушей и атмосферой']
+    ],
+    history: [
+      ['Средние века', 'период истории между Древним миром и Новым временем'],
+      ['феодализм', 'общественный строй Средневековья, основанный на землевладении и зависимости'],
+      ['феод', 'земельное владение, полученное за службу'],
+      ['феодал', 'владелец земли и зависимых крестьян'],
+      ['сеньор', 'старший феодал, покровитель вассала'],
+      ['вассал', 'феодал, получивший землю и обязанный служить сеньору'],
+      ['рыцарь', 'воин-феодал в Средние века'],
+      ['замок', 'укреплённое жилище феодала'],
+      ['натуральное хозяйство', 'хозяйство, где почти всё производилось для собственного потребления'],
+      ['зависимый крестьянин', 'крестьянин, находившийся в зависимости от феодала'],
+      ['барщина', 'работа зависимого крестьянина на земле феодала'],
+      ['оброк', 'платёж или продукты, отдаваемые феодалу'],
+      ['средневековый город', 'центр ремесла, торговли и городской жизни'],
+      ['цех', 'объединение ремесленников одной профессии'],
+      ['мастер', 'ремесленник, имевший собственную мастерскую'],
+      ['подмастерье', 'помощник мастера, уже освоивший ремесло'],
+      ['монастырь', 'религиозная община и место жизни монахов'],
+      ['монах', 'человек, посвятивший жизнь религии и монастырю'],
+      ['крестовые походы', 'военные походы европейцев на Восток под религиозными лозунгами'],
+      ['ислам', 'мировая религия, возникшая в VII веке в Аравии'],
+      ['халифат', 'мусульманское государство во главе с халифом'],
+      ['Византия', 'Восточная Римская империя со столицей в Константинополе'],
+      ['викинги', 'скандинавские мореходы, торговцы и воины'],
+      ['варяги', 'скандинавские воины и торговцы, связанные с Русью'],
+      ['путь из варяг в греки', 'торговый путь от Балтики к Византии'],
+      ['князь', 'правитель и военный руководитель на Руси'],
+      ['дружина', 'вооружённые приближённые князя'],
+      ['дань', 'сбор с подвластного населения'],
+      ['полюдье', 'объезд князем подвластных земель для сбора дани'],
+      ['крещение Руси', 'принятие христианства на Руси при князе Владимире'],
+      ['летопись', 'запись событий по годам'],
+      ['Русская Правда', 'древнерусский сборник законов'],
+      ['раздробленность', 'период усиления самостоятельности отдельных княжеств'],
+      ['вече', 'народное собрание в древнерусском городе'],
+      ['орда', 'крупное объединение кочевых племён или государство монголов'],
+      ['баскак', 'представитель ордынской власти на Руси']
     ],
     biology: [
       ['ботаника', 'раздел биологии, изучающий растения'],
@@ -1731,6 +1872,90 @@ function buildMath6Rows() {
   return rows;
 }
 
+function addLanguagePracticeRows() {
+  const rows = {
+    '5': {
+      english: [
+        ["Choose the correct form: My friends ___ in the park.", "are", "is", "am", "be", "Friends is plural, so we use are."],
+        ["Choose the correct form: This ___ my pencil.", "is", "are", "am", "be", "This is singular, so we use is."],
+        ["Choose the correct question.", "Do you like apples?", "Does you like apples?", "Are you like apples?", "Do you likes apples?", "In Present Simple with you we use do + base verb."],
+        ["Choose the correct negative sentence.", "She does not play tennis.", "She do not play tennis.", "She does not plays tennis.", "She not play tennis.", "After does not we use the base form of the verb."],
+        ["Text: Tom has a small dog. The dog is black and very funny. Tom plays with it after school. Which statement is true?", "Tom has a black dog.", "Tom has a white cat.", "Tom plays before school.", "The dog is very old.", "The text says the dog is black and Tom plays after school."],
+        ["Text: Ann lives near the school. She walks to school every morning. Her first lesson is English. Which statement is true?", "Ann walks to school.", "Ann goes by bus.", "Ann's first lesson is Maths.", "Ann lives far from school.", "The text says Ann lives near school and walks there."],
+        ["Text: It is Sunday. The children are in the garden. They are eating apples and reading books. Where are the children?", "in the garden", "at school", "in the museum", "at the station", "The text says the children are in the garden."],
+        ["Text: Mike's room is clean. There is a desk near the window and two books on the desk. What is near the window?", "a desk", "a bed", "a bag", "a bike", "The text says there is a desk near the window."]
+      ],
+      german: [
+        ["Choose the correct form: Ich ___ gern Musik.", "höre", "hörst", "hört", "hören", "With ich the verb ending is usually -e: ich höre."],
+        ["Choose the correct form: Meine Freunde ___ Fußball.", "spielen", "spielt", "spiele", "spielst", "Meine Freunde is plural, so we use spielen."],
+        ["Choose the correct sentence.", "Das ist ein Buch.", "Das ist eine Buch.", "Das sind ein Buch.", "Das ist einen Buch.", "Buch is neuter, so ein Buch is correct."],
+        ["Choose the correct negative sentence.", "Ich habe keinen Hund.", "Ich habe nicht Hund.", "Ich hat keinen Hund.", "Ich bin keinen Hund.", "Kein is used to negate nouns with an indefinite article."],
+        ["Text: Lena hat eine Katze. Die Katze ist grau und schläft gern auf dem Sofa. Welche Aussage ist richtig?", "Lena hat eine graue Katze.", "Lena hat einen Hund.", "Die Katze ist schwarz.", "Die Katze schläft im Garten.", "The text says the cat is grey and sleeps on the sofa."],
+        ["Text: Max wohnt in Berlin. Er geht am Montag in die Schule und hat Deutsch. Wo wohnt Max?", "in Berlin", "in Paris", "in Moskau", "in Wien", "The text says Max wohnt in Berlin."],
+        ["Text: Heute ist Samstag. Wir gehen in den Park und spielen Tennis. Welcher Tag ist heute?", "Samstag", "Montag", "Dienstag", "Freitag", "The text says Heute ist Samstag."],
+        ["Text: Das Zimmer ist klein. Am Fenster steht ein Tisch. Auf dem Tisch liegt ein Heft. Was liegt auf dem Tisch?", "ein Heft", "eine Katze", "ein Ball", "ein Apfel", "The text says a notebook lies on the table."]
+      ],
+      french: [
+        ["Choose the correct form: Nous ___ à l'école.", "sommes", "êtes", "sont", "suis", "With nous we use sommes."],
+        ["Choose the correct form: Tu ___ un frère.", "as", "a", "ai", "ont", "With tu we use as."],
+        ["Choose the correct sentence.", "C'est une table.", "C'est un table.", "Ce sont une table.", "C'est des table.", "Table is feminine singular, so une table is correct."],
+        ["Choose the correct negative sentence.", "Je n'aime pas le café.", "Je ne aime le café pas.", "Je pas aime le café.", "Je n'aimes pas le café.", "French negation is ne/n' ... pas."],
+        ["Text: Luc a un chien. Le chien est blanc et joue dans le jardin. Quelle phrase est vraie ?", "Luc a un chien blanc.", "Luc a un chat noir.", "Le chien dort dans la cuisine.", "Luc joue à l'école.", "The text says Luc has a white dog."],
+        ["Text: Marie habite à Paris. Le lundi, elle va à l'école en bus. Où habite Marie ?", "à Paris", "à Berlin", "à Moscou", "à Rome", "The text says Marie habite à Paris."],
+        ["Text: Aujourd'hui, il fait beau. Les enfants jouent au parc. Où sont les enfants ?", "au parc", "au musée", "à la gare", "à la bibliothèque", "The text says the children play in the park."],
+        ["Text: Dans ma chambre, il y a un bureau et deux livres. Les livres sont sur le bureau. Où sont les livres ?", "sur le bureau", "sous le lit", "dans le jardin", "à l'école", "The text says the books are on the desk."]
+      ]
+    },
+    '6': {
+      english: [
+        ["Choose the correct Past Simple sentence.", "We visited the museum yesterday.", "We visit the museum yesterday.", "We visits the museum yesterday.", "We visiting the museum yesterday.", "Past Simple for regular verbs uses -ed."],
+        ["Choose the correct question.", "Did she finish her homework?", "Did she finished her homework?", "Does she finished her homework?", "Was she finish her homework?", "Past Simple questions use did + base verb."],
+        ["Choose the correct form: They ___ watching a film now.", "are", "is", "am", "was", "Present Continuous uses are with they."],
+        ["Choose the correct sentence.", "This book is more interesting than that one.", "This book is interestinger than that one.", "This book is the most interesting than that one.", "This book more interesting that one.", "Long adjectives use more for comparison."],
+        ["Text: Last weekend, Kate visited her grandparents. They cooked dinner together and watched an old film. Which statement is true?", "Kate visited her grandparents.", "Kate went to school.", "Kate cooked alone.", "They watched a new cartoon.", "The text says Kate visited her grandparents and watched an old film."],
+        ["Text: Nick is going to buy a ticket because he wants to travel by train. He will leave tomorrow morning. When will Nick leave?", "tomorrow morning", "yesterday evening", "next week", "today at night", "The text says he will leave tomorrow morning."],
+        ["Text: The weather was windy, so the children did not play outside. They stayed at home and played board games. Why did they stay at home?", "because it was windy", "because it was hot", "because they had a test", "because the museum was closed", "The text says the weather was windy."],
+        ["Text: Emma has already finished her project. Now she is helping her friend with a poster. What has Emma finished?", "her project", "her lunch", "her book", "her homework diary", "The text says Emma has already finished her project."]
+      ],
+      german: [
+        ["Choose the correct perfect-like school sentence.", "Ich habe die Aufgabe gemacht.", "Ich bin die Aufgabe gemacht.", "Ich habe die Aufgabe machen.", "Ich hat die Aufgabe gemacht.", "With machen in Perfekt we use habe + gemacht."],
+        ["Choose the correct modal sentence.", "Er muss heute lernen.", "Er müssen heute lernen.", "Er muss heute lernt.", "Er muss zu lernen.", "With er the modal verb is muss, and the main verb stays infinitive."],
+        ["Choose the correct accusative article.", "Ich kaufe den Apfel.", "Ich kaufe der Apfel.", "Ich kaufe die Apfel.", "Ich kaufe das Apfel.", "Der Apfel becomes den Apfel in accusative."],
+        ["Choose the correct subordinate clause.", "Ich bleibe zu Hause, weil ich krank bin.", "Ich bleibe zu Hause, weil ich bin krank.", "Ich bleibe zu Hause, weil bin ich krank.", "Ich bleibe zu Hause, weil krank ich bin.", "After weil, the conjugated verb goes to the end."],
+        ["Text: Am Wochenende fährt Anna zu ihrer Oma. Sie nimmt den Zug und liest ein Buch. Wohin fährt Anna?", "zu ihrer Oma", "in die Schule", "ins Museum", "zum Markt", "The text says Anna goes to her grandma."],
+        ["Text: Paul kann heute nicht Fußball spielen, weil er krank ist. Warum spielt Paul nicht?", "weil er krank ist", "weil er keine Zeit hat", "weil er müde ist", "weil es regnet", "The text says he is sick."],
+        ["Text: Im Zimmer steht ein Schreibtisch. Neben dem Schreibtisch steht ein Stuhl. Wo steht der Stuhl?", "neben dem Schreibtisch", "unter dem Bett", "im Garten", "vor der Schule", "The text says the chair is next to the desk."],
+        ["Text: Wir haben gestern im Park gespielt. Danach haben wir Eis gegessen. Was haben wir danach gegessen?", "Eis", "Brot", "Suppe", "Äpfel", "The text says they ate ice cream after playing."]
+      ],
+      french: [
+        ["Choose the correct passé composé sentence.", "J'ai visité le musée.", "Je suis visité le musée.", "J'ai visiter le musée.", "Je visité le musée.", "Passé composé with visiter uses avoir + visité."],
+        ["Choose the correct near future sentence.", "Nous allons regarder un film.", "Nous allons regardons un film.", "Nous aller regarder un film.", "Nous sommes regarder un film.", "Near future uses aller + infinitive."],
+        ["Choose the correct negative sentence.", "Ils ne vont pas au collège.", "Ils ne pas vont au collège.", "Ils vont ne pas au collège.", "Ils n'aller pas au collège.", "French negation frames the conjugated verb."],
+        ["Choose the correct adjective agreement.", "des maisons blanches", "des maisons blanc", "des maisons blancs", "des maison blanches", "Maisons is feminine plural, so blanches is correct."],
+        ["Text: Hier, Sophie a visité un musée avec sa classe. Elle a aimé les tableaux. Qu'est-ce que Sophie a visité ?", "un musée", "un parc", "une gare", "une école", "The text says Sophie visited a museum."],
+        ["Text: Demain, nous allons prendre le train pour Lyon. Le départ est à huit heures. Où allons-nous ?", "à Lyon", "à Paris", "à Berlin", "à la bibliothèque", "The text says they are going to Lyon."],
+        ["Text: Il pleut, donc les enfants restent à la maison. Ils jouent aux cartes. Pourquoi restent-ils à la maison ?", "parce qu'il pleut", "parce qu'il fait chaud", "parce qu'ils ont faim", "parce qu'ils vont au cinéma", "The text says it is raining."],
+        ["Text: Dans le sac de Léa, il y a un cahier, deux stylos et une pomme. Qu'est-ce qu'il y a dans le sac ?", "un cahier, deux stylos et une pomme", "un livre et trois pommes", "un téléphone et un billet", "des chaussures", "The text lists a notebook, two pens and an apple."]
+      ]
+    }
+  };
+
+  Object.entries(rows).forEach(([grade, subjectsMap]) => {
+    Object.entries(subjectsMap).forEach(([subject, subjectRows]) => addRows(grade, subject, subjectRows));
+  });
+}
+
+function assignDifficultyLevels() {
+  Object.values(questionBanksByGrade).forEach(subjectBanks => {
+    Object.values(subjectBanks).forEach(bank => {
+      const oneThird = Math.ceil(bank.length / 3);
+      bank.forEach((question, index) => {
+        question.level = index < oneThird ? 'basic' : index < oneThird * 2 ? 'middle' : 'general';
+      });
+    });
+  });
+}
+
 function expandQuestionBanks() {
   Object.entries(termSets).forEach(([grade, subjectsMap]) => {
     Object.entries(subjectsMap).forEach(([subject, items]) => addTermRows(grade, subject, items));
@@ -1740,6 +1965,8 @@ function expandQuestionBanks() {
   });
   addRows('5', 'math', buildMath5Rows());
   addRows('6', 'math', buildMath6Rows());
+  addLanguagePracticeRows();
+  assignDifficultyLevels();
 }
 
 expandQuestionBanks();
@@ -1749,6 +1976,10 @@ const studyTopics = {
     geography: {
       exam: ['карта, глобус, масштаб и условные знаки', 'стороны горизонта и работа с компасом', 'материки, океаны и оболочки Земли', 'погода, климат и простые наблюдения', 'рельеф: горы, равнины, формы поверхности'],
       check: ['что такое карта и глобус', 'как читать масштаб и легенду', 'названия материков и океанов', 'отличие погоды от климата', 'основные оболочки Земли']
+    },
+    history: {
+      exam: ['исторические источники и работа с лентой времени', 'первобытное общество, охота, собирательство и неолитическая революция', 'Древний Египет: фараоны, пирамиды, иероглифы', 'Древняя Греция: полис, демократия, Олимпийские игры', 'Древний Рим: республика, сенат, легионы и империя'],
+      check: ['что изучает история', 'исторические источники', 'век, тысячелетие и счёт лет', 'первобытные люди', 'главные признаки древних цивилизаций']
     },
     biology: {
       exam: ['методы биологии: наблюдение, измерение, эксперимент', 'строение клетки и работа с микроскопом', 'царства живой природы', 'фотосинтез, дыхание и питание растений', 'пищевые цепи и связи организмов'],
@@ -1788,6 +2019,10 @@ const studyTopics = {
       exam: ['литосфера: земная кора, мантия, ядро', 'горные породы и полезные ископаемые', 'землетрясения, вулканы и рельеф', 'гидросфера: реки, озёра, ледники, океан', 'атмосфера: давление, ветер, облака и осадки'],
       check: ['строение Земли', 'виды горных пород', 'части реки', 'ветер и атмосферное давление', 'круговорот воды']
     },
+    history: {
+      exam: ['Средние века и феодальное общество', 'сеньоры, вассалы, рыцари и замки', 'средневековый город, ремесло и цехи', 'Византия, исламский мир, крестовые походы и викинги', 'Древняя Русь: князья, дружина, крещение, Русская Правда и раздробленность'],
+      check: ['что такое Средние века', 'феод, вассал и сеньор', 'жизнь рыцарей и крестьян', 'средневековые города и ремесло', 'ранняя история Руси']
+    },
     biology: {
       exam: ['ботаника и ткани растений', 'корень и минеральное питание', 'побег, почка, стебель и лист', 'фотосинтез, дыхание и испарение воды', 'цветок, опыление, плод и семя'],
       check: ['органы растения', 'ткани растений', 'функции корня и листа', 'строение цветка', 'семенное и вегетативное размножение']
@@ -1825,6 +2060,7 @@ const studyTopics = {
 
 let selectedGrade = '5';
 let selectedSubject = null;
+let selectedDifficulty = 'middle';
 let questions = [];
 let cur = 0;
 let score = 0;
@@ -1834,7 +2070,7 @@ let timerId = null;
 let finishedByTimer = false;
 let aiStarted = false;
 let aiMode = 'welcome';
-let aiPlan = { grade: null, subject: null, goal: null };
+let aiPlan = { grade: null, subject: null, goal: null, examTime: null };
 
 function shuffle(items) {
   const mixed = [...items];
@@ -1861,13 +2097,16 @@ function normalizeQuestion(item) {
 
 function buildVariant(subjectId) {
   const bank = questionBanksByGrade[selectedGrade][subjectId];
-  const storageKey = LAST_TEST_PREFIX + selectedGrade + '-' + subjectId;
+  const difficulty = difficultyLevels[selectedDifficulty];
+  const preferredPool = bank.filter(question => difficulty.pool.includes(question.level));
+  const pool = preferredPool.length >= difficulty.count ? preferredPool : bank;
+  const storageKey = LAST_TEST_PREFIX + selectedGrade + '-' + subjectId + '-' + selectedDifficulty;
   const lastSignature = sessionStorage.getItem(storageKey);
   let picked = [];
   let signature = '';
 
   for (let attempt = 0; attempt < 30; attempt++) {
-    picked = shuffle(bank).slice(0, QUESTION_COUNT);
+    picked = shuffle(pool).slice(0, difficulty.count);
     signature = picked.map(item => item.q).sort().join('|');
     if (signature !== lastSignature) break;
   }
@@ -1885,13 +2124,22 @@ function selectGrade(grade) {
   updateSelectedNote();
 }
 
+function selectDifficulty(difficulty) {
+  selectedDifficulty = difficulty;
+  document.querySelectorAll('[data-difficulty]').forEach(button => {
+    button.classList.toggle('active', button.dataset.difficulty === difficulty);
+  });
+  updateHeader('selection');
+  updateSelectedNote();
+}
+
 function updateSelectedNote() {
   const note = document.getElementById('selected-note');
   if (!selectedSubject) {
     note.textContent = 'Сначала выбери предмет.';
     return;
   }
-  note.textContent = 'Выбрано: ' + selectedGrade + ' класс · ' + subjects[selectedSubject].name + '.';
+  note.textContent = 'Выбрано: ' + selectedGrade + ' класс · ' + subjects[selectedSubject].name + ' · ' + difficultyLevels[selectedDifficulty].name + '.';
 }
 
 function renderSubjectChoices() {
@@ -1921,12 +2169,12 @@ function updateHeader(mode) {
     const subject = subjects[selectedSubject];
     document.getElementById('page-tag').textContent = subject.name + ' · ' + selectedGrade + ' класс';
     document.getElementById('page-title').textContent = 'Итоговый тест';
-    document.getElementById('page-subtitle').textContent = '16 вопросов · 45 минут';
+    document.getElementById('page-subtitle').textContent = questions.length + ' вопросов · ' + difficultyLevels[selectedDifficulty].name + ' · 45 минут';
     return;
   }
   document.getElementById('page-tag').textContent = selectedGrade + ' класс · тренажёр';
   document.getElementById('page-title').textContent = 'Итоговые тесты';
-  document.getElementById('page-subtitle').textContent = 'Выбери класс и предмет · 16 вопросов · 45 минут';
+  document.getElementById('page-subtitle').textContent = 'Выбери класс, предмет и уровень · 10/16/24 вопроса · 45 минут';
 }
 
 function formatTime(totalSeconds) {
@@ -2052,7 +2300,7 @@ function showScore() {
     <div class="score-fraction">${score}/${questions.length}</div>
     <div class="score-desc">правильных ответов</div>
     <div class="score-grade">Оценка: ${grade}</div>
-    <div class="score-extra">${selectedGrade} класс · ${subjects[selectedSubject].name} · ${timeText}</div>
+    <div class="score-extra">${selectedGrade} класс · ${subjects[selectedSubject].name} · ${difficultyLevels[selectedDifficulty].name} · ${timeText}</div>
     <div class="score-actions">
       <button class="btn-restart" onclick="restartSameSubject()">Попробовать ещё раз</button>
       <button class="btn-light" onclick="backToSelection()">К выбору предмета</button>
@@ -2074,7 +2322,7 @@ function backToSelection() {
   document.getElementById('actions').style.display = 'none';
   document.getElementById('nextbtn').style.display = 'none';
   document.getElementById('prog').style.width = '0%';
-  document.getElementById('prog-label').textContent = '0 / ' + QUESTION_COUNT;
+  document.getElementById('prog-label').textContent = '0 / ' + difficultyLevels[selectedDifficulty].count;
   document.getElementById('timer').textContent = formatTime(TEST_SECONDS);
   document.getElementById('timer').classList.remove('warn');
 }
@@ -2089,7 +2337,7 @@ function toggleAI(forceOpen) {
 function resetAI() {
   aiStarted = true;
   aiMode = 'welcome';
-  aiPlan = { grade: null, subject: null, goal: null };
+  aiPlan = { grade: null, subject: null, goal: null, examTime: null };
   document.getElementById('ai-messages').innerHTML = '';
   document.getElementById('ai-input-row').classList.remove('open');
   addAIMessage('bot', 'Привет, давай создадим план обучения!');
@@ -2124,7 +2372,7 @@ function startAIPlan() {
   aiMode = 'plan';
   addAIMessage('user', 'Давай');
   document.getElementById('ai-input-row').classList.remove('open');
-  aiPlan = { grade: null, subject: null, goal: null };
+  aiPlan = { grade: null, subject: null, goal: null, examTime: null };
   addAIMessage('bot', 'Супер. Выбери класс, для которого нужен план.');
   setAIOptions([
     { text: '5 класс', action: () => chooseAIGrade('5') },
@@ -2179,6 +2427,16 @@ function chooseAISubject(subjectId) {
 function chooseAIGoal(goal) {
   aiPlan.goal = goal;
   addAIMessage('user', goal === 'exam' ? 'для экзамена' : 'для проверки знаний');
+  if (goal === 'exam') {
+    addAIMessage('bot', 'Через сколько у Вас экзамен?');
+    setAIOptions([
+      { text: 'Через неделю', action: () => chooseAIExamTime('week') },
+      { text: 'Через 2–3 недели', action: () => chooseAIExamTime('weeks') },
+      { text: 'Через месяц', action: () => chooseAIExamTime('month') },
+      { text: 'Больше месяца', action: () => chooseAIExamTime('long') }
+    ]);
+    return;
+  }
   addAIMessage('bot', buildAIPlanText());
   document.getElementById('ai-input-row').classList.add('open');
   setAIOptions([
@@ -2188,13 +2446,47 @@ function chooseAIGoal(goal) {
   ]);
 }
 
+function chooseAIExamTime(examTime) {
+  const labels = {
+    week: 'через неделю',
+    weeks: 'через 2–3 недели',
+    month: 'через месяц',
+    long: 'больше месяца'
+  };
+  aiPlan.examTime = examTime;
+  addAIMessage('user', labels[examTime]);
+  addAIMessage('bot', buildAIPlanText());
+  document.getElementById('ai-input-row').classList.add('open');
+  setAIOptions([
+    { text: 'Собрать другой план', action: startAIPlan },
+    { text: 'Пойти к тестам', action: syncAISelectionToTest },
+    { text: 'Начать заново', action: resetAI }
+  ]);
+}
+
+function getExamSchedule() {
+  if (aiPlan.examTime === 'week') {
+    return 'Срок короткий: каждый день повторяй 1–2 темы, сразу решай тест и разбирай ошибки. Последний день оставь только на слабые места.';
+  }
+  if (aiPlan.examTime === 'weeks') {
+    return 'Есть 2–3 недели: первую часть времени отдай теории, вторую — вариантам тестов и ошибкам. Повторяй сложные темы через день.';
+  }
+  if (aiPlan.examTime === 'month') {
+    return 'Есть месяц: можно идти спокойно. Неделя 1 — база, неделя 2 — сложные темы, неделя 3 — тесты, неделя 4 — повторение ошибок.';
+  }
+  if (aiPlan.examTime === 'long') {
+    return 'Времени много: начни с начальной подготовки, потом перейди на среднюю, а за 2 недели до экзамена включи генеральную подготовку.';
+  }
+  return 'Сначала повтори базу, потом решай варианты и отдельно выписывай ошибки.';
+}
+
 function buildAIPlanText() {
   const subjectName = subjects[aiPlan.subject].name;
   const data = studyTopics[aiPlan.grade][aiPlan.subject][aiPlan.goal];
   const topicLines = data.map((topic, index) => (index + 1) + '. ' + topic).join('\n');
 
   if (aiPlan.goal === 'exam') {
-    return 'План для экзамена: ' + aiPlan.grade + ' класс · ' + subjectName + '.\n\nНадо повторить:\n' + topicLines + '\n\nКак идти:\n1. День 1–2: повтори теорию и выпиши определения.\n2. День 3–4: решай задания по каждой теме.\n3. День 5: пройди тест на сайте и разбери ошибки.\n4. День 6–7: повтори только слабые места и сделай новый вариант.';
+    return 'План для экзамена: ' + aiPlan.grade + ' класс · ' + subjectName + '.\n\nНадо повторить:\n' + topicLines + '\n\nСрок: ' + getExamSchedule() + '\n\nКак идти:\n1. Повтори теорию и выпиши определения.\n2. Решай задания по каждой теме.\n3. Пройди тест на сайте на средней подготовке.\n4. Перед экзаменом включи генеральную подготовку и разбери ошибки.';
   }
 
   return 'План для проверки знаний: ' + aiPlan.grade + ' класс · ' + subjectName + '.\n\nГлавное, что надо знать:\n' + topicLines + '\n\nКак проверить себя:\n1. Быстро прочитай конспект или параграф.\n2. Объясни каждую тему своими словами.\n3. Пройди тест и посмотри пояснения к ошибкам.\n4. Через день повтори вопросы, где было сложнее всего.';
@@ -2287,6 +2579,9 @@ function buildCasualReply(text) {
 
 document.querySelectorAll('[data-grade]').forEach(button => {
   button.onclick = () => selectGrade(button.dataset.grade);
+});
+document.querySelectorAll('[data-difficulty]').forEach(button => {
+  button.onclick = () => selectDifficulty(button.dataset.difficulty);
 });
 document.getElementById('ai-input').addEventListener('keydown', event => {
   if (event.key === 'Enter') sendAIText();
