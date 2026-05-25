@@ -706,6 +706,8 @@ const QUESTION_COUNT = 16;
 const TEST_SECONDS = 45 * 60;
 const LAST_TEST_PREFIX = 'school-tests-last-variant-';
 const letters = ['А','Б','В','Г'];
+const languageSubjectIds = ['russian', 'english', 'german', 'french'];
+const REQUIRED_GRAMMAR_COUNT = 5;
 
 const difficultyLevels = {
   basic: { name: 'Начальная подготовка', shortName: 'начальная', count: 10, pool: ['basic'] },
@@ -727,11 +729,12 @@ const subjects = {
 };
 
 function makeBank(rows) {
-  return rows.map(([q, correct, wrong1, wrong2, wrong3, exp]) => ({
+  return rows.map(([q, correct, wrong1, wrong2, wrong3, exp, category]) => ({
     q: String(q),
     opts: [correct, wrong1, wrong2, wrong3].map(String),
     ans: 0,
-    exp: String(exp)
+    exp: String(exp),
+    category: category || 'general'
   }));
 }
 
@@ -1945,12 +1948,166 @@ function addLanguagePracticeRows() {
   });
 }
 
+function addRequiredGrammarRows() {
+  const grammarRows = {
+    '5': {
+      russian: [
+        ["Укажи слово, которое является существительным.", "дерево", "зелёный", "бежать", "быстро", "Существительное обозначает предмет и отвечает на вопросы кто? что?", "grammar"],
+        ["Укажи слово, которое является глаголом.", "рисовать", "рисунок", "красивый", "карандаш", "Глагол обозначает действие и отвечает на вопросы что делать? что сделать?", "grammar"],
+        ["В каком слове есть приставка?", "подписать", "лист", "окно", "синий", "В слове «подписать» приставка под- стоит перед корнем.", "grammar"],
+        ["Выбери правильное написание.", "жираф", "жыраф", "жераф", "жыраф", "Сочетания жи-ши пишутся с буквой и.", "grammar"],
+        ["В каком предложении есть подлежащее и сказуемое?", "Птицы летят.", "На столе.", "Очень красиво.", "После урока.", "«Птицы» — подлежащее, «летят» — сказуемое.", "grammar"],
+        ["Укажи прилагательное.", "весёлый", "веселье", "веселиться", "весело", "Прилагательное обозначает признак предмета.", "grammar"],
+        ["Выбери слово с суффиксом.", "домик", "дом", "поддомный", "дома", "В слове «домик» суффикс -ик-.", "grammar"],
+        ["Какой знак нужен в конце вопросительного предложения?", "?", ".", "!", ",", "Вопросительное предложение заканчивается вопросительным знаком.", "grammar"]
+      ],
+      english: [
+        ["Choose the correct form: He ___ a bike.", "has", "have", "am", "are", "With he we use has.", "grammar"],
+        ["Choose the correct form: We ___ at school.", "are", "is", "am", "be", "With we we use are.", "grammar"],
+        ["Choose the correct question.", "Does she like music?", "Do she like music?", "Does she likes music?", "Is she like music?", "In Present Simple with she we use does + base verb.", "grammar"],
+        ["Choose the correct negative sentence.", "I do not play chess.", "I does not play chess.", "I not play chess.", "I am not play chess.", "With I we use do not + base verb.", "grammar"],
+        ["Choose the correct article: ___ orange.", "an", "a", "the a", "many", "Orange begins with a vowel sound, so we use an.", "grammar"],
+        ["Choose the correct plural: one box — two ___", "boxes", "boxs", "boxies", "box", "After -x we add -es.", "grammar"],
+        ["Choose the correct sentence.", "There is a book on the table.", "There are a book on the table.", "There is two book on the table.", "There be a book on the table.", "For one object we use there is.", "grammar"],
+        ["Choose the correct pronoun: Kate is my sister. ___ is kind.", "She", "He", "It", "They", "Kate is a girl, so the pronoun is she.", "grammar"]
+      ],
+      german: [
+        ["Choose the correct form: Ich ___ zwölf Jahre alt.", "bin", "bist", "ist", "seid", "With ich we use bin.", "grammar"],
+        ["Choose the correct form: Du ___ Deutsch.", "lernst", "lerne", "lernen", "lernt", "With du the verb ending is -st.", "grammar"],
+        ["Choose the correct article: ___ Schule.", "die", "der", "das", "den", "Schule is feminine, so the article is die.", "grammar"],
+        ["Choose the correct sentence.", "Ich habe einen Bruder.", "Ich hat einen Bruder.", "Ich hast einen Bruder.", "Ich haben einen Bruder.", "With ich we use habe.", "grammar"],
+        ["Choose the correct negative sentence.", "Das ist nicht gut.", "Das ist kein gut.", "Das nicht ist gut.", "Das keine gut.", "Nicht negates adjectives.", "grammar"],
+        ["Choose the correct plural: das Kind — die ___", "Kinder", "Kinds", "Kinden", "Kindern", "The plural of das Kind is die Kinder.", "grammar"],
+        ["Choose the correct question word: ___ heißt du?", "Wie", "Wo", "Was", "Wann", "Wie heißt du? means What is your name?", "grammar"],
+        ["Choose the correct sentence.", "Wir spielen im Park.", "Wir spielt im Park.", "Wir spiele im Park.", "Wir spielst im Park.", "With wir the verb ending is -en.", "grammar"]
+      ],
+      french: [
+        ["Choose the correct form: Je ___ élève.", "suis", "es", "est", "sommes", "With je we use suis.", "grammar"],
+        ["Choose the correct form: Tu ___ un stylo.", "as", "a", "ai", "ont", "With tu we use as.", "grammar"],
+        ["Choose the correct article: ___ école.", "une", "un", "des", "le", "École is feminine singular, so une is correct.", "grammar"],
+        ["Choose the correct negative sentence.", "Je n'aime pas le thé.", "Je ne aime le thé pas.", "Je pas aime le thé.", "Je n'aimes pas le thé.", "French negation is ne/n' ... pas.", "grammar"],
+        ["Choose the correct plural: un livre — des ___", "livres", "livre", "livreses", "livren", "Most French nouns add -s in plural.", "grammar"],
+        ["Choose the correct adjective agreement: une fleur ___", "rouge", "rouges", "roug", "rougees", "Rouge has the same form in feminine singular.", "grammar"],
+        ["Choose the correct sentence.", "Nous sommes amis.", "Nous êtes amis.", "Nous est amis.", "Nous suis amis.", "With nous we use sommes.", "grammar"],
+        ["Choose the correct question.", "Comment tu t'appelles ?", "Comment tu appelles ?", "Quel tu t'appelles ?", "Où tu t'appelles ?", "Comment tu t'appelles ? asks for a name.", "grammar"]
+      ]
+    },
+    '6': {
+      russian: [
+        ["Укажи качественное прилагательное.", "смелый", "деревянный", "лисий", "вчерашний", "Качественные прилагательные могут иметь степени сравнения: смелый — смелее.", "grammar"],
+        ["Укажи собирательное числительное.", "семеро", "семь", "седьмой", "одна седьмая", "Собирательные числительные обозначают количество как совокупность.", "grammar"],
+        ["В каком слове пишется приставка ПРИ-?", "приехать", "прекрасный", "преграда", "преумный", "При- часто обозначает приближение.", "grammar"],
+        ["Укажи инфинитив.", "беречь", "берёг", "бережёт", "береги", "Инфинитив отвечает на вопросы что делать? что сделать?", "grammar"],
+        ["Укажи местоимение.", "который", "быстро", "зелёный", "читать", "«Который» — местоимение.", "grammar"],
+        ["Укажи относительное прилагательное.", "зимний", "добрый", "громкий", "тихий", "Относительное прилагательное обозначает признак через отношение к предмету или времени.", "grammar"],
+        ["В каком предложении нужна запятая между частями сложного предложения?", "Солнце село, и стало прохладно.", "Мы пошли домой.", "На улице тепло.", "Очень красивый лес.", "Части сложного предложения разделяются запятой.", "grammar"],
+        ["Укажи слово с суффиксальным способом образования.", "лесник", "подлесок", "переход", "самолёт", "Слово «лесник» образовано с помощью суффикса -ник-.", "grammar"]
+      ],
+      english: [
+        ["Choose the correct Past Simple form: She ___ a letter yesterday.", "wrote", "write", "writes", "writing", "Write is irregular: Past Simple is wrote.", "grammar"],
+        ["Choose the correct question.", "Did they go to the museum?", "Did they went to the museum?", "Do they went to the museum?", "Were they go to the museum?", "Past Simple questions use did + base verb.", "grammar"],
+        ["Choose the correct Present Continuous form.", "He is reading now.", "He are reading now.", "He reads now.", "He is read now.", "Present Continuous uses is + V-ing with he.", "grammar"],
+        ["Choose the correct comparative.", "This task is easier than that one.", "This task is more easy than that one.", "This task is easiest than that one.", "This task easier that one.", "Short adjectives usually add -er.", "grammar"],
+        ["Choose the correct modal sentence.", "You must listen carefully.", "You must to listen carefully.", "You must listening carefully.", "You must listens carefully.", "After must we use the base verb.", "grammar"],
+        ["Choose the correct Present Perfect sentence.", "I have already done it.", "I has already done it.", "I have already did it.", "I already have do it.", "Present Perfect uses have + past participle.", "grammar"],
+        ["Choose the correct word.", "There isn't much water.", "There isn't many water.", "There aren't much water.", "There isn't a lot waters.", "Water is uncountable, so much is correct.", "grammar"],
+        ["Choose the correct future form.", "We are going to visit London.", "We going to visit London.", "We are go visit London.", "We is going to visit London.", "Be going to uses am/is/are + going to + verb.", "grammar"]
+      ],
+      german: [
+        ["Choose the correct modal sentence.", "Ich kann gut schwimmen.", "Ich kann gut schwimmt.", "Ich kann zu schwimmen.", "Ich gut schwimmen kann.", "After modal verbs the main verb is infinitive.", "grammar"],
+        ["Choose the correct accusative article.", "Ich sehe den Hund.", "Ich sehe der Hund.", "Ich sehe die Hund.", "Ich sehe das Hund.", "Masculine der changes to den in accusative.", "grammar"],
+        ["Choose the correct perfect sentence.", "Wir haben Deutsch gelernt.", "Wir sind Deutsch gelernt.", "Wir haben Deutsch lernen.", "Wir hat Deutsch gelernt.", "Perfekt with lernen uses haben + gelernt.", "grammar"],
+        ["Choose the correct subordinate clause.", "Ich lerne, weil ich morgen einen Test habe.", "Ich lerne, weil ich habe morgen einen Test.", "Ich lerne, weil habe ich morgen einen Test.", "Ich lerne, weil ich morgen habe einen Test.", "After weil, the conjugated verb goes to the end.", "grammar"],
+        ["Choose the correct dative phrase.", "mit dem Freund", "mit den Freund", "mit der Freund", "mit das Freund", "Mit requires dative; der Freund becomes dem Freund.", "grammar"],
+        ["Choose the correct plural.", "die Bücher", "die Buchs", "die Buche", "die Bucher", "The plural of das Buch is die Bücher.", "grammar"],
+        ["Choose the correct word order.", "Morgen gehe ich zur Schule.", "Morgen ich gehe zur Schule.", "Morgen zur Schule gehe ich.", "Gehe morgen ich zur Schule.", "In a German statement the conjugated verb is in second position.", "grammar"],
+        ["Choose the correct negation.", "Ich habe keine Zeit.", "Ich habe nicht Zeit.", "Ich bin keine Zeit.", "Ich habe kein Zeit.", "Keine is used with feminine Zeit.", "grammar"]
+      ],
+      french: [
+        ["Choose the correct passé composé sentence.", "Elle a fini ses devoirs.", "Elle est fini ses devoirs.", "Elle a finir ses devoirs.", "Elle fini ses devoirs.", "Passé composé uses avoir + past participle for finir.", "grammar"],
+        ["Choose the correct near future.", "Je vais lire ce livre.", "Je vais lis ce livre.", "Je suis lire ce livre.", "Je aller lire ce livre.", "Near future uses aller + infinitive.", "grammar"],
+        ["Choose the correct negative sentence.", "Nous ne parlons pas anglais.", "Nous ne pas parlons anglais.", "Nous parlons ne pas anglais.", "Nous n'parlons pas anglais.", "French negation frames the conjugated verb.", "grammar"],
+        ["Choose the correct adjective agreement.", "une voiture verte", "une voiture vert", "une voiture verts", "une voiture vertes", "Voiture is feminine singular, so verte is correct.", "grammar"],
+        ["Choose the correct article contraction.", "Je vais au collège.", "Je vais à le collège.", "Je vais à la collège.", "Je vais aux collège.", "À + le becomes au.", "grammar"],
+        ["Choose the correct possessive adjective.", "mon ami", "ma ami", "mes ami", "ton amie", "Before a vowel, feminine singular also uses mon.", "grammar"],
+        ["Choose the correct question.", "Pourquoi tu restes à la maison ?", "Quand tu restes pourquoi ?", "Quel tu restes à la maison ?", "Comment la maison tu restes ?", "Pourquoi asks why.", "grammar"],
+        ["Choose the correct pronoun.", "Nous les regardons.", "Nous regardons les.", "Nous le regardons les.", "Nous leur regardons.", "Direct object pronouns usually stand before the verb.", "grammar"]
+      ]
+    }
+  };
+
+  Object.entries(grammarRows).forEach(([grade, subjectsMap]) => {
+    Object.entries(subjectsMap).forEach(([subject, subjectRows]) => addRows(grade, subject, subjectRows));
+  });
+}
+
+function markExistingLanguageGrammarRows() {
+  const grammarSignals = [
+    'choose the correct form',
+    'choose the correct question',
+    'choose the correct negative',
+    'choose the correct sentence',
+    'choose the correct article',
+    'choose the correct plural',
+    'choose the correct pronoun',
+    'choose the correct past simple',
+    'choose the correct present',
+    'choose the correct comparative',
+    'choose the correct modal',
+    'choose the correct word',
+    'choose the correct future',
+    'choose the correct perfect',
+    'choose the correct subordinate',
+    'choose the correct accusative',
+    'choose the correct dative',
+    'choose the correct word order',
+    'choose the correct negation',
+    'choose the correct near future',
+    'choose the correct adjective',
+    'choose the correct passé',
+    'choose the correct possessive',
+    'укажи слово',
+    'укажи качественное',
+    'укажи собирательное',
+    'укажи инфинитив',
+    'укажи местоимение',
+    'укажи прилагательное',
+    'укажи относительное',
+    'в каком слове',
+    'выбери правильное написание',
+    'в каком предложении',
+    'какой знак'
+  ];
+
+  Object.values(questionBanksByGrade).forEach(subjectBanks => {
+    languageSubjectIds.forEach(subject => {
+      (subjectBanks[subject] || []).forEach(question => {
+        const text = question.q.toLowerCase();
+        if (grammarSignals.some(signal => text.includes(signal))) {
+          question.category = 'grammar';
+        }
+      });
+    });
+  });
+}
+
 function assignDifficultyLevels() {
   Object.values(questionBanksByGrade).forEach(subjectBanks => {
     Object.values(subjectBanks).forEach(bank => {
       const oneThird = Math.ceil(bank.length / 3);
       bank.forEach((question, index) => {
         question.level = index < oneThird ? 'basic' : index < oneThird * 2 ? 'middle' : 'general';
+      });
+    });
+  });
+}
+
+function spreadGrammarDifficultyLevels() {
+  Object.values(questionBanksByGrade).forEach(subjectBanks => {
+    languageSubjectIds.forEach(subject => {
+      const grammarQuestions = (subjectBanks[subject] || []).filter(question => question.category === 'grammar');
+      grammarQuestions.forEach((question, index) => {
+        question.level = index % 2 === 0 ? 'basic' : 'general';
       });
     });
   });
@@ -1966,7 +2123,10 @@ function expandQuestionBanks() {
   addRows('5', 'math', buildMath5Rows());
   addRows('6', 'math', buildMath6Rows());
   addLanguagePracticeRows();
+  addRequiredGrammarRows();
+  markExistingLanguageGrammarRows();
   assignDifficultyLevels();
+  spreadGrammarDifficultyLevels();
 }
 
 expandQuestionBanks();
@@ -2070,7 +2230,7 @@ let timerId = null;
 let finishedByTimer = false;
 let aiStarted = false;
 let aiMode = 'welcome';
-let aiPlan = { grade: null, subject: null, goal: null, examTime: null };
+let aiPlan = { grade: null, subject: null, goal: null, examTime: null, customExamTime: null };
 
 function shuffle(items) {
   const mixed = [...items];
@@ -2095,6 +2255,27 @@ function normalizeQuestion(item) {
   };
 }
 
+function pickQuestionsForVariant(pool, bank, subjectId, count) {
+  if (!languageSubjectIds.includes(subjectId)) {
+    return shuffle(pool).slice(0, count);
+  }
+
+  const grammarPool = pool.filter(question => question.category === 'grammar');
+  const allGrammar = bank.filter(question => question.category === 'grammar');
+  const grammarSource = grammarPool.length >= REQUIRED_GRAMMAR_COUNT ? grammarPool : allGrammar;
+  const grammarPicked = shuffle(grammarSource).slice(0, Math.min(REQUIRED_GRAMMAR_COUNT, count));
+  const pickedSet = new Set(grammarPicked);
+  const restCount = count - grammarPicked.length;
+  const preferredRest = pool.filter(question => !pickedSet.has(question) && question.category !== 'grammar');
+  const fallbackRest = bank.filter(question => !pickedSet.has(question) && question.category !== 'grammar');
+  const restSource = preferredRest.length >= restCount ? preferredRest : fallbackRest;
+
+  return shuffle([
+    ...grammarPicked,
+    ...shuffle(restSource).slice(0, restCount)
+  ]);
+}
+
 function buildVariant(subjectId) {
   const bank = questionBanksByGrade[selectedGrade][subjectId];
   const difficulty = difficultyLevels[selectedDifficulty];
@@ -2106,7 +2287,7 @@ function buildVariant(subjectId) {
   let signature = '';
 
   for (let attempt = 0; attempt < 30; attempt++) {
-    picked = shuffle(pool).slice(0, difficulty.count);
+    picked = pickQuestionsForVariant(pool, bank, subjectId, difficulty.count);
     signature = picked.map(item => item.q).sort().join('|');
     if (signature !== lastSignature) break;
   }
@@ -2337,7 +2518,7 @@ function toggleAI(forceOpen) {
 function resetAI() {
   aiStarted = true;
   aiMode = 'welcome';
-  aiPlan = { grade: null, subject: null, goal: null, examTime: null };
+  aiPlan = { grade: null, subject: null, goal: null, examTime: null, customExamTime: null };
   document.getElementById('ai-messages').innerHTML = '';
   document.getElementById('ai-input-row').classList.remove('open');
   addAIMessage('bot', 'Привет, давай создадим план обучения!');
@@ -2372,7 +2553,7 @@ function startAIPlan() {
   aiMode = 'plan';
   addAIMessage('user', 'Давай');
   document.getElementById('ai-input-row').classList.remove('open');
-  aiPlan = { grade: null, subject: null, goal: null, examTime: null };
+  aiPlan = { grade: null, subject: null, goal: null, examTime: null, customExamTime: null };
   addAIMessage('bot', 'Супер. Выбери класс, для которого нужен план.');
   setAIOptions([
     { text: '5 класс', action: () => chooseAIGrade('5') },
@@ -2428,13 +2609,7 @@ function chooseAIGoal(goal) {
   aiPlan.goal = goal;
   addAIMessage('user', goal === 'exam' ? 'для экзамена' : 'для проверки знаний');
   if (goal === 'exam') {
-    addAIMessage('bot', 'Через сколько у Вас экзамен?');
-    setAIOptions([
-      { text: 'Через неделю', action: () => chooseAIExamTime('week') },
-      { text: 'Через 2–3 недели', action: () => chooseAIExamTime('weeks') },
-      { text: 'Через месяц', action: () => chooseAIExamTime('month') },
-      { text: 'Больше месяца', action: () => chooseAIExamTime('long') }
-    ]);
+    showAIExamTimeOptions();
     return;
   }
   addAIMessage('bot', buildAIPlanText());
@@ -2446,6 +2621,32 @@ function chooseAIGoal(goal) {
   ]);
 }
 
+function showAIExamTimeOptions() {
+  aiMode = 'plan';
+  document.getElementById('ai-input-row').classList.remove('open');
+  addAIMessage('bot', 'Через сколько у Вас экзамен?');
+  setAIOptions([
+    { text: 'Через неделю', action: () => chooseAIExamTime('week') },
+    { text: 'Через 2–3 недели', action: () => chooseAIExamTime('weeks') },
+    { text: 'Через месяц', action: () => chooseAIExamTime('month') },
+    { text: 'Больше месяца', action: () => chooseAIExamTime('long') },
+    { text: 'Свой вариант', action: askCustomAIExamTime }
+  ]);
+}
+
+function askCustomAIExamTime() {
+  aiMode = 'examTimeCustom';
+  aiPlan.examTime = 'custom';
+  aiPlan.customExamTime = null;
+  addAIMessage('user', 'Свой вариант');
+  addAIMessage('bot', 'Напиши срок своими словами: например, через 10 дней, 15 июня или через полтора месяца.');
+  document.getElementById('ai-input-row').classList.add('open');
+  setAIOptions([
+    { text: 'Назад к вариантам срока', action: showAIExamTimeOptions },
+    { text: 'Начать заново', action: resetAI }
+  ]);
+}
+
 function chooseAIExamTime(examTime) {
   const labels = {
     week: 'через неделю',
@@ -2453,7 +2654,9 @@ function chooseAIExamTime(examTime) {
     month: 'через месяц',
     long: 'больше месяца'
   };
+  aiMode = 'plan';
   aiPlan.examTime = examTime;
+  aiPlan.customExamTime = null;
   addAIMessage('user', labels[examTime]);
   addAIMessage('bot', buildAIPlanText());
   document.getElementById('ai-input-row').classList.add('open');
@@ -2476,6 +2679,9 @@ function getExamSchedule() {
   }
   if (aiPlan.examTime === 'long') {
     return 'Времени много: начни с начальной подготовки, потом перейди на среднюю, а за 2 недели до экзамена включи генеральную подготовку.';
+  }
+  if (aiPlan.examTime === 'custom') {
+    return 'Ты указал срок: ' + aiPlan.customExamTime + '. Разбей подготовку на три шага: сначала база, затем задания по слабым темам, в конце полный тест и разбор ошибок.';
   }
   return 'Сначала повтори базу, потом решай варианты и отдельно выписывай ошибки.';
 }
@@ -2506,6 +2712,17 @@ function sendAIText() {
   if (!text) return;
   addAIMessage('user', text);
   input.value = '';
+  if (aiMode === 'examTimeCustom') {
+    aiPlan.customExamTime = text;
+    aiMode = 'plan';
+    addAIMessage('bot', buildAIPlanText());
+    setAIOptions([
+      { text: 'Собрать другой план', action: startAIPlan },
+      { text: 'Пойти к тестам', action: syncAISelectionToTest },
+      { text: 'Начать заново', action: resetAI }
+    ]);
+    return;
+  }
   addAIMessage('bot', buildCasualReply(text));
   setCasualOptions();
 }
