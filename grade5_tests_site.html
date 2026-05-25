@@ -1,0 +1,2224 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Тесты 5–6 класс</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green: #1D9E75;
+    --green-light: #EAF3DE;
+    --green-dark: #085041;
+    --red-light: #FCEBEB;
+    --red-dark: #501313;
+    --red-mid: #A32D2D;
+    --bg: #F7F6F1;
+    --card: #FFFFFF;
+    --text: #1a1a18;
+    --muted: #6B6B65;
+    --border: rgba(0,0,0,0.1);
+  }
+
+  body {
+    font-family: 'Manrope', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 720px;
+  }
+
+  header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .subject-tag {
+    display: inline-block;
+    font-family: 'Unbounded', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--green-dark);
+    background: var(--green-light);
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+  }
+
+  h1 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .selection {
+    display: block;
+  }
+
+  .select-block {
+    margin-bottom: 1rem;
+  }
+
+  .select-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--green);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .class-grid,
+  .subject-grid {
+    display: grid;
+    gap: 10px;
+  }
+
+  .class-grid {
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  }
+
+  .subject-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+
+  .choice {
+    min-height: 48px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #FAFAF8;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: 'Manrope', sans-serif;
+    color: var(--text);
+    text-align: left;
+    transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .choice:hover {
+    background: #F0EFE9;
+    border-color: rgba(0,0,0,0.18);
+  }
+
+  .choice.active {
+    background: var(--green-light);
+    border-color: var(--green);
+    box-shadow: 0 0 0 2px rgba(29,158,117,0.16);
+  }
+
+  .start-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-top: 1.25rem;
+  }
+
+  .selected-note {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+
+  .progress-row {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-label,
+  .timer-label {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .timer-label {
+    color: var(--green-dark);
+    background: var(--green-light);
+    border: 1px solid #CFE9D3;
+    border-radius: 20px;
+    padding: 4px 10px;
+  }
+
+  .timer-label.warn {
+    color: var(--red-dark);
+    background: var(--red-light);
+    border-color: #F7C1C1;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .q-number {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--green);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .q-text {
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 1.55;
+    color: var(--text);
+    margin-bottom: 1.5rem;
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .opt {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #FAFAF8;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: 'Manrope', sans-serif;
+    color: var(--text);
+    text-align: left;
+    transition: background 0.15s, border-color 0.15s;
+    line-height: 1.45;
+  }
+
+  .opt:hover:not(:disabled) {
+    background: #F0EFE9;
+    border-color: rgba(0,0,0,0.18);
+  }
+
+  .opt .letter {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-top: 1px;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .opt.correct { background: var(--green-light); border-color: var(--green); }
+  .opt.correct .letter { background: var(--green); color: #fff; }
+  .opt.wrong { background: var(--red-light); border-color: var(--red-mid); }
+  .opt.wrong .letter { background: var(--red-mid); color: #fff; }
+  .opt.reveal { background: var(--green-light); border-color: var(--green); }
+  .opt.reveal .letter { background: var(--green); color: #fff; }
+
+  .feedback-box {
+    margin-top: 1rem;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.55;
+    display: none;
+  }
+
+  .feedback-box.ok { background: var(--green-light); color: var(--green-dark); border: 1px solid #9FE1CB; }
+  .feedback-box.err { background: var(--red-light); color: var(--red-dark); border: 1px solid #F7C1C1; }
+
+  .actions {
+    display: none;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 1rem;
+  }
+
+  .btn-next,
+  .btn-restart,
+  .btn-start,
+  .btn-light {
+    padding: 10px 22px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--text);
+    color: #fff;
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.15s, background 0.15s;
+  }
+
+  .btn-next {
+    display: none;
+  }
+
+  .btn-start:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  .btn-light {
+    background: #FAFAF8;
+    color: var(--text);
+  }
+
+  .btn-next:hover,
+  .btn-restart:hover,
+  .btn-start:hover:not(:disabled),
+  .btn-light:hover {
+    opacity: 0.85;
+  }
+
+  .score-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 3rem 2rem;
+    text-align: center;
+    display: none;
+  }
+
+  .score-emoji { font-size: 48px; margin-bottom: 1rem; }
+  .score-fraction { font-family: 'Unbounded', sans-serif; font-size: 52px; font-weight: 600; color: var(--text); line-height: 1; }
+  .score-desc { font-size: 14px; color: var(--muted); margin-top: 8px; margin-bottom: 6px; }
+  .score-grade { font-family: 'Unbounded', sans-serif; font-size: 18px; color: var(--green-dark); margin-bottom: 1rem; }
+  .score-extra { font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 2rem; }
+
+  .score-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .ai-callout {
+    position: fixed;
+    right: 100px;
+    bottom: 118px;
+    width: 230px;
+    z-index: 15;
+    pointer-events: none;
+  }
+
+  .ai-callout-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--green-dark);
+    margin-bottom: 5px;
+  }
+
+  .ai-callout-text {
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--muted);
+  }
+
+  .ai-arrow {
+    width: 116px;
+    height: 52px;
+    margin-left: 96px;
+    margin-top: 8px;
+    border-right: 2px solid var(--green);
+    border-bottom: 2px solid var(--green);
+    border-radius: 0 0 18px 0;
+    position: relative;
+  }
+
+  .ai-arrow::after {
+    content: '';
+    position: absolute;
+    right: -6px;
+    bottom: -3px;
+    width: 10px;
+    height: 10px;
+    border-right: 2px solid var(--green);
+    border-bottom: 2px solid var(--green);
+    transform: rotate(-45deg);
+  }
+
+  .ai-launcher {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+    border: 1px solid rgba(8,80,65,0.18);
+    background: var(--text);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.22);
+    z-index: 30;
+    transition: transform 0.15s, opacity 0.15s;
+  }
+
+  .ai-launcher:hover {
+    transform: translateY(-2px);
+    opacity: 0.92;
+  }
+
+  .chat-icon {
+    width: 28px;
+    height: 22px;
+    border: 2px solid #fff;
+    border-radius: 10px;
+    position: relative;
+  }
+
+  .chat-icon::after {
+    content: '';
+    position: absolute;
+    right: 4px;
+    bottom: -7px;
+    width: 9px;
+    height: 9px;
+    background: var(--text);
+    border-right: 2px solid #fff;
+    border-bottom: 2px solid #fff;
+    transform: rotate(38deg);
+  }
+
+  .chat-icon::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 8px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 7px 0 0 #fff, 14px 0 0 #fff;
+  }
+
+  .ai-panel {
+    position: fixed;
+    right: 24px;
+    bottom: 98px;
+    width: min(390px, calc(100vw - 32px));
+    max-height: min(640px, calc(100vh - 126px));
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 24px 70px rgba(0,0,0,0.18);
+    z-index: 29;
+    overflow: hidden;
+    display: none;
+  }
+
+  .ai-panel.open {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ai-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 15px 16px;
+    border-bottom: 1px solid var(--border);
+    background: #FAFAF8;
+  }
+
+  .ai-kicker {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 4px;
+  }
+
+  .ai-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .ai-close {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  .ai-messages {
+    padding: 16px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .ai-msg {
+    max-width: 92%;
+    border-radius: 14px;
+    padding: 11px 13px;
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: pre-line;
+  }
+
+  .ai-msg.bot {
+    align-self: flex-start;
+    background: var(--green-light);
+    color: var(--green-dark);
+    border: 1px solid #CFE9D3;
+  }
+
+  .ai-msg.user {
+    align-self: flex-end;
+    background: var(--text);
+    color: #fff;
+  }
+
+  .ai-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 16px 16px;
+  }
+
+  .ai-option {
+    padding: 9px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #FAFAF8;
+    color: var(--text);
+    cursor: pointer;
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .ai-option:hover {
+    background: #F0EFE9;
+    border-color: rgba(0,0,0,0.18);
+  }
+
+  .ai-input-row {
+    display: none;
+    gap: 8px;
+    padding: 12px 16px 16px;
+    border-top: 1px solid var(--border);
+    background: #FAFAF8;
+  }
+
+  .ai-input-row.open {
+    display: flex;
+  }
+
+  .ai-input {
+    flex: 1;
+    min-width: 0;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    font: inherit;
+    font-size: 13px;
+    background: #fff;
+  }
+
+  .ai-send {
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--text);
+    color: #fff;
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  @media (max-width: 560px) {
+    body { padding-top: 1rem; }
+    .card { padding: 1.25rem; }
+    .start-panel { align-items: stretch; flex-direction: column; }
+    .btn-start { width: 100%; }
+    .progress-row { align-items: stretch; flex-wrap: wrap; }
+    .progress-track { flex-basis: 100%; order: 3; }
+    .ai-callout { display: none; }
+    .ai-panel {
+      right: 12px;
+      bottom: 86px;
+      width: calc(100vw - 24px);
+      max-height: calc(100vh - 104px);
+    }
+    .ai-launcher {
+      right: 16px;
+      bottom: 16px;
+      width: 56px;
+      height: 56px;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="subject-tag" id="page-tag">5 класс · тренажёр</div>
+    <h1 id="page-title">Итоговые тесты</h1>
+    <p class="subtitle" id="page-subtitle">Выбери класс и предмет · 16 вопросов · 45 минут</p>
+  </header>
+
+  <section class="selection" id="selection">
+    <div class="card">
+      <div class="select-block">
+        <div class="select-title">Класс</div>
+        <div class="class-grid" id="class-grid">
+          <button class="choice active" data-grade="5">5 класс</button>
+          <button class="choice" data-grade="6">6 класс</button>
+        </div>
+      </div>
+
+      <div class="select-block">
+        <div class="select-title">Предмет</div>
+        <div class="subject-grid" id="subject-grid"></div>
+      </div>
+
+      <div class="start-panel">
+        <div class="selected-note" id="selected-note">Сначала выбери предмет.</div>
+        <button class="btn-start" id="startbtn" onclick="startTest()" disabled>Начать тест</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="progress-row" id="progress-row">
+    <div class="timer-label" id="timer">45:00</div>
+    <div class="progress-track"><div class="progress-fill" id="prog"></div></div>
+    <div class="progress-label" id="prog-label">0 / 16</div>
+  </div>
+
+  <div class="card" id="qcard" style="display: none;">
+    <div class="q-number" id="qnum"></div>
+    <div class="q-text" id="qtext"></div>
+    <div class="options" id="opts"></div>
+    <div class="feedback-box" id="feedback"></div>
+  </div>
+
+  <div class="actions" id="actions">
+    <button class="btn-light" onclick="backToSelection()">К выбору</button>
+    <button class="btn-next" id="nextbtn" onclick="nextQ()">Следующий →</button>
+  </div>
+
+  <div class="score-card" id="scorebox"></div>
+</div>
+
+<aside class="ai-callout" aria-hidden="true">
+  <div class="ai-callout-title">ИИ Playground</div>
+  <div class="ai-callout-text">Поможет собрать план подготовки под класс, предмет и цель.</div>
+  <div class="ai-arrow"></div>
+</aside>
+
+<button class="ai-launcher" id="ai-launcher" onclick="toggleAI()" aria-label="Открыть чат Playground AI">
+  <span class="chat-icon" aria-hidden="true"></span>
+</button>
+
+<section class="ai-panel" id="ai-panel" aria-label="Playground AI">
+  <div class="ai-head">
+    <div>
+      <div class="ai-kicker">Playground AI</div>
+      <div class="ai-title">План обучения</div>
+    </div>
+    <button class="ai-close" onclick="toggleAI(false)" aria-label="Закрыть чат">×</button>
+  </div>
+  <div class="ai-messages" id="ai-messages"></div>
+  <div class="ai-options" id="ai-options"></div>
+  <div class="ai-input-row" id="ai-input-row">
+    <input class="ai-input" id="ai-input" type="text" placeholder="Напиши, что сейчас сложнее всего">
+    <button class="ai-send" onclick="sendAIText()">Отправить</button>
+  </div>
+</section>
+
+<script>
+const QUESTION_COUNT = 16;
+const TEST_SECONDS = 45 * 60;
+const LAST_TEST_PREFIX = 'school-tests-last-variant-';
+const letters = ['А','Б','В','Г'];
+
+const subjects = {
+  geography: { name: 'География' },
+  biology: { name: 'Биология' },
+  informatics: { name: 'Информатика' },
+  math: { name: 'Математика' },
+  english: { name: 'Английский' },
+  german: { name: 'Немецкий' },
+  french: { name: 'Французский' },
+  russian: { name: 'Русский' },
+  literature: { name: 'Литература' }
+};
+
+function makeBank(rows) {
+  return rows.map(([q, correct, wrong1, wrong2, wrong3, exp]) => ({
+    q: String(q),
+    opts: [correct, wrong1, wrong2, wrong3].map(String),
+    ans: 0,
+    exp: String(exp)
+  }));
+}
+
+const questionBanks = {
+  geography: [
+    { q: "Модель Земли, на которой показаны материки, океаны и линии градусной сети, называется", opts: ["глобус", "компас", "атлас", "барометр"], ans: 0, exp: "Глобус — уменьшенная объёмная модель Земли, на которой сохраняется форма планеты." },
+    { q: "Линия, которая делит Землю на Северное и Южное полушария, называется", opts: ["экватор", "меридиан", "тропик", "полярный круг"], ans: 0, exp: "Экватор проходит на равном расстоянии от полюсов и делит Землю на два полушария." },
+    { q: "Условное изображение земной поверхности на плоскости — это", opts: ["географическая карта", "телескоп", "почвенный профиль", "барометр"], ans: 0, exp: "Географическая карта показывает земную поверхность с помощью условных знаков и масштаба." },
+    { q: "Число или запись, показывающая, во сколько раз расстояния на карте меньше настоящих, называется", opts: ["масштаб", "легенда", "параллель", "координата"], ans: 0, exp: "Масштаб помогает перевести расстояние на карте в расстояние на местности." },
+    { q: "Прибор для определения сторон горизонта называется", opts: ["компас", "термометр", "линейка", "нивелир"], ans: 0, exp: "Компас показывает направление на север, а по нему определяют остальные стороны горизонта." },
+    { q: "Какая сторона горизонта обозначается буквой N на компасе?", opts: ["север", "юг", "восток", "запад"], ans: 0, exp: "Буква N происходит от английского North — север." },
+    { q: "Самый большой океан Земли — это", opts: ["Тихий океан", "Атлантический океан", "Индийский океан", "Северный Ледовитый океан"], ans: 0, exp: "Тихий океан — самый большой и самый глубокий океан планеты." },
+    { q: "Самый большой материк Земли — это", opts: ["Евразия", "Африка", "Австралия", "Антарктида"], ans: 0, exp: "Евразия состоит из Европы и Азии и является крупнейшим материком." },
+    { q: "Твёрдая каменная оболочка Земли называется", opts: ["литосфера", "атмосфера", "гидросфера", "биосфера"], ans: 0, exp: "Литосфера включает земную кору и верхнюю часть мантии." },
+    { q: "Водная оболочка Земли называется", opts: ["гидросфера", "литосфера", "атмосфера", "тропосфера"], ans: 0, exp: "Гидросфера объединяет океаны, моря, реки, озёра, ледники и подземные воды." },
+    { q: "Воздушная оболочка Земли — это", opts: ["атмосфера", "гидросфера", "ядро", "мантия"], ans: 0, exp: "Атмосфера окружает Землю и содержит воздух, необходимый живым организмам." },
+    { q: "Состояние нижнего слоя атмосферы в данном месте и в данный момент называется", opts: ["погода", "климат", "рельеф", "масштаб"], ans: 0, exp: "Погода описывает температуру, ветер, облачность, осадки и давление сейчас или в ближайшее время." },
+    { q: "Многолетний режим погоды, характерный для территории, называется", opts: ["климат", "прогноз", "рельеф", "план местности"], ans: 0, exp: "Климат показывает, какая погода обычно бывает на территории в течение многих лет." },
+    { q: "Неровности земной поверхности называют", opts: ["рельефом", "масштабом", "горизонтом", "легендой"], ans: 0, exp: "Горы, равнины, холмы и овраги — формы рельефа." },
+    { q: "Какая форма рельефа имеет большую высоту и крутые склоны?", opts: ["гора", "равнина", "низменность", "платформа"], ans: 0, exp: "Гора заметно возвышается над окружающей местностью и имеет склоны." },
+    { q: "Условные знаки карты обычно объясняются в", opts: ["легенде карты", "названии учебника", "шкале термометра", "рамке окна"], ans: 0, exp: "Легенда карты расшифровывает цвета, линии и значки, использованные на карте." },
+    { q: "Параллели на глобусе показывают направление", opts: ["запад — восток", "север — юг", "вверх — вниз", "центр — край"], ans: 0, exp: "Параллели идут вокруг Земли параллельно экватору, то есть с запада на восток." },
+    { q: "Меридианы соединяют", opts: ["Северный и Южный полюсы", "только материки", "только океаны", "экватор с тропиком"], ans: 0, exp: "Каждый меридиан проходит через оба географических полюса." },
+    { q: "Как называется уменьшенное изображение небольшого участка местности сверху?", opts: ["план местности", "глобус", "погодная карта", "диаграмма"], ans: 0, exp: "План местности изображает небольшой участок земной поверхности в условных знаках." },
+    { q: "Какой океан расположен у северных берегов Евразии и Северной Америки?", opts: ["Северный Ледовитый океан", "Индийский океан", "Тихий океан", "Южный океан"], ans: 0, exp: "Северный Ледовитый океан расположен вокруг Северного полюса." }
+  ],
+
+  biology: [
+    { q: "Изучением строения клеток животных занимается специалист, который работает", opts: ["зоологом", "ботаником", "цитологом", "агрономом"], ans: 2, exp: "Цитология — наука о клетках. Именно цитолог изучает строение и функции клеток." },
+    { q: "Измеряя длину листьев берёзы линейкой, учащийся занимается", opts: ["наблюдением", "измерением", "экспериментом", "моделированием"], ans: 1, exp: "Использование измерительного инструмента — это метод измерения." },
+    { q: "Кто из учёных разработал теорию эволюции путём естественного отбора?", opts: ["И.В. Мичурин", "Н.И. Вавилов", "Чарльз Дарвин", "Карл Линней"], ans: 2, exp: "Чарльз Дарвин — автор эволюционной теории, объясняющей развитие живой природы." },
+    { q: "Цепочка: трава → кузнечик → лягушка → аист — это пример", opts: ["схемы размножения", "пищевой цепи", "круговорота веществ", "модели клетки"], ans: 1, exp: "Последовательность организмов, где каждый служит пищей следующему, называется пищевой цепью." },
+    { q: "Прокисание молока и превращение его в простоквашу связано с деятельностью", opts: ["цианобактерий", "болезнетворных бактерий", "бактерий-паразитов", "молочнокислых бактерий"], ans: 3, exp: "Молочнокислые бактерии сбраживают молочный сахар, поэтому молоко скисает." },
+    { q: "Какой процесс проявляется в поглощении углекислого газа и выделении кислорода?", opts: ["дыхание", "питание", "фотосинтез", "размножение"], ans: 2, exp: "При фотосинтезе растения на свету образуют органические вещества и выделяют кислород." },
+    { q: "Деталь микроскопа, в которую смотрит наблюдатель, называется", opts: ["объектив", "окуляр", "штатив", "предметный столик"], ans: 1, exp: "Окуляр — верхняя линза микроскопа, к которой прикладывают глаз." },
+    { q: "Из каких семян получают гречневую крупу?", opts: ["проса", "овса", "гречихи", "ячменя"], ans: 2, exp: "Гречневая крупа — это очищенные зёрна гречихи." },
+    { q: "Метод биологии, при котором создаются специальные условия для проверки гипотезы, называется", opts: ["наблюдением", "описанием", "экспериментом", "измерением"], ans: 2, exp: "Эксперимент — активный метод, где исследователь изменяет условия и наблюдает результат." },
+    { q: "Царство, представители которого питаются готовыми органическими веществами и не имеют хлорофилла", opts: ["Растения", "Грибы", "Бактерии", "Водоросли"], ans: 1, exp: "Грибы не фотосинтезируют и поглощают готовые органические вещества." },
+    { q: "Какое из растений относится к дикорастущим, а не культурным?", opts: ["томат", "морковь", "одуванчик", "огурец"], ans: 2, exp: "Одуванчик растёт без участия человека, поэтому он дикорастущий." },
+    { q: "Сосна, ель и пихта относятся к группе растений", opts: ["цветковые", "папоротники", "мхи", "хвойные"], ans: 3, exp: "Сосна, ель и пихта — хвойные растения; они образуют шишки." },
+    { q: "Зелёный пигмент клеток растений, участвующий в фотосинтезе, — это", opts: ["крахмал", "хлорофилл", "глюкоза", "целлюлоза"], ans: 1, exp: "Хлорофилл поглощает световую энергию, нужную для фотосинтеза." },
+    { q: "Какая часть растительной клетки содержит клеточный сок?", opts: ["ядро", "вакуоль", "оболочка", "хлоропласт"], ans: 1, exp: "Вакуоль заполнена клеточным соком и помогает клетке сохранять форму." },
+    { q: "Какая группа организмов не имеет оформленного ядра в клетке?", opts: ["бактерии", "грибы", "растения", "животные"], ans: 0, exp: "У бактерий нет оформленного ядра, поэтому их относят к прокариотам." },
+    { q: "Какой орган растения поглощает воду и минеральные вещества из почвы?", opts: ["лист", "цветок", "корень", "стебель"], ans: 2, exp: "Корень закрепляет растение и всасывает воду с минеральными веществами." },
+    { q: "Какая часть шляпочного гриба находится в почве и поглощает питательные вещества?", opts: ["грибница", "шляпка", "ножка", "спора"], ans: 0, exp: "Грибница состоит из тонких нитей и поглощает питательные вещества." },
+    { q: "Какой признак относится ко всем живым организмам?", opts: ["рост и развитие", "наличие колёс", "металлический блеск", "питание электричеством"], ans: 0, exp: "Живые организмы питаются, дышат, растут, развиваются и размножаются." },
+    { q: "Что такое экология?", opts: ["наука о связях организмов между собой и со средой", "наука о камнях", "раздел математики", "способ приготовления еды"], ans: 0, exp: "Экология изучает отношения организмов друг с другом и с окружающей средой." },
+    { q: "Какая группа растений образует цветки и плоды?", opts: ["цветковые", "мхи", "водоросли", "хвойные"], ans: 0, exp: "Цветковые растения имеют цветки, а после цветения образуют плоды с семенами." }
+  ],
+
+  informatics: [
+    { q: "Сведения об окружающем мире, которые человек получает, хранит и передаёт, называются", opts: ["информацией", "алгоритмом", "пикселем", "папкой"], ans: 0, exp: "Информация — это сведения, которые помогают человеку узнавать и понимать мир." },
+    { q: "Устройство для ввода текста в компьютер — это", opts: ["клавиатура", "монитор", "колонки", "принтер"], ans: 0, exp: "Клавиатура нужна для ввода букв, цифр и команд." },
+    { q: "Устройство, на котором компьютер показывает изображение, называется", opts: ["монитор", "мышь", "сканер", "микрофон"], ans: 0, exp: "Монитор выводит текст, изображения и видео на экран." },
+    { q: "Как называется устройство для печати текста и изображений на бумаге?", opts: ["принтер", "сканер", "мышь", "системный блок"], ans: 0, exp: "Принтер выводит информацию из компьютера на бумагу." },
+    { q: "Последовательность команд для решения задачи называется", opts: ["алгоритм", "файл", "курсор", "абзац"], ans: 0, exp: "Алгоритм — это точное описание действий, выполняемых в определённом порядке." },
+    { q: "Исполнитель алгоритма — это тот, кто", opts: ["выполняет команды алгоритма", "только хранит файлы", "рисует значки", "выключает монитор"], ans: 0, exp: "Исполнитель понимает команды алгоритма и выполняет их." },
+    { q: "Набор данных с именем, который хранится на компьютере, называется", opts: ["файл", "окно", "ярлык", "кнопка"], ans: 0, exp: "Файл имеет имя и содержит текст, рисунок, программу или другие данные." },
+    { q: "Что используют для удобного хранения файлов по темам?", opts: ["папки", "курсор", "пиксели", "клавиши"], ans: 0, exp: "Папки помогают группировать и быстро находить файлы." },
+    { q: "Самая маленькая точка изображения на экране называется", opts: ["пиксель", "абзац", "файл", "строка"], ans: 0, exp: "Экранное изображение состоит из маленьких точек — пикселей." },
+    { q: "Какой знак часто используют в адресе электронной почты?", opts: ["@", "#", "%", "&"], ans: 0, exp: "Символ @ разделяет имя пользователя и адрес почтового сервиса." },
+    { q: "Что нельзя сообщать незнакомым людям в интернете?", opts: ["пароль", "название любимого цвета", "погоду", "название школьного предмета"], ans: 0, exp: "Пароль защищает личные данные, поэтому его нельзя передавать другим людям." },
+    { q: "Программа для создания и редактирования текстов называется", opts: ["текстовый редактор", "калькулятор", "проводник", "антивирус"], ans: 0, exp: "В текстовом редакторе набирают, исправляют и оформляют текст." },
+    { q: "Как называется мигающая отметка, показывающая место ввода текста?", opts: ["курсор", "файл", "значок", "папка"], ans: 0, exp: "Курсор показывает, где появится следующий введённый символ." },
+    { q: "Какая клавиша обычно удаляет символ слева от курсора?", opts: ["Backspace", "Enter", "Shift", "Tab"], ans: 0, exp: "Backspace стирает символ, который находится перед курсором." },
+    { q: "Какая клавиша обычно переводит курсор на новую строку?", opts: ["Enter", "Caps Lock", "Esc", "Ctrl"], ans: 0, exp: "Enter завершает строку или подтверждает команду в разных программах." },
+    { q: "Какое действие относится к обработке информации?", opts: ["сравнить числа и выбрать большее", "просто положить книгу на стол", "выключить свет", "закрыть окно"], ans: 0, exp: "Обработка информации изменяет или анализирует данные, например сравнивает их." },
+    { q: "Что такое меню программы?", opts: ["список команд", "только рисунок", "часть клавиатуры", "провод питания"], ans: 0, exp: "Меню содержит команды, которые можно выбрать для работы в программе." },
+    { q: "Какой файл вероятнее всего является изображением?", opts: ["photo.jpg", "story.txt", "table.xls", "song.mp3"], ans: 0, exp: "Расширение .jpg обычно используют для файлов изображений." },
+    { q: "Что означает команда «Сохранить»?", opts: ["записать изменения в файл", "удалить монитор", "изменить язык клавиатуры", "очистить стол"], ans: 0, exp: "Команда «Сохранить» записывает текущую работу в файл." },
+    { q: "Какое устройство помогает управлять указателем на экране?", opts: ["мышь", "колонки", "принтер", "сканер"], ans: 0, exp: "Мышью перемещают указатель, выбирают объекты и нажимают кнопки." }
+  ],
+
+  math: [
+    { q: "Какое число является результатом выражения 48 + 27?", opts: ["75", "65", "85", "71"], ans: 0, exp: "48 + 27 = 48 + 20 + 7 = 75." },
+    { q: "Какое число является результатом выражения 96 - 38?", opts: ["58", "68", "54", "62"], ans: 0, exp: "96 - 38 = 96 - 40 + 2 = 58." },
+    { q: "Чему равно 12 · 8?", opts: ["96", "86", "108", "84"], ans: 0, exp: "12 · 8 = 10 · 8 + 2 · 8 = 80 + 16 = 96." },
+    { q: "Чему равно 144 : 12?", opts: ["12", "10", "14", "16"], ans: 0, exp: "12 · 12 = 144, значит 144 : 12 = 12." },
+    { q: "Какое действие выполняют первым в выражении 6 + 4 · 5?", opts: ["умножение", "сложение", "вычитание", "деление 6 на 4"], ans: 0, exp: "По порядку действий сначала выполняют умножение и деление, затем сложение и вычитание." },
+    { q: "Чему равно значение выражения 6 + 4 · 5?", opts: ["26", "50", "30", "46"], ans: 0, exp: "Сначала 4 · 5 = 20, затем 6 + 20 = 26." },
+    { q: "Периметр квадрата со стороной 7 см равен", opts: ["28 см", "14 см", "49 см", "21 см"], ans: 0, exp: "Периметр квадрата равен сумме четырёх сторон: 7 · 4 = 28 см." },
+    { q: "Площадь прямоугольника со сторонами 5 см и 9 см равна", opts: ["45 см2", "28 см2", "14 см2", "40 см2"], ans: 0, exp: "Площадь прямоугольника равна произведению длины и ширины: 5 · 9 = 45 см2." },
+    { q: "Какая дробь равна одной второй?", opts: ["2/4", "1/3", "3/5", "4/5"], ans: 0, exp: "2/4 можно сократить на 2, получится 1/2." },
+    { q: "Какая дробь больше: 3/8 или 5/8?", opts: ["5/8", "3/8", "они равны", "сравнить нельзя"], ans: 0, exp: "У дробей одинаковый знаменатель, больше та дробь, у которой числитель больше." },
+    { q: "Сколько миллиметров в 1 сантиметре?", opts: ["10", "100", "1000", "5"], ans: 0, exp: "1 сантиметр равен 10 миллиметрам." },
+    { q: "Сколько сантиметров в 1 метре?", opts: ["100", "10", "1000", "60"], ans: 0, exp: "1 метр равен 100 сантиметрам." },
+    { q: "Реши уравнение x + 17 = 42.", opts: ["25", "59", "35", "24"], ans: 0, exp: "Чтобы найти x, нужно из 42 вычесть 17: x = 25." },
+    { q: "Реши уравнение 6x = 54.", opts: ["9", "8", "7", "10"], ans: 0, exp: "Если 6x = 54, то x = 54 : 6 = 9." },
+    { q: "Какое число делится на 9 без остатка?", opts: ["81", "82", "73", "64"], ans: 0, exp: "81 = 9 · 9, поэтому число делится на 9 без остатка." },
+    { q: "Какое число является простым?", opts: ["13", "15", "21", "27"], ans: 0, exp: "13 имеет только два делителя: 1 и 13." },
+    { q: "Среднее арифметическое чисел 4, 6 и 8 равно", opts: ["6", "5", "7", "18"], ans: 0, exp: "Сумма 4 + 6 + 8 = 18, делим на 3 и получаем 6." },
+    { q: "Если поезд прошёл 120 км за 2 часа, его скорость равна", opts: ["60 км/ч", "30 км/ч", "100 км/ч", "240 км/ч"], ans: 0, exp: "Скорость равна расстоянию, делённому на время: 120 : 2 = 60 км/ч." },
+    { q: "Как записать число три тысячи сорок пять цифрами?", opts: ["3045", "345", "30045", "3405"], ans: 0, exp: "Три тысячи — это 3000, ещё 45, всего 3045." },
+    { q: "Какая запись показывает число 7 в разряде сотен?", opts: ["3721", "720", "507", "79"], ans: 0, exp: "В числе 3721 цифра 7 стоит в разряде сотен." }
+  ],
+
+  english: [
+    { q: "Choose the correct form: She ___ a student.", opts: ["is", "are", "am", "be"], ans: 0, exp: "With she we use is: She is a student." },
+    { q: "Choose the correct form: I ___ from Russia.", opts: ["am", "is", "are", "be"], ans: 0, exp: "With I we use am: I am from Russia." },
+    { q: "Choose the correct form: They ___ friends.", opts: ["are", "is", "am", "be"], ans: 0, exp: "With they we use are: They are friends." },
+    { q: "Choose the correct sentence.", opts: ["He has a dog.", "He have a dog.", "He haves a dog.", "He having a dog."], ans: 0, exp: "In the third person singular we use has: He has a dog." },
+    { q: "Choose the correct sentence.", opts: ["We have English on Monday.", "We has English on Monday.", "We haves English on Monday.", "We having English on Monday."], ans: 0, exp: "With we we use have: We have English on Monday." },
+    { q: "What is the plural of child?", opts: ["children", "childs", "childes", "childrens"], ans: 0, exp: "Child has an irregular plural form: children." },
+    { q: "What is the plural of box?", opts: ["boxes", "boxs", "boxies", "boxen"], ans: 0, exp: "For nouns ending in -x, we usually add -es: box — boxes." },
+    { q: "Choose the correct article: ___ apple is on the table.", opts: ["An", "A", "The a", "No article"], ans: 0, exp: "Apple begins with a vowel sound, so we use an." },
+    { q: "Choose the correct article: ___ book is in my bag.", opts: ["A", "An", "Some", "Many"], ans: 0, exp: "Book begins with a consonant sound, so we use a." },
+    { q: "Choose the correct translation: «кошка»", opts: ["cat", "dog", "bird", "fish"], ans: 0, exp: "The English word for «кошка» is cat." },
+    { q: "Choose the correct translation: «школа»", opts: ["school", "shop", "street", "sport"], ans: 0, exp: "The English word for «школа» is school." },
+    { q: "Choose the correct question word: ___ is your name?", opts: ["What", "Where", "When", "How many"], ans: 0, exp: "We ask about a name with What: What is your name?" },
+    { q: "Choose the correct question word: ___ do you live?", opts: ["Where", "What", "Who", "How old"], ans: 0, exp: "We ask about a place with Where: Where do you live?" },
+    { q: "Choose the correct answer: What time is it? 7:30", opts: ["It is half past seven.", "It is seven o'clock.", "It is half past six.", "It is quarter to seven."], ans: 0, exp: "7:30 is half past seven." },
+    { q: "Choose the correct form: There ___ two books on the desk.", opts: ["are", "is", "am", "be"], ans: 0, exp: "With plural nouns we use there are." },
+    { q: "Choose the correct form: There ___ a pen in the pencil case.", opts: ["is", "are", "am", "be"], ans: 0, exp: "With one object we use there is." },
+    { q: "Choose the correct negative sentence.", opts: ["I do not like onions.", "I does not like onions.", "I not like onions.", "I am not like onions."], ans: 0, exp: "In Present Simple with I we use do not + verb." },
+    { q: "Choose the correct sentence.", opts: ["He plays football.", "He play football.", "He playing football.", "He plaies football."], ans: 0, exp: "In Present Simple after he we add -s to the verb: plays." },
+    { q: "Which word is an adjective?", opts: ["beautiful", "run", "table", "quickly"], ans: 0, exp: "Beautiful describes a noun, so it is an adjective." },
+    { q: "Choose the correct pronoun: Tom is my brother. ___ is ten.", opts: ["He", "She", "It", "They"], ans: 0, exp: "Tom is a boy's name, so the correct pronoun is he." }
+  ],
+
+  russian: [
+    { q: "Какая часть речи обозначает предмет и отвечает на вопросы кто? что?", opts: ["имя существительное", "глагол", "имя прилагательное", "наречие"], ans: 0, exp: "Имя существительное называет предметы, людей, явления и отвечает на вопросы кто? что?" },
+    { q: "Какая часть речи обозначает действие предмета?", opts: ["глагол", "имя существительное", "предлог", "союз"], ans: 0, exp: "Глагол обозначает действие и отвечает на вопросы что делать? что сделать?" },
+    { q: "Какая часть речи обозначает признак предмета?", opts: ["имя прилагательное", "глагол", "местоимение", "частица"], ans: 0, exp: "Имя прилагательное описывает признак предмета: цвет, размер, форму, качество." },
+    { q: "В каком слове пишется сочетание ЖИ?", opts: ["жираф", "жыраф", "жераф", "жараф"], ans: 0, exp: "Сочетания жи-ши пишутся с буквой и: жираф." },
+    { q: "В каком слове пишется сочетание ЧА?", opts: ["чайка", "чяйка", "чойка", "чийка"], ans: 0, exp: "Сочетания ча-ща пишутся с буквой а: чайка." },
+    { q: "Какой знак ставится в конце повествовательного предложения?", opts: ["точка", "запятая", "двоеточие", "кавычки"], ans: 0, exp: "Повествовательное предложение обычно заканчивается точкой." },
+    { q: "Какой знак чаще всего ставится в конце вопросительного предложения?", opts: ["вопросительный знак", "точка", "тире", "скобка"], ans: 0, exp: "Если предложение содержит вопрос, в конце ставится вопросительный знак." },
+    { q: "Главные члены предложения — это", opts: ["подлежащее и сказуемое", "корень и приставка", "предлог и союз", "звук и буква"], ans: 0, exp: "Подлежащее называет, о ком или о чём говорится, сказуемое сообщает действие или состояние." },
+    { q: "Общая часть родственных слов называется", opts: ["корень", "окончание", "предлог", "суффикс"], ans: 0, exp: "Корень содержит главное лексическое значение родственных слов." },
+    { q: "Часть слова перед корнем называется", opts: ["приставка", "суффикс", "окончание", "основа"], ans: 0, exp: "Приставка стоит перед корнем и помогает образовывать новые слова." },
+    { q: "Часть слова после корня перед окончанием называется", opts: ["суффикс", "приставка", "предлог", "звук"], ans: 0, exp: "Суффикс стоит после корня и участвует в образовании слов." },
+    { q: "Слова с противоположным значением называются", opts: ["антонимы", "синонимы", "омонимы", "паронимы"], ans: 0, exp: "Антонимы имеют противоположное значение: большой — маленький." },
+    { q: "Слова, близкие по значению, называются", opts: ["синонимы", "антонимы", "предлоги", "окончания"], ans: 0, exp: "Синонимы помогают выразить мысль точнее: смелый — храбрый." },
+    { q: "В каком падеже слово отвечает на вопросы кого? чего?", opts: ["родительный", "именительный", "дательный", "творительный"], ans: 0, exp: "Родительный падеж отвечает на вопросы кого? чего?" },
+    { q: "В каком падеже слово отвечает на вопросы кем? чем?", opts: ["творительный", "винительный", "предложный", "именительный"], ans: 0, exp: "Творительный падеж отвечает на вопросы кем? чем?" },
+    { q: "Какое слово является местоимением?", opts: ["он", "бежит", "зелёный", "дом"], ans: 0, exp: "Местоимение указывает на предмет, но не называет его: он, она, ты, мы." },
+    { q: "Какое слово является предлогом?", opts: ["под", "лес", "синий", "читать"], ans: 0, exp: "Предлог служит для связи слов в предложении: под столом, в доме." },
+    { q: "Как правильно перенести слово «чайка»?", opts: ["чай-ка", "ча-йка", "ч-айка", "чайк-а"], ans: 0, exp: "Слово переносят по слогам: чай-ка." },
+    { q: "Какой раздел науки о языке изучает звуки речи?", opts: ["фонетика", "морфология", "синтаксис", "лексика"], ans: 0, exp: "Фонетика изучает звуки речи и их свойства." },
+    { q: "Что такое орфограмма?", opts: ["место в слове, где нужно выбрать правильное написание", "любой рисунок", "знак на карте", "арифметический пример"], ans: 0, exp: "Орфограмма — написание, которое требует применения правила или проверки." }
+  ],
+
+  literature: [
+    { q: "Устное народное творчество называется", opts: ["фольклор", "роман", "биография", "рецензия"], ans: 0, exp: "Фольклор включает сказки, пословицы, загадки, песни и былины, созданные народом." },
+    { q: "Короткое мудрое народное изречение называется", opts: ["пословица", "роман", "пьеса", "главa"], ans: 0, exp: "Пословица кратко выражает народную мудрость: «Без труда не вытащишь и рыбку из пруда»." },
+    { q: "Иносказательный рассказ с моралью, где часто действуют животные, называется", opts: ["басня", "повесть", "былина", "сказ"], ans: 0, exp: "Басня обычно высмеивает человеческие недостатки и заканчивается моралью." },
+    { q: "Автор известных басен «Ворона и Лисица», «Стрекоза и Муравей» — это", opts: ["И.А. Крылов", "А.С. Пушкин", "М.Ю. Лермонтов", "Н.В. Гоголь"], ans: 0, exp: "Иван Андреевич Крылов — русский баснописец." },
+    { q: "Произведение, написанное строками с ритмом и часто с рифмой, называется", opts: ["стихотворение", "очерк", "рассказ", "сказка"], ans: 0, exp: "Стихотворение организовано по строкам, имеет ритм, а часто и рифму." },
+    { q: "Небольшое прозаическое произведение о событии из жизни героев называется", opts: ["рассказ", "поэма", "былина", "пословица"], ans: 0, exp: "Рассказ обычно невелик по объёму и описывает одно или несколько связанных событий." },
+    { q: "Волшебные предметы и чудесные помощники чаще всего встречаются в", opts: ["сказке", "научной статье", "расписании", "словарной статье"], ans: 0, exp: "Для сказки характерны чудеса, испытания героя и победа добра." },
+    { q: "Кто такой герой литературного произведения?", opts: ["действующее лицо произведения", "человек, который печатает книгу", "только автор", "название главы"], ans: 0, exp: "Герой — персонаж, который действует в произведении." },
+    { q: "Человек, который создал литературное произведение, называется", opts: ["автор", "читатель", "герой", "издательский лист"], ans: 0, exp: "Автор придумывает и пишет произведение." },
+    { q: "Тот, кто рассказывает события в произведении, называется", opts: ["рассказчик", "переплётчик", "художник", "библиотекарь"], ans: 0, exp: "Рассказчик ведёт повествование и сообщает читателю о событиях." },
+    { q: "Описание природы в литературном произведении называется", opts: ["пейзаж", "портрет", "диалог", "завязка"], ans: 0, exp: "Пейзаж помогает представить место действия и настроение произведения." },
+    { q: "Описание внешности героя называется", opts: ["портрет", "пейзаж", "эпиграф", "рифма"], ans: 0, exp: "Портрет показывает внешность персонажа и может раскрывать его характер." },
+    { q: "Разговор двух или нескольких персонажей называется", opts: ["диалог", "монолог", "пейзаж", "заголовок"], ans: 0, exp: "Диалог состоит из реплик участников разговора." },
+    { q: "Речь одного героя называется", opts: ["монолог", "диалог", "сюжет", "пословица"], ans: 0, exp: "Монолог — развёрнутая речь одного персонажа." },
+    { q: "Последовательность событий в произведении называется", opts: ["сюжет", "рифма", "портрет", "обложка"], ans: 0, exp: "Сюжет показывает, как развиваются события произведения." },
+    { q: "Начальный момент развития действия в сюжете называется", opts: ["завязка", "развязка", "эпилог", "оглавление"], ans: 0, exp: "Завязка запускает основной конфликт или событие произведения." },
+    { q: "Заключительная часть развития действия называется", opts: ["развязка", "завязка", "экспозиция", "рифма"], ans: 0, exp: "В развязке обычно становится ясно, чем закончился конфликт." },
+    { q: "Созвучие концов стихотворных строк называется", opts: ["рифма", "сюжет", "портрет", "мораль"], ans: 0, exp: "Рифма соединяет строки похожим звучанием окончаний." },
+    { q: "Главная мысль, которую хочет донести произведение, называется", opts: ["идея", "обложка", "тираж", "шрифт"], ans: 0, exp: "Идея выражает основной смысл произведения." },
+    { q: "Вывод или поучение в басне называется", opts: ["мораль", "завязка", "пейзаж", "эпитет"], ans: 0, exp: "Мораль прямо или косвенно объясняет, чему учит басня." }
+  ],
+
+  german: makeBank([
+    ["Choose the correct form: Ich ___ Anna.", "bin", "bist", "ist", "sind", "With ich we use bin: Ich bin Anna."],
+    ["Choose the correct form: Du ___ mein Freund.", "bist", "bin", "ist", "seid", "With du we use bist: Du bist mein Freund."],
+    ["Choose the correct form: Er ___ elf Jahre alt.", "ist", "bin", "bist", "seid", "With er we use ist: Er ist elf Jahre alt."],
+    ["How do you say «доброе утро» in German?", "Guten Morgen", "Guten Abend", "Gute Nacht", "Tschüss", "Guten Morgen means «доброе утро»."],
+    ["How do you say «спасибо» in German?", "Danke", "Bitte", "Hallo", "Nein", "Danke means «спасибо»."],
+    ["Choose the correct article: ___ Hund", "der", "die", "das", "den", "Hund is masculine, so the article is der."],
+    ["Choose the correct article: ___ Katze", "die", "der", "das", "den", "Katze is feminine, so the article is die."],
+    ["Choose the correct article: ___ Kind", "das", "der", "die", "den", "Kind is neuter, so the article is das."],
+    ["What is the German word for «книга»?", "das Buch", "der Stuhl", "die Tasche", "das Fenster", "Das Buch means «книга»."],
+    ["What is the German word for «школа»?", "die Schule", "das Haus", "der Garten", "die Uhr", "Die Schule means «школа»."],
+    ["Choose the correct number: fünf", "5", "4", "6", "10", "Fünf means five."],
+    ["Choose the correct number: zehn", "10", "2", "7", "12", "Zehn means ten."],
+    ["What color is «rot»?", "красный", "синий", "зелёный", "жёлтый", "Rot means red, «красный»."],
+    ["What color is «blau»?", "синий", "красный", "чёрный", "белый", "Blau means blue, «синий»."],
+    ["Choose the correct sentence.", "Ich habe einen Bruder.", "Ich hat einen Bruder.", "Ich hast einen Bruder.", "Ich haben einen Bruder.", "With ich we use habe: Ich habe einen Bruder."],
+    ["Choose the correct sentence.", "Wir haben Deutsch.", "Wir hat Deutsch.", "Wir hast Deutsch.", "Wir habt Deutsch.", "With wir we use haben."],
+    ["How do you ask «Как тебя зовут?»", "Wie heißt du?", "Wo wohnst du?", "Wie alt bist du?", "Was ist das?", "Wie heißt du? means «Как тебя зовут?»."],
+    ["How do you say «до свидания» informally?", "Tschüss", "Hallo", "Danke", "Bitte", "Tschüss is an informal goodbye."]
+  ]),
+
+  french: makeBank([
+    ["Choose the correct form: Je ___ Paul.", "suis", "es", "est", "sommes", "With je we use suis: Je suis Paul."],
+    ["Choose the correct form: Tu ___ mon ami.", "es", "suis", "est", "êtes", "With tu we use es: Tu es mon ami."],
+    ["Choose the correct form: Elle ___ onze ans.", "a", "as", "ai", "ont", "With elle we use a: Elle a onze ans."],
+    ["How do you say «здравствуйте» in French?", "Bonjour", "Bonsoir", "Merci", "Au revoir", "Bonjour is a common greeting."],
+    ["How do you say «спасибо» in French?", "Merci", "Salut", "Non", "Pardon", "Merci means «спасибо»."],
+    ["Choose the correct article: ___ livre", "un", "une", "des", "la", "Livre is masculine singular, so we use un."],
+    ["Choose the correct article: ___ table", "une", "un", "des", "le", "Table is feminine singular, so we use une."],
+    ["Choose the correct plural article: ___ stylos", "des", "un", "une", "le", "For plural indefinite nouns we use des."],
+    ["What is the French word for «школа»?", "l'école", "la maison", "le chat", "la rue", "L'école means «школа»."],
+    ["What is the French word for «кот»?", "le chat", "le chien", "le livre", "le vélo", "Le chat means «кот»."],
+    ["Choose the correct number: cinq", "5", "4", "6", "9", "Cinq means five."],
+    ["Choose the correct number: dix", "10", "2", "7", "12", "Dix means ten."],
+    ["What color is «rouge»?", "красный", "синий", "зелёный", "белый", "Rouge means red, «красный»."],
+    ["What color is «bleu»?", "синий", "красный", "жёлтый", "чёрный", "Bleu means blue, «синий»."],
+    ["Choose the correct sentence.", "J'ai une soeur.", "Je suis une soeur.", "Tu a une soeur.", "Il ai une soeur.", "J'ai means «у меня есть»."],
+    ["Choose the correct sentence.", "Nous sommes élèves.", "Nous êtes élèves.", "Nous est élèves.", "Nous suis élèves.", "With nous we use sommes."],
+    ["How do you ask «Как тебя зовут?»", "Comment tu t'appelles ?", "Où habites-tu ?", "Quel âge as-tu ?", "Qu'est-ce que c'est ?", "Comment tu t'appelles ? means «Как тебя зовут?»."],
+    ["How do you say «до свидания» in French?", "Au revoir", "Bonjour", "Merci", "Oui", "Au revoir means goodbye."]
+  ])
+};
+
+const grade6QuestionBanks = {
+  geography: makeBank([
+    ["Угол между направлением на север и направлением на объект называется", "азимут", "масштаб", "параллель", "горизонталь", "Азимут отсчитывают от направления на север по часовой стрелке."],
+    ["Линии на карте, соединяющие точки с одинаковой высотой, называются", "горизонтали", "меридианы", "параллели", "изобары", "Горизонтали помогают показать рельеф на плане и карте."],
+    ["Внутренняя оболочка Земли, расположенная под земной корой, называется", "мантия", "атмосфера", "гидросфера", "биосфера", "Мантия находится между земной корой и ядром."],
+    ["Очаг землетрясения расположен", "в недрах Земли", "на вершине горы", "в облаках", "на поверхности океана", "Очаг землетрясения — место в глубине Земли, где начинается разрыв пород."],
+    ["Место выхода магмы и газов на поверхность называется", "вулкан", "ледник", "залив", "каньон", "Вулкан образуется там, где магма поднимается к поверхности."],
+    ["Горные породы, образовавшиеся из застывшей магмы, называются", "магматические", "осадочные", "метаморфические", "почвенные", "Гранит и базальт — примеры магматических горных пород."],
+    ["Многолетние скопления льда на суше называются", "ледники", "болота", "дельты", "заливы", "Ледники формируются там, где снег накапливается и превращается в лёд."],
+    ["Начало реки называется", "исток", "устье", "русло", "пойма", "Исток — место, где река начинается."],
+    ["Место впадения реки в море, озеро или другую реку называется", "устье", "исток", "водораздел", "приток", "Устье — конечный участок реки."],
+    ["Главная причина образования ветра — это", "разница атмосферного давления", "солёность океана", "вращение Луны", "цвет почвы", "Воздух движется из области высокого давления в область более низкого давления."],
+    ["Прибор для измерения атмосферного давления называется", "барометр", "компас", "флюгер", "осадкомер", "Барометр показывает атмосферное давление."],
+    ["Прибор для определения направления ветра называется", "флюгер", "термометр", "барометр", "сейсмограф", "Флюгер поворачивается по направлению ветра."],
+    ["Самый нижний слой атмосферы называется", "тропосфера", "стратосфера", "мезосфера", "ядро", "В тропосфере формируется погода и находится большая часть воздуха."],
+    ["Переход воды из жидкого состояния в водяной пар называется", "испарение", "конденсация", "замерзание", "кристаллизация", "Испарение происходит с поверхности воды, почвы и растений."],
+    ["Переход водяного пара в капли воды называется", "конденсация", "испарение", "таяние", "выветривание", "Конденсация приводит к образованию облаков и тумана."],
+    ["Волны огромной разрушительной силы, возникающие чаще всего после подводных землетрясений, называются", "цунами", "бриз", "муссон", "прилив", "Цунами распространяются по океану после резких движений дна."],
+    ["Смена природных зон от экватора к полюсам называется", "широтная зональность", "суточное вращение", "эрозия", "урбанизация", "Природные зоны меняются с широтой из-за различий в тепле и влаге."],
+    ["Совокупность всех неровностей земной поверхности называется", "рельеф", "климат", "погода", "минерал", "Рельеф включает горы, равнины, впадины и другие формы поверхности."]
+  ]),
+
+  biology: makeBank([
+    ["Раздел биологии, изучающий растения, называется", "ботаника", "зоология", "анатомия", "микология", "Ботаника изучает строение, жизнь и разнообразие растений."],
+    ["Ткань растения, обеспечивающая рост в длину и толщину, называется", "образовательная", "покровная", "механическая", "проводящая", "Образовательная ткань состоит из делящихся клеток."],
+    ["Проводящая ткань растения нужна для", "перемещения воды и органических веществ", "только защиты от холода", "образования семян", "поглощения света", "Проводящие ткани связывают корень, стебель и листья."],
+    ["Главный корень развивается из", "зародышевого корешка", "листа", "цветка", "плода", "У проростка первым появляется зародышевый корешок."],
+    ["Корневые волоски выполняют функцию", "всасывания воды и минеральных веществ", "образования цветков", "защиты семян", "переноса пыльцы", "Корневые волоски увеличивают всасывающую поверхность корня."],
+    ["Побег состоит из", "стебля, листьев и почек", "только корней", "только цветков", "семени и плода", "Побег — это стебель с расположенными на нём листьями и почками."],
+    ["Почка растения — это", "зачаточный побег", "часть корня", "готовый плод", "клеточный сок", "Из почек развиваются новые побеги, листья или цветки."],
+    ["Главная функция листа —", "фотосинтез", "закрепление в почве", "образование корней", "защита семян", "В листьях на свету образуются органические вещества."],
+    ["Испарение воды растением через листья называется", "транспирация", "опыление", "деление", "прорастание", "Транспирация помогает движению воды и охлаждает растение."],
+    ["Перенос пыльцы с тычинок на рыльце пестика называется", "опыление", "дыхание", "питание", "испарение", "Опыление предшествует образованию семян у цветковых растений."],
+    ["После оплодотворения из завязи цветка развивается", "плод", "корень", "стебель", "лист", "Плод защищает семена и помогает их распространению."],
+    ["Семя содержит", "зародыш и запас питательных веществ", "только воду", "только пыльцу", "только кожицу без зародыша", "Зародыш даёт начало новому растению."],
+    ["Какая часть цветка образует пыльцу?", "тычинка", "чашелистик", "лепесток", "цветоножка", "Пыльца образуется в пыльниках тычинок."],
+    ["Плод гороха относится к типу", "боб", "ягода", "костянка", "зерновка", "У гороха семена расположены внутри плода-боба."],
+    ["Плод пшеницы называется", "зерновка", "яблоко", "орех", "стручок", "У злаков плод — зерновка."],
+    ["Дыхание растений происходит", "во всех живых клетках", "только в цветках", "только ночью в корнях", "только в семенах", "Живые клетки растений постоянно дышат, получая энергию."],
+    ["Вегетативное размножение — это размножение", "частями растения", "только семенами", "только спорами бактерий", "только пыльцой", "Растения могут размножаться клубнями, луковицами, черенками и другими частями."],
+    ["Клубень картофеля является видоизменением", "побега", "цветка", "главного корня", "семени", "Клубень имеет почки-глазки, поэтому это видоизменённый побег."]
+  ]),
+
+  informatics: makeBank([
+    ["Минимальная единица измерения информации называется", "бит", "байт", "пиксель", "файл", "Бит принимает одно из двух значений: 0 или 1."],
+    ["Сколько бит в одном байте?", "8", "2", "10", "16", "Один байт состоит из 8 бит."],
+    ["Двоичная система счисления использует цифры", "0 и 1", "1 и 2", "0, 1 и 2", "1, 5 и 10", "Компьютеры кодируют данные с помощью двоичных цифр 0 и 1."],
+    ["Как записывается десятичное число 5 в двоичной системе?", "101", "111", "100", "110", "5 = 4 + 1, поэтому в двоичной записи это 101."],
+    ["Алгоритм, в котором команды повторяются несколько раз, называется", "циклический", "линейный", "разветвляющийся", "случайный", "Цикл нужен для повторения действий."],
+    ["Алгоритм с условием «если — то — иначе» называется", "разветвляющийся", "линейный", "табличный", "архивный", "В разветвляющемся алгоритме дальнейшие действия зависят от условия."],
+    ["В блок-схеме условие обычно изображают", "ромбом", "кругом", "треугольником", "звездой", "Ромб показывает проверку условия в блок-схеме."],
+    ["Таблица, где данные расположены в строках и столбцах, называется", "электронная таблица", "текстовый абзац", "растровый рисунок", "архив", "Электронные таблицы удобны для расчётов и анализа данных."],
+    ["Адрес ячейки электронной таблицы состоит из", "буквы столбца и номера строки", "только цвета", "номера страницы", "имени файла", "Например, A1 — ячейка в столбце A и строке 1."],
+    ["Формула в электронной таблице обычно начинается со знака", "=", "+", "@", "#", "Знак = показывает, что в ячейке записана формула."],
+    ["Графический объект, состоящий из пикселей, называется", "растровое изображение", "текстовый файл", "звуковая дорожка", "таблица истинности", "Растровое изображение строится из множества точек-пикселей."],
+    ["Что такое формат файла?", "тип данных и способ их записи", "цвет папки", "размер монитора", "место на клавиатуре", "Формат помогает программе понять, как открыть файл."],
+    ["Что делает архиватор?", "сжимает и упаковывает файлы", "показывает температуру", "печатает без принтера", "переводит текст автоматически", "Архиватор уменьшает размер данных и объединяет файлы в архив."],
+    ["Компьютерная сеть — это", "соединённые компьютеры для обмена данными", "только один монитор", "папка с картинками", "набор клавиш", "Сеть позволяет устройствам обмениваться информацией."],
+    ["URL — это", "адрес ресурса в интернете", "тип процессора", "команда удаления", "название клавиши", "URL указывает, где находится веб-страница или файл."],
+    ["Надёжный пароль должен", "быть сложным и не совпадать с личными данными", "состоять только из имени", "быть одинаковым везде", "быть написан на парте", "Сложный пароль труднее угадать или подобрать."],
+    ["Что такое модель в информатике?", "упрощённое представление объекта или процесса", "только игрушка", "ошибка программы", "тип принтера", "Модель помогает изучать объект без работы с самим объектом."],
+    ["Исправление ошибок в программе называется", "отладка", "архивация", "копирование", "сканирование", "Отладка помогает найти и устранить ошибки в алгоритме или программе."]
+  ]),
+
+  math: makeBank([
+    ["Сократи дробь 18/24.", "3/4", "2/3", "4/5", "6/8", "18 и 24 делятся на 6, поэтому 18/24 = 3/4."],
+    ["Чему равно 5/6 + 1/6?", "1", "6/12", "5/12", "4/6", "У дробей одинаковый знаменатель: 5/6 + 1/6 = 6/6 = 1."],
+    ["Чему равно 7/10 - 3/10?", "2/5", "4/20", "10/10", "3/7", "7/10 - 3/10 = 4/10 = 2/5."],
+    ["Чему равно 0,7 + 0,25?", "0,95", "0,32", "0,725", "0,52", "Складываем десятичные дроби по разрядам: 0,70 + 0,25 = 0,95."],
+    ["Чему равно 3,6 : 0,6?", "6", "0,6", "60", "3", "3,6 : 0,6 = 36 : 6 = 6."],
+    ["Найди 25% от 80.", "20", "25", "40", "15", "25% — это одна четверть, 80 : 4 = 20."],
+    ["Какое число составляет 10% от 350?", "35", "3,5", "3500", "70", "10% — это десятая часть: 350 : 10 = 35."],
+    ["Чему равно значение выражения -7 + 12?", "5", "-19", "-5", "19", "На координатной прямой от -7 двигаемся на 12 вправо и получаем 5."],
+    ["Чему равно -4 · 6?", "-24", "24", "-10", "2", "Произведение отрицательного и положительного числа отрицательно."],
+    ["Реши уравнение x - 8 = 15.", "23", "7", "-7", "120", "Чтобы найти x, нужно 15 + 8 = 23."],
+    ["Реши уравнение 3x = 2,4.", "0,8", "8", "7,2", "1,2", "x = 2,4 : 3 = 0,8."],
+    ["Отношение 12 к 16 равно", "3:4", "4:3", "2:8", "12:4", "12:16 сокращается на 4 и получается 3:4."],
+    ["Если 5 карандашей стоят 60 рублей, то 1 карандаш стоит", "12 рублей", "10 рублей", "15 рублей", "55 рублей", "60 : 5 = 12 рублей."],
+    ["Модуль числа -9 равен", "9", "-9", "0", "18", "Модуль показывает расстояние от числа до нуля, поэтому он неотрицателен."],
+    ["Какая точка на координатной прямой правее?", "2", "-3", "-10", "-1", "Из данных чисел 2 больше остальных, значит расположено правее."],
+    ["Площадь круга радиуса 3 при π = 3,14 приблизительно равна", "28,26", "18,84", "9,42", "6,28", "S = πr2 = 3,14 · 9 = 28,26."],
+    ["Длина окружности радиуса 5 при π = 3,14 равна", "31,4", "15,7", "78,5", "10", "C = 2πr = 2 · 3,14 · 5 = 31,4."],
+    ["Среднее арифметическое чисел 2, 8 и 11 равно", "7", "21", "6", "8", "Сумма 2 + 8 + 11 = 21, 21 : 3 = 7."]
+  ]),
+
+  english: makeBank([
+    ["Choose the correct Past Simple form: Yesterday I ___ football.", "played", "play", "plays", "playing", "Regular verbs form Past Simple with -ed: played."],
+    ["Choose the correct Past Simple form: She ___ to school by bus.", "went", "go", "goed", "goes", "Go is irregular: Past Simple is went."],
+    ["Choose the correct negative sentence.", "He did not watch TV.", "He did not watched TV.", "He not watched TV.", "He does not watched TV.", "After did not we use the base form of the verb."],
+    ["Choose the correct question.", "Did you visit London?", "Did you visited London?", "Do you visited London?", "Were you visit London?", "In Past Simple questions we use did + base verb."],
+    ["Choose the correct form: They ___ playing now.", "are", "is", "am", "be", "Present Continuous uses are with they."],
+    ["Choose the correct form: I ___ reading a book now.", "am", "is", "are", "be", "Present Continuous uses am with I."],
+    ["Choose the comparative form of big.", "bigger", "more big", "biggest", "the big", "Short adjectives often add -er, and big doubles g: bigger."],
+    ["Choose the superlative form of interesting.", "the most interesting", "interestinger", "the interestingest", "more interesting", "Long adjectives use the most for the superlative."],
+    ["Choose the correct sentence.", "There is some milk in the fridge.", "There are some milk in the fridge.", "There is many milk in the fridge.", "There are a milk in the fridge.", "Milk is uncountable, so we use there is and some."],
+    ["Choose the correct sentence.", "There are many apples.", "There is many apples.", "There are much apples.", "There is much apples.", "Apples is plural countable, so many and there are are correct."],
+    ["Choose the correct modal verb: You ___ do your homework.", "must", "can to", "must to", "should to", "After modal verbs we use the base verb without to."],
+    ["Choose the correct sentence.", "I can swim.", "I can to swim.", "I cans swim.", "I can swimming.", "After can we use the base verb."],
+    ["Choose the correct future form.", "We are going to visit our grandma.", "We going visit our grandma.", "We are go to visit our grandma.", "We is going to visit our grandma.", "Be going to uses am/is/are + going to + verb."],
+    ["Choose the correct word: A person who teaches students is a", "teacher", "doctor", "driver", "farmer", "A teacher works with students."],
+    ["Choose the correct word: You buy bread at the", "bakery", "library", "hospital", "station", "A bakery sells bread and cakes."],
+    ["Choose the correct preposition: The cat is ___ the table.", "under", "beautiful", "quickly", "because", "Under is a preposition of place."],
+    ["Choose the correct pronoun: My sister and I are here. ___ are happy.", "We", "They", "He", "It", "My sister and I = we."],
+    ["Choose the correct sentence.", "She has already finished her work.", "She have already finished her work.", "She has already finish her work.", "She already has finish her work.", "Present Perfect uses has + past participle with she."]
+  ]),
+
+  german: makeBank([
+    ["Choose the correct form: Wir ___ in Moskau.", "wohnen", "wohnt", "wohne", "wohnst", "With wir the verb ending is -en: wir wohnen."],
+    ["Choose the correct form: Er ___ Fußball.", "spielt", "spiele", "spielen", "spielst", "With er the verb ending is -t: er spielt."],
+    ["Choose the correct form: Ihr ___ Deutsch.", "lernt", "lernen", "lerne", "lernst", "With ihr the verb ending is -t: ihr lernt."],
+    ["Choose the correct article in accusative: Ich sehe ___ Hund.", "den", "der", "die", "das", "Masculine der changes to den in the accusative case."],
+    ["Choose the correct sentence.", "Ich habe keine Schwester.", "Ich habe nicht Schwester.", "Ich bin keine Schwester.", "Ich hat keine Schwester.", "Kein is used to negate a noun with an indefinite article."],
+    ["Choose the correct sentence.", "Das ist nicht teuer.", "Das ist kein teuer.", "Das nicht ist teuer.", "Das keine teuer.", "Nicht negates adjectives and verbs."],
+    ["Choose the correct modal sentence.", "Ich kann schwimmen.", "Ich kann zu schwimmen.", "Ich schwimmen kann.", "Ich kann schwimmt.", "After a modal verb, the main verb goes in the infinitive."],
+    ["Choose the correct modal sentence.", "Wir müssen lernen.", "Wir müssen lernt.", "Wir muss lernen.", "Wir müssen zu lernen.", "With wir the modal verb is müssen, and the main verb is infinitive."],
+    ["What does «gestern» mean?", "вчера", "сегодня", "завтра", "утром", "Gestern means yesterday."],
+    ["What does «morgen» mean in the sentence «Morgen gehe ich zur Schule»?", "завтра", "утро", "вчера", "вечер", "Morgen with capital M can mean morning, but here it means tomorrow."],
+    ["Choose the correct plural: das Buch — die", "Bücher", "Buchen", "Buchs", "Buche", "The plural of das Buch is die Bücher."],
+    ["Choose the correct plural: der Apfel — die", "Äpfel", "Apfeln", "Apfels", "Apfel", "The plural of der Apfel is die Äpfel."],
+    ["Choose the correct question word: ___ wohnst du?", "Wo", "Wer", "Was", "Wann", "Wo asks about place: where."],
+    ["Choose the correct question word: ___ kommst du?", "Woher", "Wohin", "Wie viel", "Warum nicht", "Woher asks about origin: where from."],
+    ["Choose the correct answer to «Wie alt bist du?»", "Ich bin zwölf Jahre alt.", "Ich heiße Max.", "Ich wohne in Berlin.", "Ich spiele Tennis.", "The question asks about age."],
+    ["Choose the correct time: 7:30", "halb acht", "halb sieben", "sieben Uhr", "Viertel vor sieben", "In German, 7:30 is halb acht."],
+    ["Choose the correct preposition: Ich gehe ___ Schule.", "zur", "im", "aus", "bei", "Zur Schule gehen means to go to school."],
+    ["What is the German word for «каникулы»?", "die Ferien", "die Stunde", "das Heft", "der Bleistift", "Die Ferien means holidays/vacation."]
+  ]),
+
+  french: makeBank([
+    ["Choose the correct form: Nous ___ français.", "parlons", "parlez", "parle", "parlent", "With nous, regular -er verbs end in -ons."],
+    ["Choose the correct form: Vous ___ à Paris.", "habitez", "habite", "habitons", "habitent", "With vous, regular -er verbs end in -ez."],
+    ["Choose the correct form: Ils ___ au collège.", "vont", "va", "allez", "allons", "The verb aller with ils is vont."],
+    ["Choose the correct form: Je ___ mes devoirs.", "fais", "fait", "faisons", "font", "The verb faire with je is fais."],
+    ["Choose the correct negative sentence.", "Je n'aime pas le thé.", "Je ne aime le thé pas.", "Je pas aime le thé.", "Je n'aimes pas le thé.", "French negation usually frames the verb: ne/n' ... pas."],
+    ["Choose the correct article: ___ école est grande.", "L'", "Le", "La", "Un", "École begins with a vowel sound, so le/la becomes l'."],
+    ["Choose the correct adjective agreement: une robe ___", "bleue", "bleu", "bleus", "bleues", "Robe is feminine singular, so bleu becomes bleue."],
+    ["Choose the correct adjective agreement: des livres ___", "intéressants", "intéressante", "intéressant", "intéressantes", "Livres is masculine plural, so the adjective takes -s."],
+    ["Choose the correct possessive adjective: ___ mère", "ma", "mon", "mes", "tonnes", "Mère is feminine singular, so we use ma."],
+    ["Choose the correct possessive adjective: ___ amis", "mes", "mon", "ma", "sa", "Amis is plural, so we use mes."],
+    ["Choose the correct question: Where do you live?", "Où habites-tu ?", "Comment tu t'appelles ?", "Quel âge as-tu ?", "Qu'est-ce que c'est ?", "Où asks about place."],
+    ["Choose the correct answer to «Quel âge as-tu ?»", "J'ai douze ans.", "Je suis à Paris.", "Je m'appelle Luc.", "J'aime le foot.", "The question asks about age."],
+    ["What does «aujourd'hui» mean?", "сегодня", "вчера", "завтра", "летом", "Aujourd'hui means today."],
+    ["What does «demain» mean?", "завтра", "вчера", "сегодня", "ночью", "Demain means tomorrow."],
+    ["Choose the correct time: 8:15", "Il est huit heures et quart.", "Il est huit heures moins le quart.", "Il est sept heures et demie.", "Il est neuf heures.", "8:15 is huit heures et quart."],
+    ["Choose the correct sentence.", "Je voudrais un croissant.", "Je veux à un croissant.", "Je voudrais une croissant.", "Je voudrait un croissant.", "Je voudrais is a polite way to say «I would like»."],
+    ["Choose the correct word for «библиотека».", "la bibliothèque", "la boulangerie", "la gare", "le marché", "La bibliothèque means library."],
+    ["Choose the correct word for «поезд».", "le train", "la voiture", "le vélo", "l'avion", "Le train means train."]
+  ]),
+
+  russian: makeBank([
+    ["Раздел науки о языке, изучающий словарный состав, называется", "лексика", "фонетика", "орфоэпия", "пунктуация", "Лексика изучает слова языка и их значения."],
+    ["Устойчивое сочетание слов с целостным значением называется", "фразеологизм", "окончание", "морфема", "звук", "Фразеологизм нельзя понимать только по значениям отдельных слов."],
+    ["Слова одной и той же части речи с противоположным значением — это", "антонимы", "синонимы", "омонимы", "паронимы", "Антонимы противопоставлены по смыслу: смелый — трусливый."],
+    ["Способ образования слова при помощи приставки называется", "приставочный", "суффиксальный", "сложение", "бессуффиксный", "При приставочном способе к основе добавляется приставка."],
+    ["В слове «подоконник» приставка —", "под-", "-ник", "окон", "-ий", "Приставка стоит перед корнем: под-окон-ник."],
+    ["Существительное «путь» относится к", "мужскому роду", "женскому роду", "среднему роду", "общему роду", "Слово путь — существительное мужского рода."],
+    ["Существительные, имеющие только форму множественного числа, — это", "ножницы", "стол", "дом", "озеро", "Слово ножницы употребляется только во множественном числе."],
+    ["Качественное прилагательное обозначает", "признак, который может проявляться в большей или меньшей степени", "принадлежность лицу", "материал предмета", "только число", "Качественные прилагательные имеют степени сравнения: добрый — добрее."],
+    ["Прилагательное «лисий» является", "притяжательным", "качественным", "относительным", "числительным", "Притяжательные прилагательные обозначают принадлежность: лисий хвост."],
+    ["Имя числительное отвечает на вопросы", "сколько? который?", "кто? что?", "какой? чей?", "что делать?", "Числительные называют количество или порядок предметов."],
+    ["Числительное «семеро» является", "собирательным", "порядковым", "дробным", "простым глаголом", "Собирательные числительные обозначают количество как совокупность."],
+    ["Местоимение «мы» относится к разряду", "личных", "указательных", "отрицательных", "притяжательных", "Личные местоимения указывают на участников речи: я, ты, мы, вы."],
+    ["Местоимение «этот» относится к разряду", "указательных", "личных", "вопросительных", "неопределённых", "Указательные местоимения указывают на предмет или признак."],
+    ["Глаголы изменяются по временам в форме", "изъявительного наклонения", "инфинитива", "деепричастия", "краткого прилагательного", "В изъявительном наклонении глагол имеет настоящее, прошедшее или будущее время."],
+    ["Глагол «беречь» относится к", "инфинитиву", "прошедшему времени", "повелительному наклонению", "краткой форме", "Инфинитив отвечает на вопрос что делать? что сделать?"],
+    ["В каком слове пишется приставка ПРИ-?", "приехать", "прекрасный", "преграда", "презирать", "При- часто обозначает приближение: приехать."],
+    ["В каком слове пишется приставка ПРЕ-?", "премудрый", "прилететь", "пришить", "прибрежный", "Пре- может быть близка по значению к «очень»: премудрый."],
+    ["Какой знак ставится между частями сложного предложения без союза при перечислении?", "запятая", "точка", "кавычки", "скобки", "Запятая разделяет части сложного предложения."]
+  ]),
+
+  literature: makeBank([
+    ["Произведения о богах и героях древних народов называются", "мифы", "былины", "романы", "рецензии", "Мифы объясняли устройство мира и происхождение явлений."],
+    ["Кто является автором романа «Дубровский»?", "А.С. Пушкин", "М.Ю. Лермонтов", "И.С. Тургенев", "Н.В. Гоголь", "«Дубровский» написал Александр Сергеевич Пушкин."],
+    ["Произведение «Барышня-крестьянка» относится к циклу", "«Повести Белкина»", "«Записки охотника»", "«Вечера на хуторе близ Диканьки»", "«Детство»", "«Барышня-крестьянка» входит в пушкинские «Повести Белкина»."],
+    ["Автор стихотворения «Тучи» —", "М.Ю. Лермонтов", "А.С. Пушкин", "Н.А. Некрасов", "А.А. Фет", "Стихотворение «Тучи» написал Михаил Юрьевич Лермонтов."],
+    ["Рассказ «Бежин луг» написал", "И.С. Тургенев", "Л.Н. Толстой", "А.П. Чехов", "В.Г. Короленко", "«Бежин луг» входит в цикл Тургенева «Записки охотника»."],
+    ["Описание природы в художественном произведении называется", "пейзаж", "портрет", "диалог", "эпиграф", "Пейзаж помогает создать настроение и место действия."],
+    ["Описание внешности героя называется", "портрет", "пейзаж", "монолог", "развязка", "Портрет раскрывает внешность и иногда характер персонажа."],
+    ["Противопоставление образов или понятий называется", "антитеза", "эпитет", "рифма", "сюжет", "Антитеза строится на контрасте: свет — тьма, добро — зло."],
+    ["Образное определение называется", "эпитет", "монолог", "жанр", "завязка", "Эпитет делает описание выразительным: золотая осень."],
+    ["Скрытое сравнение без слов «как», «будто» называется", "метафора", "диалог", "мораль", "летопись", "Метафора переносит свойства одного предмета на другой."],
+    ["Главное столкновение сил или характеров в произведении называется", "конфликт", "эпилог", "рифма", "строфа", "Конфликт движет развитие сюжета."],
+    ["Самый напряжённый момент развития действия называется", "кульминация", "экспозиция", "эпиграф", "заголовок", "Кульминация — вершина конфликта."],
+    ["Начальная часть, знакомящая с героями и обстановкой, называется", "экспозиция", "развязка", "кульминация", "мораль", "Экспозиция вводит читателя в мир произведения."],
+    ["Речь одного персонажа, обращённая к себе или другим, называется", "монолог", "диалог", "сюжет", "пейзаж", "Монолог — развёрнутая речь одного героя."],
+    ["Разговор двух или нескольких персонажей называется", "диалог", "монолог", "портрет", "эпиграф", "Диалог состоит из реплик участников."],
+    ["Жанр небольшого произведения с острым конфликтом и малым числом героев — это", "рассказ", "роман-эпопея", "поэма", "летопись", "Рассказ обычно невелик по объёму и сосредоточен на одном событии."],
+    ["Народная героическая песня о богатырях называется", "былина", "басня", "элегия", "комедия", "Былины рассказывают о подвигах богатырей."],
+    ["Основной смысл произведения называется", "идея", "тираж", "страница", "абзац", "Идея показывает, какую мысль автор хочет донести."]
+  ])
+};
+
+const questionBanksByGrade = {
+  '5': questionBanks,
+  '6': grade6QuestionBanks
+};
+
+function addRows(grade, subject, rows) {
+  questionBanksByGrade[grade][subject].push(...makeBank(rows));
+}
+
+function pickFrom(items, index, field) {
+  const picked = [];
+  for (let offset = 1; picked.length < 3 && offset < items.length + 4; offset++) {
+    const value = items[(index + offset) % items.length][field];
+    if (value !== items[index][field] && !picked.includes(value)) picked.push(value);
+  }
+  return picked;
+}
+
+function addTermRows(grade, subject, items) {
+  const rows = [];
+  items.forEach(([term, meaning], index) => {
+    rows.push([
+      'Что означает термин «' + term + '»?',
+      meaning,
+      ...pickFrom(items, index, 1),
+      term + ' — ' + meaning + '.'
+    ]);
+    rows.push([
+      'Как называется понятие: ' + meaning + '?',
+      term,
+      ...pickFrom(items, index, 0),
+      'Это ' + term + '.'
+    ]);
+  });
+  addRows(grade, subject, rows);
+}
+
+function addVocabularyRows(grade, subject, label, items) {
+  const rows = [];
+  items.forEach(([foreign, russian], index) => {
+    rows.push([
+      'Как переводится «' + foreign + '»?',
+      russian,
+      ...pickFrom(items, index, 1),
+      '«' + foreign + '» означает «' + russian + '».'
+    ]);
+    rows.push([
+      'Как ' + label + ' будет «' + russian + '»?',
+      foreign,
+      ...pickFrom(items, index, 0),
+      '«' + russian + '» — это «' + foreign + '».'
+    ]);
+  });
+  addRows(grade, subject, rows);
+}
+
+function addMathRow(rows, q, answer, wrongs, exp) {
+  const correct = String(answer);
+  const uniqueWrongs = [];
+  wrongs.map(String).forEach(wrong => {
+    if (wrong !== correct && !uniqueWrongs.includes(wrong)) uniqueWrongs.push(wrong);
+  });
+  let shift = 1;
+  while (uniqueWrongs.length < 3) {
+    const fallback = String(Number(answer) + shift);
+    if (fallback !== correct && !uniqueWrongs.includes(fallback)) uniqueWrongs.push(fallback);
+    shift++;
+  }
+  rows.push([q, correct, uniqueWrongs[0], uniqueWrongs[1], uniqueWrongs[2], exp]);
+}
+
+const termSets = {
+  '5': {
+    geography: [
+      ['география', 'наука о природе Земли, населении и хозяйстве разных территорий'],
+      ['глобус', 'уменьшенная объёмная модель Земли'],
+      ['географическая карта', 'условное изображение земной поверхности на плоскости'],
+      ['план местности', 'чертёж небольшого участка земной поверхности сверху'],
+      ['масштаб', 'показатель, во сколько раз расстояние на карте меньше настоящего'],
+      ['легенда карты', 'объяснение условных знаков карты'],
+      ['экватор', 'линия, делящая Землю на Северное и Южное полушария'],
+      ['меридиан', 'линия, соединяющая Северный и Южный полюсы'],
+      ['параллель', 'линия на глобусе, проведённая параллельно экватору'],
+      ['атлас', 'сборник географических карт'],
+      ['компас', 'прибор для определения сторон горизонта'],
+      ['горизонт', 'видимая граница неба и земной поверхности'],
+      ['север', 'сторона горизонта, противоположная югу'],
+      ['материк', 'крупный участок суши, окружённый океанами и морями'],
+      ['океан', 'крупнейшая часть Мирового океана'],
+      ['остров', 'участок суши, со всех сторон окружённый водой'],
+      ['полуостров', 'участок суши, с трёх сторон окружённый водой'],
+      ['море', 'часть океана, частично отделённая сушей или подводными поднятиями'],
+      ['залив', 'часть водоёма, глубоко вдающаяся в сушу'],
+      ['пролив', 'узкое водное пространство, соединяющее водоёмы'],
+      ['литосфера', 'твёрдая каменная оболочка Земли'],
+      ['гидросфера', 'водная оболочка Земли'],
+      ['атмосфера', 'воздушная оболочка Земли'],
+      ['биосфера', 'оболочка Земли, населённая живыми организмами'],
+      ['погода', 'состояние атмосферы в данном месте и в данный момент'],
+      ['климат', 'многолетний режим погоды определённой территории'],
+      ['рельеф', 'совокупность неровностей земной поверхности'],
+      ['гора', 'высокое поднятие земной поверхности с выраженными склонами'],
+      ['равнина', 'обширный участок земной поверхности с небольшими перепадами высот'],
+      ['река', 'естественный водный поток, текущий по руслу'],
+      ['озеро', 'естественный водоём в углублении суши'],
+      ['исток', 'место, где начинается река'],
+      ['устье', 'место впадения реки в другой водоём'],
+      ['приток', 'река, впадающая в другую реку'],
+      ['природная зона', 'крупная территория с похожим климатом, почвами, растениями и животными'],
+      ['условный знак', 'символ на карте или плане, обозначающий объект местности']
+    ],
+    biology: [
+      ['биология', 'наука о живых организмах'],
+      ['наблюдение', 'изучение объекта без изменения условий'],
+      ['измерение', 'получение числовых данных с помощью приборов'],
+      ['эксперимент', 'проверка гипотезы в специально созданных условиях'],
+      ['клетка', 'основная единица строения живых организмов'],
+      ['ядро', 'часть клетки, хранящая наследственную информацию'],
+      ['цитоплазма', 'внутреннее полужидкое содержимое клетки'],
+      ['клеточная оболочка', 'наружная часть растительной клетки, придающая ей форму'],
+      ['вакуоль', 'часть растительной клетки с клеточным соком'],
+      ['хлоропласт', 'органоид растительной клетки, где идёт фотосинтез'],
+      ['хлорофилл', 'зелёный пигмент, улавливающий свет'],
+      ['фотосинтез', 'образование органических веществ на свету с выделением кислорода'],
+      ['дыхание', 'процесс получения энергии живыми клетками'],
+      ['питание', 'поступление веществ, необходимых организму'],
+      ['размножение', 'образование организмами себе подобных'],
+      ['раздражимость', 'способность организма реагировать на воздействия среды'],
+      ['царство живой природы', 'крупная группа организмов с общими признаками'],
+      ['бактерии', 'микроскопические организмы без оформленного ядра'],
+      ['грибы', 'организмы, питающиеся готовыми органическими веществами'],
+      ['растения', 'организмы, обычно способные к фотосинтезу'],
+      ['животные', 'организмы, питающиеся готовыми органическими веществами и часто активно передвигающиеся'],
+      ['микроскоп', 'прибор для рассматривания очень мелких объектов'],
+      ['окуляр', 'часть микроскопа, в которую смотрит наблюдатель'],
+      ['объектив', 'линза микроскопа, направленная к препарату'],
+      ['лупа', 'простой увеличительный прибор'],
+      ['гербарий', 'коллекция высушенных растений'],
+      ['дикорастущее растение', 'растение, растущее без ухода человека'],
+      ['культурное растение', 'растение, выращиваемое человеком'],
+      ['корень', 'орган растения, закрепляющий его и всасывающий воду'],
+      ['стебель', 'орган растения, поддерживающий листья и проводящий вещества'],
+      ['лист', 'орган растения, где часто происходит фотосинтез'],
+      ['цветок', 'орган цветкового растения, участвующий в размножении'],
+      ['плод', 'орган, защищающий семена'],
+      ['семя', 'зачаток нового растения с запасом питательных веществ'],
+      ['пищевая цепь', 'последовательность организмов, где каждый служит пищей следующему'],
+      ['экология', 'наука о связях организмов между собой и со средой']
+    ],
+    informatics: [
+      ['информация', 'сведения об окружающем мире'],
+      ['информационный процесс', 'получение, хранение, обработка или передача информации'],
+      ['данные', 'информация, представленная в форме для хранения или обработки'],
+      ['компьютер', 'устройство для обработки информации по программам'],
+      ['клавиатура', 'устройство для ввода текста и команд'],
+      ['мышь', 'устройство для управления указателем на экране'],
+      ['монитор', 'устройство вывода изображения'],
+      ['принтер', 'устройство для вывода информации на бумагу'],
+      ['сканер', 'устройство для ввода изображения с бумаги'],
+      ['микрофон', 'устройство для ввода звука'],
+      ['колонки', 'устройство для вывода звука'],
+      ['системный блок', 'часть компьютера, где находятся основные устройства обработки данных'],
+      ['файл', 'именованный набор данных на носителе'],
+      ['папка', 'место для хранения и группировки файлов'],
+      ['расширение файла', 'часть имени файла, указывающая его тип'],
+      ['ярлык', 'ссылка для быстрого открытия файла или программы'],
+      ['алгоритм', 'точное описание действий для решения задачи'],
+      ['исполнитель', 'объект, выполняющий команды алгоритма'],
+      ['команда', 'указание выполнить действие'],
+      ['линейный алгоритм', 'алгоритм, где команды выполняются по порядку'],
+      ['курсор', 'отметка места ввода текста'],
+      ['меню', 'список команд программы'],
+      ['окно программы', 'область экрана, в которой работает программа'],
+      ['рабочий стол', 'основная область экрана после запуска системы'],
+      ['пиксель', 'минимальная точка растрового изображения'],
+      ['текстовый редактор', 'программа для создания и изменения текста'],
+      ['графический редактор', 'программа для создания и изменения рисунков'],
+      ['сохранение', 'запись результата работы в файл'],
+      ['копирование', 'создание копии объекта или фрагмента'],
+      ['удаление', 'убирание объекта из выбранного места'],
+      ['интернет', 'глобальная компьютерная сеть'],
+      ['электронная почта', 'сервис обмена электронными письмами'],
+      ['пароль', 'секретная строка для защиты доступа'],
+      ['безопасность в интернете', 'правила защиты данных и общения онлайн'],
+      ['поисковая система', 'сервис для поиска информации в интернете'],
+      ['браузер', 'программа для просмотра веб-страниц']
+    ],
+    russian: [
+      ['имя существительное', 'часть речи, обозначающая предмет'],
+      ['имя прилагательное', 'часть речи, обозначающая признак предмета'],
+      ['глагол', 'часть речи, обозначающая действие или состояние'],
+      ['местоимение', 'часть речи, указывающая на предмет или признак без называния'],
+      ['предлог', 'служебное слово для связи слов'],
+      ['союз', 'служебное слово для связи слов и предложений'],
+      ['корень', 'главная значимая часть родственных слов'],
+      ['приставка', 'значимая часть слова перед корнем'],
+      ['суффикс', 'значимая часть слова после корня'],
+      ['окончание', 'изменяемая часть слова, служащая для связи слов'],
+      ['основа слова', 'часть слова без окончания'],
+      ['орфограмма', 'место в слове, где нужно выбрать правильное написание'],
+      ['синонимы', 'слова, близкие по значению'],
+      ['антонимы', 'слова с противоположным значением'],
+      ['омонимы', 'слова, одинаковые по звучанию и написанию, но разные по значению'],
+      ['подлежащее', 'главный член предложения, называющий того, о ком говорится'],
+      ['сказуемое', 'главный член предложения, сообщающий действие или состояние подлежащего'],
+      ['предложение', 'слово или группа слов, выражающая законченную мысль'],
+      ['повествовательное предложение', 'предложение, в котором сообщается информация'],
+      ['вопросительное предложение', 'предложение, в котором содержится вопрос'],
+      ['побудительное предложение', 'предложение, выражающее просьбу, приказ или совет'],
+      ['распространённое предложение', 'предложение, в котором есть второстепенные члены'],
+      ['нераспространённое предложение', 'предложение только с грамматической основой'],
+      ['фонетика', 'раздел науки о языке, изучающий звуки речи'],
+      ['звук', 'единица устной речи'],
+      ['буква', 'письменный знак для обозначения звука'],
+      ['слог', 'часть слова, произносимая одним толчком голоса'],
+      ['ударение', 'выделение одного слога силой голоса'],
+      ['падеж', 'форма имени, показывающая его связь с другими словами'],
+      ['именительный падеж', 'падеж, отвечающий на вопросы кто? что?'],
+      ['родительный падеж', 'падеж, отвечающий на вопросы кого? чего?'],
+      ['дательный падеж', 'падеж, отвечающий на вопросы кому? чему?'],
+      ['винительный падеж', 'падеж, отвечающий на вопросы кого? что?'],
+      ['творительный падеж', 'падеж, отвечающий на вопросы кем? чем?'],
+      ['предложный падеж', 'падеж, отвечающий на вопросы о ком? о чём?'],
+      ['перенос слова', 'разделение слова при письме с одной строки на другую']
+    ],
+    literature: [
+      ['фольклор', 'устное народное творчество'],
+      ['сказка', 'повествовательное произведение с вымыслом и чудесными событиями'],
+      ['волшебная сказка', 'сказка с чудесными помощниками и испытаниями героя'],
+      ['бытовая сказка', 'сказка о повседневной жизни людей'],
+      ['сказка о животных', 'сказка, где главные герои часто животные'],
+      ['пословица', 'краткое мудрое народное изречение'],
+      ['поговорка', 'образное выражение без полного поучительного вывода'],
+      ['загадка', 'краткое описание предмета, который надо отгадать'],
+      ['басня', 'короткое иносказательное произведение с моралью'],
+      ['мораль', 'поучительный вывод басни'],
+      ['рассказ', 'небольшое прозаическое произведение о событии'],
+      ['стихотворение', 'лирическое произведение, написанное строками с ритмом'],
+      ['рифма', 'созвучие концов стихотворных строк'],
+      ['ритм', 'повторяющаяся организация звучания стихотворной речи'],
+      ['автор', 'создатель литературного произведения'],
+      ['герой', 'действующее лицо литературного произведения'],
+      ['рассказчик', 'тот, кто сообщает читателю о событиях'],
+      ['сюжет', 'последовательность событий произведения'],
+      ['завязка', 'начальный момент развития действия'],
+      ['развязка', 'завершение основного действия произведения'],
+      ['пейзаж', 'описание природы в произведении'],
+      ['портрет', 'описание внешности героя'],
+      ['диалог', 'разговор двух или нескольких персонажей'],
+      ['монолог', 'речь одного персонажа'],
+      ['тема', 'то, о чём говорится в произведении'],
+      ['идея', 'главная мысль произведения'],
+      ['эпитет', 'образное определение'],
+      ['сравнение', 'сопоставление предметов с помощью слов как, будто, словно'],
+      ['литературная сказка', 'сказка, созданная конкретным автором'],
+      ['народная сказка', 'сказка, созданная народом'],
+      ['строфа', 'группа стихотворных строк'],
+      ['жанр', 'вид литературного произведения'],
+      ['проза', 'художественная речь без стихотворного ритма'],
+      ['лирика', 'род литературы, передающий чувства и переживания'],
+      ['композиция', 'построение литературного произведения'],
+      ['эпизод', 'отдельная часть события в произведении']
+    ]
+  },
+  '6': {
+    geography: [
+      ['литосфера', 'твёрдая оболочка Земли, включающая земную кору и верх мантии'],
+      ['земная кора', 'верхняя твёрдая оболочка Земли'],
+      ['мантия', 'внутренняя оболочка Земли между корой и ядром'],
+      ['ядро Земли', 'центральная часть планеты'],
+      ['минерал', 'природное тело с определённым составом и свойствами'],
+      ['горная порода', 'природное скопление одного или нескольких минералов'],
+      ['магматическая порода', 'порода, образованная при застывании магмы'],
+      ['осадочная порода', 'порода, образованная из осадков и остатков организмов'],
+      ['метаморфическая порода', 'порода, изменённая давлением и температурой'],
+      ['полезное ископаемое', 'минеральное образование, используемое человеком'],
+      ['землетрясение', 'подземные толчки и колебания земной поверхности'],
+      ['очаг землетрясения', 'место в недрах Земли, где начинается землетрясение'],
+      ['эпицентр', 'участок поверхности над очагом землетрясения'],
+      ['вулкан', 'место выхода магмы, газов и пепла на поверхность'],
+      ['кратер', 'чашеобразное углубление на вершине вулкана'],
+      ['лава', 'магма, излившаяся на поверхность'],
+      ['выветривание', 'разрушение горных пород на поверхности Земли'],
+      ['эрозия', 'разрушение и перенос пород водой, ветром или льдом'],
+      ['горы', 'обширные поднятия земной поверхности с большими высотами'],
+      ['равнины', 'участки поверхности с небольшими перепадами высот'],
+      ['гидросфера', 'водная оболочка Земли'],
+      ['мировой океан', 'единая водная оболочка океанов и морей'],
+      ['река', 'постоянный водный поток в русле'],
+      ['речная система', 'главная река со всеми притоками'],
+      ['бассейн реки', 'территория, с которой вода стекает в реку'],
+      ['водораздел', 'граница между бассейнами соседних рек'],
+      ['озеро', 'водоём в природном углублении суши'],
+      ['болото', 'избыточно увлажнённый участок суши'],
+      ['ледник', 'многолетнее скопление льда на суше'],
+      ['подземные воды', 'воды, находящиеся в горных породах'],
+      ['атмосферное давление', 'сила, с которой воздух давит на поверхность'],
+      ['ветер', 'движение воздуха из области высокого давления в область низкого'],
+      ['бриз', 'ветер, меняющий направление между днём и ночью у побережья'],
+      ['муссон', 'сезонный ветер, меняющий направление два раза в год'],
+      ['конденсация', 'переход водяного пара в капли воды'],
+      ['круговорот воды', 'непрерывное перемещение воды между океаном, сушей и атмосферой']
+    ],
+    biology: [
+      ['ботаника', 'раздел биологии, изучающий растения'],
+      ['растительная ткань', 'группа клеток растения, сходных по строению и функциям'],
+      ['образовательная ткань', 'ткань, клетки которой активно делятся'],
+      ['покровная ткань', 'ткань, защищающая органы растения'],
+      ['проводящая ткань', 'ткань, по которой перемещаются вода и вещества'],
+      ['механическая ткань', 'ткань, придающая органам растения прочность'],
+      ['основная ткань', 'ткань, выполняющая фотосинтез, запасание и другие функции'],
+      ['корневая система', 'совокупность всех корней растения'],
+      ['главный корень', 'корень, развивающийся из зародышевого корешка'],
+      ['боковой корень', 'корень, отходящий от другого корня'],
+      ['придаточный корень', 'корень, развивающийся от стебля или листа'],
+      ['корневой волосок', 'вырост клетки корня, всасывающий воду'],
+      ['минеральное питание', 'поглощение растением воды и минеральных веществ'],
+      ['побег', 'стебель с листьями и почками'],
+      ['почка', 'зачаточный побег'],
+      ['стебель', 'ось побега, проводящая вещества и поддерживающая листья'],
+      ['лист', 'орган растения, где идёт фотосинтез и испарение воды'],
+      ['устьице', 'крошечное отверстие в кожице листа для газообмена'],
+      ['транспирация', 'испарение воды растением'],
+      ['фотосинтез', 'образование органических веществ из воды и углекислого газа на свету'],
+      ['дыхание растений', 'получение энергии в живых клетках растения'],
+      ['цветок', 'орган семенного размножения цветковых растений'],
+      ['тычинка', 'часть цветка, где образуется пыльца'],
+      ['пестик', 'часть цветка, в завязи которой находятся семязачатки'],
+      ['опыление', 'перенос пыльцы на рыльце пестика'],
+      ['оплодотворение', 'слияние половых клеток'],
+      ['плод', 'орган, развивающийся из завязи и содержащий семена'],
+      ['семя', 'орган размножения и расселения растения'],
+      ['зародыш', 'зачаток будущего растения внутри семени'],
+      ['семядоля', 'часть зародыша, часто содержащая запас питательных веществ'],
+      ['вегетативное размножение', 'размножение частями растения'],
+      ['черенок', 'часть растения, используемая для вегетативного размножения'],
+      ['луковица', 'видоизменённый побег с мясистыми листьями'],
+      ['клубень', 'видоизменённый побег с запасом питательных веществ'],
+      ['корневище', 'подземный видоизменённый побег'],
+      ['двудольные растения', 'растения, зародыш которых имеет две семядоли']
+    ],
+    informatics: [
+      ['бит', 'минимальная единица измерения информации'],
+      ['байт', 'единица информации, равная восьми битам'],
+      ['двоичная система', 'система счисления с цифрами 0 и 1'],
+      ['кодирование', 'представление информации с помощью условных знаков'],
+      ['декодирование', 'восстановление информации по коду'],
+      ['алфавит', 'набор символов для записи сообщений'],
+      ['мощность алфавита', 'количество символов в алфавите'],
+      ['исполнитель алгоритма', 'объект, понимающий и выполняющий команды'],
+      ['система команд', 'набор команд, понятных исполнителю'],
+      ['линейный алгоритм', 'алгоритм без ветвлений и повторений'],
+      ['разветвляющийся алгоритм', 'алгоритм, в котором выбор действий зависит от условия'],
+      ['циклический алгоритм', 'алгоритм с повторением команд'],
+      ['условие', 'высказывание, которое может быть истинным или ложным'],
+      ['блок-схема', 'графическое описание алгоритма'],
+      ['ромб в блок-схеме', 'обозначение проверки условия'],
+      ['табличная модель', 'модель, представленная строками и столбцами'],
+      ['электронная таблица', 'программа для хранения данных и выполнения расчётов в таблицах'],
+      ['ячейка', 'пересечение строки и столбца электронной таблицы'],
+      ['адрес ячейки', 'обозначение ячейки буквой столбца и номером строки'],
+      ['формула', 'запись для вычисления значения'],
+      ['диапазон ячеек', 'группа соседних ячеек таблицы'],
+      ['диаграмма', 'графическое представление числовых данных'],
+      ['модель', 'упрощённое представление объекта или процесса'],
+      ['информационная модель', 'описание объекта с помощью информации'],
+      ['компьютерная сеть', 'соединение устройств для обмена данными'],
+      ['локальная сеть', 'сеть устройств на небольшой территории'],
+      ['интернет', 'глобальная компьютерная сеть'],
+      ['URL', 'адрес ресурса в интернете'],
+      ['браузер', 'программа для просмотра веб-страниц'],
+      ['архиватор', 'программа для упаковки и сжатия файлов'],
+      ['архив', 'файл, содержащий один или несколько сжатых файлов'],
+      ['отладка', 'поиск и исправление ошибок в программе'],
+      ['переменная', 'именованная величина, значение которой может изменяться'],
+      ['истинное высказывание', 'утверждение, соответствующее действительности'],
+      ['ложное высказывание', 'утверждение, не соответствующее действительности'],
+      ['цифровой след', 'информация о действиях пользователя в интернете']
+    ],
+    russian: [
+      ['лексика', 'словарный состав языка'],
+      ['лексическое значение', 'смысл слова'],
+      ['однозначное слово', 'слово с одним лексическим значением'],
+      ['многозначное слово', 'слово с несколькими лексическими значениями'],
+      ['прямое значение', 'основное значение слова'],
+      ['переносное значение', 'образное значение слова'],
+      ['фразеологизм', 'устойчивое сочетание слов с единым значением'],
+      ['словообразование', 'раздел языка, изучающий образование слов'],
+      ['морфемика', 'раздел языка, изучающий значимые части слова'],
+      ['морфемный разбор', 'разбор слова по составу'],
+      ['приставочный способ', 'образование слова с помощью приставки'],
+      ['суффиксальный способ', 'образование слова с помощью суффикса'],
+      ['сложение', 'образование слова соединением основ или слов'],
+      ['имя существительное', 'самостоятельная часть речи, обозначающая предмет'],
+      ['разносклоняемое существительное', 'существительное с окончаниями разных склонений'],
+      ['несклоняемое существительное', 'существительное, не изменяющееся по падежам'],
+      ['имя прилагательное', 'часть речи, обозначающая признак предмета'],
+      ['качественное прилагательное', 'прилагательное, обозначающее признак в разной степени'],
+      ['относительное прилагательное', 'прилагательное, обозначающее признак через отношение к предмету'],
+      ['притяжательное прилагательное', 'прилагательное, обозначающее принадлежность'],
+      ['степень сравнения', 'форма качественного прилагательного для сравнения признака'],
+      ['имя числительное', 'часть речи, обозначающая количество или порядок'],
+      ['количественное числительное', 'числительное, отвечающее на вопрос сколько'],
+      ['порядковое числительное', 'числительное, отвечающее на вопрос который'],
+      ['собирательное числительное', 'числительное, обозначающее совокупность предметов'],
+      ['местоимение', 'часть речи, указывающая на предмет, признак или количество'],
+      ['личное местоимение', 'местоимение, указывающее на участников речи'],
+      ['указательное местоимение', 'местоимение, указывающее на предмет или признак'],
+      ['вопросительное местоимение', 'местоимение, используемое в вопросе'],
+      ['глагол', 'часть речи, обозначающая действие или состояние'],
+      ['инфинитив', 'начальная форма глагола'],
+      ['наклонение глагола', 'форма, показывающая отношение действия к действительности'],
+      ['изъявительное наклонение', 'наклонение, обозначающее реальное действие'],
+      ['условное наклонение', 'наклонение, обозначающее действие при условии'],
+      ['повелительное наклонение', 'наклонение, выражающее просьбу, приказ или совет'],
+      ['пунктуация', 'раздел языка о знаках препинания']
+    ],
+    literature: [
+      ['миф', 'древнее сказание о богах, героях и устройстве мира'],
+      ['герой мифа', 'персонаж мифологического произведения'],
+      ['былина', 'народная героическая песня о богатырях'],
+      ['богатырь', 'герой былины, защитник родной земли'],
+      ['летопись', 'историческое повествование по годам'],
+      ['сказание', 'повествование о прошлом, соединяющее историю и предание'],
+      ['баллада', 'сюжетное стихотворение с напряжённым событием'],
+      ['повесть', 'прозаическое произведение больше рассказа, но меньше романа'],
+      ['рассказ', 'небольшое прозаическое произведение об одном событии'],
+      ['роман', 'крупное эпическое произведение со сложным сюжетом'],
+      ['сюжет', 'цепь событий литературного произведения'],
+      ['экспозиция', 'часть сюжета, знакомящая с героями и обстановкой'],
+      ['завязка', 'событие, с которого начинается развитие конфликта'],
+      ['кульминация', 'самый напряжённый момент сюжета'],
+      ['развязка', 'завершение конфликта'],
+      ['конфликт', 'столкновение характеров, сил или взглядов'],
+      ['композиция', 'построение произведения'],
+      ['эпизод', 'относительно самостоятельная часть действия'],
+      ['пейзаж', 'описание природы'],
+      ['портрет', 'описание внешности персонажа'],
+      ['интерьер', 'описание внутреннего пространства помещения'],
+      ['диалог', 'разговор двух или нескольких персонажей'],
+      ['монолог', 'развёрнутая речь одного персонажа'],
+      ['реплика', 'отдельное высказывание участника диалога'],
+      ['лирический герой', 'образ говорящего в лирическом произведении'],
+      ['эпитет', 'образное определение'],
+      ['метафора', 'скрытое сравнение на основе сходства'],
+      ['сравнение', 'сопоставление предметов с помощью как, будто, словно'],
+      ['олицетворение', 'наделение неживого предмета признаками живого'],
+      ['антитеза', 'противопоставление образов или понятий'],
+      ['гипербола', 'художественное преувеличение'],
+      ['идея произведения', 'главная мысль, которую выражает автор'],
+      ['тема произведения', 'то, о чём говорится в произведении'],
+      ['авторская позиция', 'отношение автора к изображаемому'],
+      ['юмор', 'добродушное изображение смешного'],
+      ['сатира', 'резкое обличение недостатков']
+    ]
+  }
+};
+
+const vocabularySets = {
+  '5': {
+    english: {
+      label: 'по-английски',
+      items: [
+        ['family', 'семья'], ['mother', 'мама'], ['father', 'папа'], ['sister', 'сестра'],
+        ['brother', 'брат'], ['friend', 'друг'], ['school', 'школа'], ['teacher', 'учитель'],
+        ['student', 'ученик'], ['lesson', 'урок'], ['book', 'книга'], ['notebook', 'тетрадь'],
+        ['pen', 'ручка'], ['pencil', 'карандаш'], ['desk', 'парта'], ['chair', 'стул'],
+        ['cat', 'кот'], ['dog', 'собака'], ['bird', 'птица'], ['fish', 'рыба'],
+        ['apple', 'яблоко'], ['bread', 'хлеб'], ['milk', 'молоко'], ['water', 'вода'],
+        ['red', 'красный'], ['blue', 'синий'], ['green', 'зелёный'], ['yellow', 'жёлтый'],
+        ['Monday', 'понедельник'], ['Tuesday', 'вторник'], ['morning', 'утро'], ['evening', 'вечер'],
+        ['city', 'город'], ['house', 'дом'], ['room', 'комната'], ['window', 'окно']
+      ]
+    },
+    german: {
+      label: 'по-немецки',
+      items: [
+        ['die Familie', 'семья'], ['die Mutter', 'мама'], ['der Vater', 'папа'], ['die Schwester', 'сестра'],
+        ['der Bruder', 'брат'], ['der Freund', 'друг'], ['die Schule', 'школа'], ['der Lehrer', 'учитель'],
+        ['der Schüler', 'ученик'], ['die Stunde', 'урок'], ['das Buch', 'книга'], ['das Heft', 'тетрадь'],
+        ['der Kuli', 'ручка'], ['der Bleistift', 'карандаш'], ['der Tisch', 'стол'], ['der Stuhl', 'стул'],
+        ['die Katze', 'кошка'], ['der Hund', 'собака'], ['der Vogel', 'птица'], ['der Fisch', 'рыба'],
+        ['der Apfel', 'яблоко'], ['das Brot', 'хлеб'], ['die Milch', 'молоко'], ['das Wasser', 'вода'],
+        ['rot', 'красный'], ['blau', 'синий'], ['grün', 'зелёный'], ['gelb', 'жёлтый'],
+        ['der Montag', 'понедельник'], ['der Dienstag', 'вторник'], ['der Morgen', 'утро'], ['der Abend', 'вечер'],
+        ['die Stadt', 'город'], ['das Haus', 'дом'], ['das Zimmer', 'комната'], ['das Fenster', 'окно']
+      ]
+    },
+    french: {
+      label: 'по-французски',
+      items: [
+        ['la famille', 'семья'], ['la mère', 'мама'], ['le père', 'папа'], ['la soeur', 'сестра'],
+        ['le frère', 'брат'], ['l’ami', 'друг'], ["l'école", 'школа'], ['le professeur', 'учитель'],
+        ["l'élève", 'ученик'], ['la leçon', 'урок'], ['le livre', 'книга'], ['le cahier', 'тетрадь'],
+        ['le stylo', 'ручка'], ['le crayon', 'карандаш'], ['la table', 'стол'], ['la chaise', 'стул'],
+        ['le chat', 'кот'], ['le chien', 'собака'], ["l'oiseau", 'птица'], ['le poisson', 'рыба'],
+        ['la pomme', 'яблоко'], ['le pain', 'хлеб'], ['le lait', 'молоко'], ["l'eau", 'вода'],
+        ['rouge', 'красный'], ['bleu', 'синий'], ['vert', 'зелёный'], ['jaune', 'жёлтый'],
+        ['lundi', 'понедельник'], ['mardi', 'вторник'], ['le matin', 'утро'], ['le soir', 'вечер'],
+        ['la ville', 'город'], ['la maison', 'дом'], ['la chambre', 'комната'], ['la fenêtre', 'окно']
+      ]
+    }
+  },
+  '6': {
+    english: {
+      label: 'по-английски',
+      items: [
+        ['journey', 'путешествие'], ['ticket', 'билет'], ['station', 'станция'], ['airport', 'аэропорт'],
+        ['library', 'библиотека'], ['museum', 'музей'], ['bakery', 'пекарня'], ['market', 'рынок'],
+        ['healthy', 'здоровый'], ['dangerous', 'опасный'], ['interesting', 'интересный'], ['important', 'важный'],
+        ['already', 'уже'], ['yesterday', 'вчера'], ['tomorrow', 'завтра'], ['sometimes', 'иногда'],
+        ['usually', 'обычно'], ['weather', 'погода'], ['cloudy', 'облачно'], ['windy', 'ветрено'],
+        ['homework', 'домашняя работа'], ['subject', 'предмет'], ['history', 'история'], ['science', 'естествознание'],
+        ['language', 'язык'], ['to compare', 'сравнивать'], ['to travel', 'путешествовать'], ['to explain', 'объяснять'],
+        ['to choose', 'выбирать'], ['to finish', 'заканчивать'], ['near', 'рядом'], ['between', 'между'],
+        ['behind', 'позади'], ['opposite', 'напротив'], ['because', 'потому что'], ['however', 'однако']
+      ]
+    },
+    german: {
+      label: 'по-немецки',
+      items: [
+        ['die Reise', 'путешествие'], ['die Fahrkarte', 'билет'], ['der Bahnhof', 'вокзал'], ['der Flughafen', 'аэропорт'],
+        ['die Bibliothek', 'библиотека'], ['das Museum', 'музей'], ['die Bäckerei', 'пекарня'], ['der Markt', 'рынок'],
+        ['gesund', 'здоровый'], ['gefährlich', 'опасный'], ['interessant', 'интересный'], ['wichtig', 'важный'],
+        ['schon', 'уже'], ['gestern', 'вчера'], ['morgen', 'завтра'], ['manchmal', 'иногда'],
+        ['gewöhnlich', 'обычно'], ['das Wetter', 'погода'], ['bewölkt', 'облачно'], ['windig', 'ветрено'],
+        ['die Hausaufgabe', 'домашняя работа'], ['das Fach', 'предмет'], ['die Geschichte', 'история'], ['die Naturkunde', 'естествознание'],
+        ['die Sprache', 'язык'], ['vergleichen', 'сравнивать'], ['reisen', 'путешествовать'], ['erklären', 'объяснять'],
+        ['wählen', 'выбирать'], ['beenden', 'заканчивать'], ['neben', 'рядом'], ['zwischen', 'между'],
+        ['hinter', 'позади'], ['gegenüber', 'напротив'], ['weil', 'потому что'], ['aber', 'однако']
+      ]
+    },
+    french: {
+      label: 'по-французски',
+      items: [
+        ['le voyage', 'путешествие'], ['le billet', 'билет'], ['la gare', 'вокзал'], ["l'aéroport", 'аэропорт'],
+        ['la bibliothèque', 'библиотека'], ['le musée', 'музей'], ['la boulangerie', 'пекарня'], ['le marché', 'рынок'],
+        ['sain', 'здоровый'], ['dangereux', 'опасный'], ['intéressant', 'интересный'], ['important', 'важный'],
+        ['déjà', 'уже'], ['hier', 'вчера'], ['demain', 'завтра'], ['parfois', 'иногда'],
+        ["d'habitude", 'обычно'], ['le temps', 'погода'], ['nuageux', 'облачно'], ['venteux', 'ветрено'],
+        ['les devoirs', 'домашняя работа'], ['la matière', 'предмет'], ["l'histoire", 'история'], ['les sciences', 'естествознание'],
+        ['la langue', 'язык'], ['comparer', 'сравнивать'], ['voyager', 'путешествовать'], ['expliquer', 'объяснять'],
+        ['choisir', 'выбирать'], ['finir', 'заканчивать'], ['près de', 'рядом'], ['entre', 'между'],
+        ['derrière', 'позади'], ['en face de', 'напротив'], ['parce que', 'потому что'], ['cependant', 'однако']
+      ]
+    }
+  }
+};
+
+function buildMath5Rows() {
+  const rows = [];
+  [[37,48],[56,29],[124,76],[235,89],[408,157],[630,275],[91,38],[72,64],[315,208],[506,147]].forEach(([a,b]) => {
+    addMathRow(rows, 'Чему равно ' + a + ' + ' + b + '?', a + b, [a + b + 10, a + b - 10, a + b + 1], a + ' + ' + b + ' = ' + (a + b) + '.');
+  });
+  [[120,47],[305,128],[560,219],[804,356],[1000,275],[432,175],[901,468],[650,382],[724,199],[516,247]].forEach(([a,b]) => {
+    addMathRow(rows, 'Чему равно ' + a + ' - ' + b + '?', a - b, [a - b + 10, a - b - 10, a - b + 2], a + ' - ' + b + ' = ' + (a - b) + '.');
+  });
+  [[14,6],[17,5],[23,4],[31,3],[42,2],[18,7],[26,5],[35,4],[16,8],[27,6]].forEach(([a,b]) => {
+    addMathRow(rows, 'Чему равно ' + a + ' · ' + b + '?', a * b, [a * b + b, a * b - b, a + b], a + ' · ' + b + ' = ' + (a * b) + '.');
+  });
+  [[96,8],[125,5],[144,12],[168,7],[225,9],[288,12],[324,9],[360,15],[420,14],[512,16]].forEach(([a,b]) => {
+    addMathRow(rows, 'Чему равно ' + a + ' : ' + b + '?', a / b, [a / b + 2, a / b - 1, b], a + ' : ' + b + ' = ' + (a / b) + '.');
+  });
+  [[8,9],[12,7],[15,6],[10,14],[18,5],[11,13],[16,4],[20,3]].forEach(([a,b]) => {
+    addMathRow(rows, 'Площадь прямоугольника со сторонами ' + a + ' см и ' + b + ' см равна', (a * b) + ' см2', [(a + b) + ' см2', (2 * (a + b)) + ' см2', (a * b + 5) + ' см2'], 'Площадь прямоугольника равна произведению сторон: ' + a + ' · ' + b + ' = ' + (a * b) + ' см2.');
+    addMathRow(rows, 'Периметр прямоугольника со сторонами ' + a + ' см и ' + b + ' см равен', (2 * (a + b)) + ' см', [(a * b) + ' см', (a + b) + ' см', (2 * a + b) + ' см'], 'Периметр равен 2 · (' + a + ' + ' + b + ') = ' + (2 * (a + b)) + ' см.');
+  });
+  [[1,4,3,4],[2,9,5,9],[3,10,4,10],[5,12,1,12],[7,15,2,15],[4,11,6,11],[8,13,1,13],[5,16,7,16]].forEach(([a,b,c,d]) => {
+    const sum = a + c;
+    addMathRow(rows, 'Чему равно ' + a + '/' + b + ' + ' + c + '/' + d + '?', sum + '/' + b, [(sum + 1) + '/' + b, (a + c) + '/' + (b + d), Math.abs(a - c) + '/' + b], 'Знаменатели одинаковые, складываем числители: ' + a + ' + ' + c + ' = ' + sum + '.');
+  });
+  [[42,17],[81,29],[65,38],[100,64],[73,18],[54,27],[90,45],[36,19]].forEach(([total, part]) => {
+    addMathRow(rows, 'Реши уравнение x + ' + part + ' = ' + total + '.', total - part, [total + part, total - part + 5, part - 3], 'x = ' + total + ' - ' + part + ' = ' + (total - part) + '.');
+  });
+  [[120,3],[180,4],[240,6],[150,5],[315,7],[420,6],[96,4],[270,9]].forEach(([distance,time]) => {
+    addMathRow(rows, 'Турист прошёл ' + distance + ' км за ' + time + ' ч. Какова скорость?', (distance / time) + ' км/ч', [(distance / time + 5) + ' км/ч', (distance * time) + ' км/ч', (distance - time) + ' км/ч'], 'Скорость равна расстоянию, делённому на время: ' + distance + ' : ' + time + ' = ' + (distance / time) + ' км/ч.');
+  });
+  return rows;
+}
+
+function buildMath6Rows() {
+  const rows = [];
+  [[18,24,6],[21,35,7],[28,42,14],[45,60,15],[32,56,8],[54,72,18],[40,64,8],[63,81,9]].forEach(([a,b,g]) => {
+    addMathRow(rows, 'Сократи дробь ' + a + '/' + b + '.', (a / g) + '/' + (b / g), [a + '/' + (b / g), (a / g) + '/' + b, (a + g) + '/' + b], 'Делим числитель и знаменатель на ' + g + ': получаем ' + (a / g) + '/' + (b / g) + '.');
+  });
+  [[3,8,2,8],[5,12,1,12],[7,15,4,15],[9,20,3,20],[11,18,5,18],[4,9,2,9],[13,30,7,30],[8,25,6,25]].forEach(([a,b,c,d]) => {
+    addMathRow(rows, 'Чему равно ' + a + '/' + b + ' + ' + c + '/' + d + '?', (a + c) + '/' + b, [(a + c + 1) + '/' + b, (a + c) + '/' + (b + d), Math.abs(a - c) + '/' + b], 'При одинаковых знаменателях складываем числители: ' + a + ' + ' + c + ' = ' + (a + c) + '.');
+  });
+  [[1.4,2.7],[3.8,0.56],[12.5,4.08],[0.75,0.9],[6.3,2.45],[15.2,3.7],[8.08,1.92],[4.6,5.35]].forEach(([a,b]) => {
+    const result = (a + b).toFixed(2).replace(/0$/, '').replace('.', ',');
+    addMathRow(rows, 'Чему равно ' + String(a).replace('.', ',') + ' + ' + String(b).replace('.', ',') + '?', result, [String(a + b + 1).replace('.', ','), String(Math.abs(a - b)).replace('.', ','), String(a + b + 0.1).replace('.', ',')], 'Складываем десятичные дроби по разрядам: получаем ' + result + '.');
+  });
+  [[4.8,0.6],[7.2,0.8],[9.6,1.2],[12.5,2.5],[15.3,0.9],[18.4,2.3],[6.4,0.8],[21.6,1.8]].forEach(([a,b]) => {
+    const result = a / b;
+    addMathRow(rows, 'Чему равно ' + String(a).replace('.', ',') + ' : ' + String(b).replace('.', ',') + '?', String(result).replace('.', ','), [String(result + 1).replace('.', ','), String(result * 10).replace('.', ','), String(result - 1).replace('.', ',')], 'Деление десятичных дробей можно свести к делению натуральных чисел: результат ' + String(result).replace('.', ',') + '.');
+  });
+  [[10,250],[20,180],[25,320],[30,150],[40,90],[50,76],[15,200],[5,640]].forEach(([percent,number]) => {
+    const result = number * percent / 100;
+    addMathRow(rows, 'Найди ' + percent + '% от ' + number + '.', result, [result + 10, result * 2, Math.max(1, result - 5)], percent + '% — это ' + percent + '/100 числа, поэтому ответ ' + result + '.');
+  });
+  [[-8,13],[-15,6],[-21,30],[-4,-9],[12,-19],[-35,20],[-7,2],[-18,-5]].forEach(([a,b]) => {
+    addMathRow(rows, 'Чему равно ' + a + ' + ' + b + '?', a + b, [a - b, b - a, a + b + 3], 'Складываем числа с учётом знаков: получается ' + (a + b) + '.');
+  });
+  [[-6,7],[-9,-4],[12,-3],[-8,5],[-11,2],[14,-6],[-15,-2],[18,-4]].forEach(([a,b]) => {
+    addMathRow(rows, 'Чему равно ' + a + ' · ' + b + '?', a * b, [Math.abs(a * b), a * b + b, a + b], 'При умножении чисел учитываем знаки: результат ' + (a * b) + '.');
+  });
+  [[3,27],[5,4.5],[7,42],[8,2.4],[12,96],[9,13.5],[6,4.8],[11,121]].forEach(([coef,total]) => {
+    const result = total / coef;
+    addMathRow(rows, 'Реши уравнение ' + coef + 'x = ' + String(total).replace('.', ',') + '.', String(result).replace('.', ','), [String(result + 1).replace('.', ','), String(total + coef).replace('.', ','), String(result * coef).replace('.', ',')], 'x = ' + String(total).replace('.', ',') + ' : ' + coef + ' = ' + String(result).replace('.', ',') + '.');
+  });
+  [[4,6],[9,12],[15,20],[18,24],[21,28],[25,30],[14,35],[16,40]].forEach(([a,b]) => {
+    const g = (x,y) => y ? g(y, x % y) : x;
+    const d = g(a,b);
+    addMathRow(rows, 'Сократи отношение ' + a + ':' + b + '.', (a / d) + ':' + (b / d), [b + ':' + a, a + ':' + (b / d), (a / d) + ':' + b], 'Делим обе части отношения на ' + d + ': получаем ' + (a / d) + ':' + (b / d) + '.');
+  });
+  return rows;
+}
+
+function expandQuestionBanks() {
+  Object.entries(termSets).forEach(([grade, subjectsMap]) => {
+    Object.entries(subjectsMap).forEach(([subject, items]) => addTermRows(grade, subject, items));
+  });
+  Object.entries(vocabularySets).forEach(([grade, subjectsMap]) => {
+    Object.entries(subjectsMap).forEach(([subject, data]) => addVocabularyRows(grade, subject, data.label, data.items));
+  });
+  addRows('5', 'math', buildMath5Rows());
+  addRows('6', 'math', buildMath6Rows());
+}
+
+expandQuestionBanks();
+
+const studyTopics = {
+  '5': {
+    geography: {
+      exam: ['карта, глобус, масштаб и условные знаки', 'стороны горизонта и работа с компасом', 'материки, океаны и оболочки Земли', 'погода, климат и простые наблюдения', 'рельеф: горы, равнины, формы поверхности'],
+      check: ['что такое карта и глобус', 'как читать масштаб и легенду', 'названия материков и океанов', 'отличие погоды от климата', 'основные оболочки Земли']
+    },
+    biology: {
+      exam: ['методы биологии: наблюдение, измерение, эксперимент', 'строение клетки и работа с микроскопом', 'царства живой природы', 'фотосинтез, дыхание и питание растений', 'пищевые цепи и связи организмов'],
+      check: ['признаки живых организмов', 'части микроскопа', 'клетка и её основные части', 'растения, животные, грибы и бактерии', 'простые пищевые цепи']
+    },
+    informatics: {
+      exam: ['информация и информационные процессы', 'устройства ввода, вывода и хранения', 'файлы, папки и расширения', 'алгоритм и исполнитель', 'безопасность в интернете и пароли'],
+      check: ['что такое информация', 'основные устройства компьютера', 'файл и папка', 'простые алгоритмы', 'правила безопасного поведения онлайн']
+    },
+    math: {
+      exam: ['натуральные числа и порядок действий', 'периметр и площадь простых фигур', 'уравнения базового уровня', 'дроби и сравнение дробей', 'задачи на скорость, время и расстояние'],
+      check: ['сложение, вычитание, умножение и деление', 'порядок действий', 'периметр и площадь', 'простые дроби', 'текстовые задачи']
+    },
+    english: {
+      exam: ['to be и have/has', 'Present Simple и вопросы', 'множественное число существительных', 'артикли a/an и there is/are', 'базовая лексика: школа, семья, время, еда'],
+      check: ['am/is/are', 'have/has', 'a/an', 'простые вопросы', 'слова по темам school, family, animals']
+    },
+    german: {
+      exam: ['sein и haben в настоящем времени', 'личные местоимения ich, du, er, wir', 'артикли der, die, das', 'числа, цвета, семья и школа', 'простые вопросы Wie heißt du? Wo wohnst du?'],
+      check: ['приветствие и прощание', 'sein: ich bin, du bist, er ist', 'артикли der/die/das', 'числа до 20', 'слова по темам школа и семья']
+    },
+    french: {
+      exam: ['être и avoir в настоящем времени', 'артикли un, une, des, le, la, l’', 'числа, цвета, семья и школа', 'простые вопросы Comment tu t’appelles? Où habites-tu?', 'согласование простых прилагательных'],
+      check: ['bonjour, merci, au revoir', 'je suis, tu es, il/elle est', 'j’ai, tu as, il/elle a', 'un/une/des', 'слова по темам школа и семья']
+    },
+    russian: {
+      exam: ['части речи: существительное, прилагательное, глагол', 'морфемы: корень, приставка, суффикс, окончание', 'орфограммы жи-ши, ча-ща, чу-щу', 'главные члены предложения', 'синонимы, антонимы и перенос слов'],
+      check: ['части речи', 'состав слова', 'главные члены предложения', 'частые орфограммы', 'знаки конца предложения']
+    },
+    literature: {
+      exam: ['фольклор: сказка, пословица, загадка', 'басня и мораль', 'стихотворение: ритм и рифма', 'герой, автор и рассказчик', 'сюжет, пейзаж, портрет, диалог'],
+      check: ['жанры: сказка, рассказ, басня', 'кто такой герой', 'что такое мораль', 'рифма и стихотворение', 'главная мысль произведения']
+    }
+  },
+  '6': {
+    geography: {
+      exam: ['литосфера: земная кора, мантия, ядро', 'горные породы и полезные ископаемые', 'землетрясения, вулканы и рельеф', 'гидросфера: реки, озёра, ледники, океан', 'атмосфера: давление, ветер, облака и осадки'],
+      check: ['строение Земли', 'виды горных пород', 'части реки', 'ветер и атмосферное давление', 'круговорот воды']
+    },
+    biology: {
+      exam: ['ботаника и ткани растений', 'корень и минеральное питание', 'побег, почка, стебель и лист', 'фотосинтез, дыхание и испарение воды', 'цветок, опыление, плод и семя'],
+      check: ['органы растения', 'ткани растений', 'функции корня и листа', 'строение цветка', 'семенное и вегетативное размножение']
+    },
+    informatics: {
+      exam: ['бит, байт и двоичное кодирование', 'линейные, циклические и разветвляющиеся алгоритмы', 'блок-схемы и исполнители', 'электронные таблицы и формулы', 'модели, сети, URL и цифровая безопасность'],
+      check: ['бит и байт', 'двоичная запись', 'циклы и условия', 'адрес ячейки таблицы', 'безопасный пароль']
+    },
+    math: {
+      exam: ['обыкновенные и десятичные дроби', 'проценты и отношения', 'положительные и отрицательные числа', 'уравнения и текстовые задачи', 'окружность, круг и координатная прямая'],
+      check: ['сокращение дробей', 'действия с десятичными дробями', 'проценты', 'модуль числа', 'простые уравнения']
+    },
+    english: {
+      exam: ['Past Simple: утверждение, вопрос, отрицание', 'Present Continuous', 'comparatives and superlatives', 'some/any, much/many, there is/are', 'modal verbs can, must, should и going to'],
+      check: ['Past Simple regular and irregular verbs', 'did/did not', 'am/is/are + V-ing', 'comparative adjectives', 'school and city vocabulary']
+    },
+    german: {
+      exam: ['спряжение глаголов wohnen, lernen, spielen', 'haben, sein и модальные глаголы', 'артикли в именительном и винительном падеже', 'отрицание nicht и kein', 'вопросительные слова wo, woher, wann, warum'],
+      check: ['окончания глаголов', 'ich habe, ich bin', 'der/die/das и den', 'nicht/kein', 'время, школа, каникулы']
+    },
+    french: {
+      exam: ['глаголы être, avoir, aller, faire', 'настоящее время глаголов на -er', 'отрицание ne...pas', 'артикли и притяжательные прилагательные', 'согласование прилагательных и вопросы'],
+      check: ['je suis, j’ai, je vais', 'nous parlons, vous habitez', 'ne...pas', 'mon/ma/mes', 'время, школа, город']
+    },
+    russian: {
+      exam: ['лексика, фразеологизмы, синонимы и антонимы', 'словообразование и морфемный разбор', 'имя существительное и имя прилагательное', 'числительные и местоимения', 'глагол, приставки пре-/при- и пунктуация'],
+      check: ['лексическое значение слова', 'состав слова', 'разряды местоимений', 'числительные', 'пре-/при-']
+    },
+    literature: {
+      exam: ['мифы, былины и фольклор', 'Пушкин, Лермонтов, Тургенев и ключевые произведения', 'сюжет: экспозиция, завязка, кульминация, развязка', 'портрет, пейзаж, диалог и монолог', 'эпитет, метафора и антитеза'],
+      check: ['жанры 6 класса', 'автор и герой', 'элементы сюжета', 'изобразительные средства', 'главная мысль произведения']
+    }
+  }
+};
+
+let selectedGrade = '5';
+let selectedSubject = null;
+let questions = [];
+let cur = 0;
+let score = 0;
+let answered = false;
+let secondsLeft = TEST_SECONDS;
+let timerId = null;
+let finishedByTimer = false;
+let aiStarted = false;
+let aiPlan = { grade: null, subject: null, goal: null };
+
+function shuffle(items) {
+  const mixed = [...items];
+  for (let i = mixed.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [mixed[i], mixed[j]] = [mixed[j], mixed[i]];
+  }
+  return mixed;
+}
+
+function normalizeQuestion(item) {
+  const optionObjects = item.opts.map((text, index) => ({
+    text,
+    correct: index === item.ans
+  }));
+  const shuffledOptions = shuffle(optionObjects);
+  return {
+    q: item.q,
+    opts: shuffledOptions.map(option => option.text),
+    ans: shuffledOptions.findIndex(option => option.correct),
+    exp: item.exp
+  };
+}
+
+function buildVariant(subjectId) {
+  const bank = questionBanksByGrade[selectedGrade][subjectId];
+  const storageKey = LAST_TEST_PREFIX + selectedGrade + '-' + subjectId;
+  const lastSignature = sessionStorage.getItem(storageKey);
+  let picked = [];
+  let signature = '';
+
+  for (let attempt = 0; attempt < 30; attempt++) {
+    picked = shuffle(bank).slice(0, QUESTION_COUNT);
+    signature = picked.map(item => item.q).sort().join('|');
+    if (signature !== lastSignature) break;
+  }
+
+  sessionStorage.setItem(storageKey, signature);
+  questions = picked.map(normalizeQuestion);
+}
+
+function selectGrade(grade) {
+  selectedGrade = grade;
+  document.querySelectorAll('[data-grade]').forEach(button => {
+    button.classList.toggle('active', button.dataset.grade === grade);
+  });
+  updateHeader('selection');
+  updateSelectedNote();
+}
+
+function updateSelectedNote() {
+  const note = document.getElementById('selected-note');
+  if (!selectedSubject) {
+    note.textContent = 'Сначала выбери предмет.';
+    return;
+  }
+  note.textContent = 'Выбрано: ' + selectedGrade + ' класс · ' + subjects[selectedSubject].name + '.';
+}
+
+function renderSubjectChoices() {
+  const grid = document.getElementById('subject-grid');
+  grid.innerHTML = '';
+  Object.entries(subjects).forEach(([id, subject]) => {
+    const button = document.createElement('button');
+    button.className = 'choice';
+    button.dataset.subject = id;
+    button.textContent = subject.name;
+    button.onclick = () => selectSubject(id);
+    grid.appendChild(button);
+  });
+}
+
+function selectSubject(subjectId) {
+  selectedSubject = subjectId;
+  document.querySelectorAll('[data-subject]').forEach(button => {
+    button.classList.toggle('active', button.dataset.subject === subjectId);
+  });
+  updateSelectedNote();
+  document.getElementById('startbtn').disabled = false;
+}
+
+function updateHeader(mode) {
+  if (mode === 'test' || mode === 'score') {
+    const subject = subjects[selectedSubject];
+    document.getElementById('page-tag').textContent = subject.name + ' · ' + selectedGrade + ' класс';
+    document.getElementById('page-title').textContent = 'Итоговый тест';
+    document.getElementById('page-subtitle').textContent = '16 вопросов · 45 минут';
+    return;
+  }
+  document.getElementById('page-tag').textContent = selectedGrade + ' класс · тренажёр';
+  document.getElementById('page-title').textContent = 'Итоговые тесты';
+  document.getElementById('page-subtitle').textContent = 'Выбери класс и предмет · 16 вопросов · 45 минут';
+}
+
+function formatTime(totalSeconds) {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+}
+
+function updateTimer() {
+  const timer = document.getElementById('timer');
+  timer.textContent = formatTime(secondsLeft);
+  timer.classList.toggle('warn', secondsLeft <= 60);
+}
+
+function startTimer() {
+  stopTimer();
+  secondsLeft = TEST_SECONDS;
+  updateTimer();
+  timerId = setInterval(() => {
+    secondsLeft--;
+    updateTimer();
+    if (secondsLeft <= 0) {
+      finishedByTimer = true;
+      stopTimer();
+      showScore();
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  if (timerId) clearInterval(timerId);
+  timerId = null;
+}
+
+function startTest() {
+  if (!selectedSubject) return;
+  cur = 0;
+  score = 0;
+  answered = false;
+  finishedByTimer = false;
+  buildVariant(selectedSubject);
+  updateHeader('test');
+  document.getElementById('selection').style.display = 'none';
+  document.getElementById('scorebox').style.display = 'none';
+  document.getElementById('progress-row').style.display = 'flex';
+  document.getElementById('qcard').style.display = 'block';
+  document.getElementById('actions').style.display = 'flex';
+  startTimer();
+  render();
+}
+
+function render() {
+  if (cur >= questions.length) { showScore(); return; }
+  const q = questions[cur];
+  const pct = cur / questions.length * 100;
+  document.getElementById('prog').style.width = pct + '%';
+  document.getElementById('prog-label').textContent = cur + ' / ' + questions.length;
+  document.getElementById('qnum').textContent = 'Вопрос ' + (cur + 1);
+  document.getElementById('qtext').textContent = q.q;
+
+  const opts = document.getElementById('opts');
+  opts.innerHTML = '';
+  q.opts.forEach((option, index) => {
+    const button = document.createElement('button');
+    button.className = 'opt';
+    button.innerHTML = '<span class="letter">' + letters[index] + '</span><span>' + option + '</span>';
+    button.onclick = () => answer(index);
+    opts.appendChild(button);
+  });
+
+  const fb = document.getElementById('feedback');
+  fb.style.display = 'none';
+  fb.className = 'feedback-box';
+  document.getElementById('nextbtn').style.display = 'none';
+  answered = false;
+}
+
+function answer(index) {
+  if (answered || finishedByTimer) return;
+  answered = true;
+  const q = questions[cur];
+  const buttons = document.querySelectorAll('.opt');
+  buttons.forEach(button => button.disabled = true);
+  buttons[index].classList.add(index === q.ans ? 'correct' : 'wrong');
+  if (index !== q.ans) buttons[q.ans].classList.add('reveal');
+  if (index === q.ans) score++;
+
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback-box ' + (index === q.ans ? 'ok' : 'err');
+  fb.textContent = (index === q.ans ? '✓ Верно! ' : '✗ Неверно. ') + q.exp;
+  fb.style.display = 'block';
+
+  const nextButton = document.getElementById('nextbtn');
+  nextButton.style.display = 'inline-block';
+  nextButton.textContent = cur < questions.length - 1 ? 'Следующий →' : 'Результат →';
+}
+
+function nextQ() {
+  cur++;
+  render();
+}
+
+function showScore() {
+  stopTimer();
+  updateHeader('score');
+  document.getElementById('prog').style.width = '100%';
+  document.getElementById('prog-label').textContent = questions.length + ' / ' + questions.length;
+  document.getElementById('qcard').style.display = 'none';
+  document.getElementById('actions').style.display = 'none';
+  document.getElementById('selection').style.display = 'none';
+  document.getElementById('progress-row').style.display = 'none';
+
+  const pct = Math.round(score / questions.length * 100);
+  const grade = pct >= 85 ? '5' : pct >= 65 ? '4' : pct >= 45 ? '3' : '2';
+  const emoji = pct >= 85 ? '🌿' : pct >= 65 ? '🌱' : pct >= 45 ? '🍂' : '🌾';
+  const timeText = finishedByTimer
+    ? 'Время вышло. Засчитаны ответы, которые были даны до конца таймера.'
+    : 'Осталось времени: ' + formatTime(secondsLeft) + '.';
+  const scorebox = document.getElementById('scorebox');
+  scorebox.style.display = 'block';
+  scorebox.innerHTML = `
+    <div class="score-emoji">${emoji}</div>
+    <div class="score-fraction">${score}/${questions.length}</div>
+    <div class="score-desc">правильных ответов</div>
+    <div class="score-grade">Оценка: ${grade}</div>
+    <div class="score-extra">${selectedGrade} класс · ${subjects[selectedSubject].name} · ${timeText}</div>
+    <div class="score-actions">
+      <button class="btn-restart" onclick="restartSameSubject()">Попробовать ещё раз</button>
+      <button class="btn-light" onclick="backToSelection()">К выбору предмета</button>
+    </div>
+  `;
+}
+
+function restartSameSubject() {
+  startTest();
+}
+
+function backToSelection() {
+  stopTimer();
+  updateHeader('selection');
+  document.getElementById('selection').style.display = 'block';
+  document.getElementById('scorebox').style.display = 'none';
+  document.getElementById('progress-row').style.display = 'none';
+  document.getElementById('qcard').style.display = 'none';
+  document.getElementById('actions').style.display = 'none';
+  document.getElementById('nextbtn').style.display = 'none';
+  document.getElementById('prog').style.width = '0%';
+  document.getElementById('prog-label').textContent = '0 / ' + QUESTION_COUNT;
+  document.getElementById('timer').textContent = formatTime(TEST_SECONDS);
+  document.getElementById('timer').classList.remove('warn');
+}
+
+function toggleAI(forceOpen) {
+  const panel = document.getElementById('ai-panel');
+  const shouldOpen = typeof forceOpen === 'boolean' ? forceOpen : !panel.classList.contains('open');
+  panel.classList.toggle('open', shouldOpen);
+  if (shouldOpen && !aiStarted) resetAI();
+}
+
+function resetAI() {
+  aiStarted = true;
+  aiPlan = { grade: null, subject: null, goal: null };
+  document.getElementById('ai-messages').innerHTML = '';
+  document.getElementById('ai-input-row').classList.remove('open');
+  addAIMessage('bot', 'Привет, давай создадим план обучения!');
+  setAIOptions([
+    { text: 'Давай', action: startAIPlan },
+    { text: 'Давай пообщаемся', action: startAIChat }
+  ]);
+}
+
+function addAIMessage(type, text) {
+  const box = document.getElementById('ai-messages');
+  const msg = document.createElement('div');
+  msg.className = 'ai-msg ' + type;
+  msg.textContent = text;
+  box.appendChild(msg);
+  box.scrollTop = box.scrollHeight;
+}
+
+function setAIOptions(options) {
+  const box = document.getElementById('ai-options');
+  box.innerHTML = '';
+  options.forEach(option => {
+    const button = document.createElement('button');
+    button.className = 'ai-option';
+    button.textContent = option.text;
+    button.onclick = option.action;
+    box.appendChild(button);
+  });
+}
+
+function startAIPlan() {
+  addAIMessage('user', 'Давай');
+  document.getElementById('ai-input-row').classList.remove('open');
+  aiPlan = { grade: null, subject: null, goal: null };
+  addAIMessage('bot', 'Супер. Выбери класс, для которого нужен план.');
+  setAIOptions([
+    { text: '5 класс', action: () => chooseAIGrade('5') },
+    { text: '6 класс', action: () => chooseAIGrade('6') }
+  ]);
+}
+
+function startAIChat() {
+  addAIMessage('user', 'Давай пообщаемся');
+  addAIMessage('bot', 'Я рядом. Можем спокойно разобрать, что сейчас сложнее, или сразу собрать план обучения. Если не знаешь, с чего начать, выбери один предмет и цель — дальше я разложу темы по полочкам.');
+  document.getElementById('ai-input-row').classList.add('open');
+  setAIOptions([
+    { text: 'Создать план', action: startAIPlan },
+    { text: 'Как готовиться?', action: () => answerAITip('Лучше готовиться короткими подходами: 25 минут повторения, 5 минут отдыха, потом 5 вопросов для самопроверки. Самые слабые темы записывай отдельно и возвращайся к ним через день.') },
+    { text: 'Что делать перед тестом?', action: () => answerAITip('Перед тестом не пытайся выучить всё заново. Повтори определения, формулы или правила, реши 5–7 заданий и обязательно проверь ошибки: они показывают, что повторить первым.') }
+  ]);
+}
+
+function answerAITip(text) {
+  addAIMessage('user', 'Подсказка');
+  addAIMessage('bot', text);
+}
+
+function chooseAIGrade(grade) {
+  aiPlan.grade = grade;
+  addAIMessage('user', grade + ' класс');
+  addAIMessage('bot', 'Отлично. Теперь выбери предмет.');
+  setAIOptions(Object.entries(subjects).map(([id, subject]) => ({
+    text: subject.name,
+    action: () => chooseAISubject(id)
+  })));
+}
+
+function chooseAISubject(subjectId) {
+  aiPlan.subject = subjectId;
+  addAIMessage('user', subjects[subjectId].name);
+  addAIMessage('bot', 'Круто! Создаём план обучения для экзамена или для проверки знаний?');
+  setAIOptions([
+    { text: 'для экзамена', action: () => chooseAIGoal('exam') },
+    { text: 'для проверки знаний', action: () => chooseAIGoal('check') }
+  ]);
+}
+
+function chooseAIGoal(goal) {
+  aiPlan.goal = goal;
+  addAIMessage('user', goal === 'exam' ? 'для экзамена' : 'для проверки знаний');
+  addAIMessage('bot', buildAIPlanText());
+  document.getElementById('ai-input-row').classList.add('open');
+  setAIOptions([
+    { text: 'Собрать другой план', action: startAIPlan },
+    { text: 'Пойти к тестам', action: syncAISelectionToTest },
+    { text: 'Начать заново', action: resetAI }
+  ]);
+}
+
+function buildAIPlanText() {
+  const subjectName = subjects[aiPlan.subject].name;
+  const data = studyTopics[aiPlan.grade][aiPlan.subject][aiPlan.goal];
+  const topicLines = data.map((topic, index) => (index + 1) + '. ' + topic).join('\n');
+
+  if (aiPlan.goal === 'exam') {
+    return 'План для экзамена: ' + aiPlan.grade + ' класс · ' + subjectName + '.\n\nНадо повторить:\n' + topicLines + '\n\nКак идти:\n1. День 1–2: повтори теорию и выпиши определения.\n2. День 3–4: решай задания по каждой теме.\n3. День 5: пройди тест на сайте и разбери ошибки.\n4. День 6–7: повтори только слабые места и сделай новый вариант.';
+  }
+
+  return 'План для проверки знаний: ' + aiPlan.grade + ' класс · ' + subjectName + '.\n\nГлавное, что надо знать:\n' + topicLines + '\n\nКак проверить себя:\n1. Быстро прочитай конспект или параграф.\n2. Объясни каждую тему своими словами.\n3. Пройди тест и посмотри пояснения к ошибкам.\n4. Через день повтори вопросы, где было сложнее всего.';
+}
+
+function syncAISelectionToTest() {
+  addAIMessage('user', 'Пойти к тестам');
+  selectGrade(aiPlan.grade);
+  selectSubject(aiPlan.subject);
+  toggleAI(false);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function sendAIText() {
+  const input = document.getElementById('ai-input');
+  const text = input.value.trim();
+  if (!text) return;
+  addAIMessage('user', text);
+  input.value = '';
+  addAIMessage('bot', 'Понял. Я бы сделал так: выбери один предмет, пройди короткий тест, а потом повтори темы, где появились ошибки. Если хочешь, я сразу соберу план под класс, предмет и цель.');
+  setAIOptions([
+    { text: 'Создать план', action: startAIPlan },
+    { text: 'Начать заново', action: resetAI }
+  ]);
+}
+
+document.querySelectorAll('[data-grade]').forEach(button => {
+  button.onclick = () => selectGrade(button.dataset.grade);
+});
+document.getElementById('ai-input').addEventListener('keydown', event => {
+  if (event.key === 'Enter') sendAIText();
+});
+renderSubjectChoices();
+updateHeader('selection');
+updateTimer();
+</script>
+</body>
+</html>
