@@ -478,10 +478,31 @@
     margin-bottom: 4px;
   }
 
+  .profile-title-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
   .profile-mini-meta {
     font-size: 12px;
     color: var(--muted);
     line-height: 1.45;
+  }
+
+  .admin-badge {
+    display: none;
+    align-items: center;
+    min-height: 24px;
+    border: 1px solid rgba(29,158,117,0.28);
+    border-radius: 999px;
+    background: var(--green-light);
+    color: var(--green-dark);
+    padding: 4px 9px;
+    font-size: 11px;
+    font-weight: 700;
   }
 
   .profile-strip-actions {
@@ -810,6 +831,78 @@
     gap: 8px;
   }
 
+  .admin-panel {
+    max-width: 1040px;
+  }
+
+  .admin-warning {
+    border: 1px solid rgba(163,45,45,0.22);
+    border-radius: 12px;
+    background: var(--red-light);
+    color: var(--red-dark);
+    padding: 12px;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .admin-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .admin-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+  }
+
+  .admin-card-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 13px;
+    color: var(--green-dark);
+    margin-bottom: 12px;
+  }
+
+  .admin-controls {
+    display: grid;
+    gap: 10px;
+  }
+
+  .admin-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: end;
+  }
+
+  .admin-button-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .admin-input,
+  .admin-select {
+    width: 100%;
+    min-height: 42px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #FAFAF8;
+    color: var(--text);
+    padding: 10px 12px;
+    font: inherit;
+    font-size: 14px;
+  }
+
+  .admin-status {
+    min-height: 18px;
+    color: var(--green-dark);
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
   body.dark-theme {
     --green: #38D39F;
     --green-light: #14352C;
@@ -837,6 +930,10 @@
   body.dark-theme .achievement-item,
   body.dark-theme .score-insight-card,
   body.dark-theme .score-motivation,
+  body.dark-theme .admin-card,
+  body.dark-theme .admin-input,
+  body.dark-theme .admin-select,
+  body.dark-theme .admin-badge,
   body.dark-theme .ai-head,
   body.dark-theme .ai-input-row,
   body.dark-theme .ai-option {
@@ -1121,7 +1218,11 @@
     }
     .profile-settings,
     .profile-grid-2,
-    .stats-grid {
+    .stats-grid,
+    .admin-grid {
+      grid-template-columns: 1fr;
+    }
+    .admin-row {
       grid-template-columns: 1fr;
     }
     .achievement-grid {
@@ -1161,13 +1262,17 @@
   <section class="profile-strip" id="profile-strip">
     <div class="profile-avatar" id="profile-strip-avatar">🧠</div>
     <div>
-      <div class="profile-mini-title" id="profile-strip-name">Ученик</div>
+      <div class="profile-title-row">
+        <div class="profile-mini-title" id="profile-strip-name">Ученик</div>
+        <span class="admin-badge" id="admin-badge">👑 Admin · Developer Mode</span>
+      </div>
       <div class="profile-mini-meta" id="profile-strip-meta">Профиль сохраняется локально в браузере</div>
     </div>
     <div class="profile-strip-actions">
       <button class="btn-light" onclick="openProfile()">Личный профиль</button>
       <button class="btn-light" onclick="openMistakeReview()">Работа над ошибками</button>
       <button class="btn-light" onclick="startDailyChallenge()">Ежедневный челлендж</button>
+      <button class="btn-light" id="admin-entry-button" onclick="requestAdminAccess()">Admin</button>
     </div>
   </section>
 
@@ -1291,6 +1396,105 @@
           <div class="achievement-grid" id="achievement-grid"></div>
         </div>
       </div>
+    </div>
+  </div>
+</section>
+
+<section class="profile-overlay admin-overlay" id="admin-overlay" aria-label="Admin Panel">
+  <div class="profile-panel admin-panel">
+    <div class="profile-head">
+      <div>
+        <div class="profile-title">Admin Panel</div>
+        <div class="profile-subtitle">Developer Mode · localStorage tools</div>
+      </div>
+      <button class="profile-close" onclick="closeAdminPanel()" aria-label="Закрыть Admin Panel">×</button>
+    </div>
+    <div class="profile-body">
+      <div class="admin-warning"><b>Admin Panel is for local testing only.</b> Инструменты меняют только localStorage этого браузера и нужны для проверки профиля, XP, streak, прогресса и тестов.</div>
+      <div class="stats-grid" id="admin-stats-grid"></div>
+      <div class="admin-grid">
+        <div class="admin-card">
+          <div class="admin-card-title">XP и уровень</div>
+          <div class="admin-controls">
+            <label class="profile-field">
+              <span class="profile-label">XP</span>
+              <input class="admin-input" id="admin-xp-input" type="number" min="0" step="1" value="0">
+            </label>
+            <div class="admin-button-row">
+              <button class="btn-start" onclick="adminSetXp()">Установить XP</button>
+              <button class="btn-light" onclick="adminAddXp()">Добавить XP</button>
+              <button class="btn-light" onclick="adminRemoveXp()">Убрать XP</button>
+            </div>
+            <div class="admin-row">
+              <label class="profile-field">
+                <span class="profile-label">Уровень</span>
+                <input class="admin-input" id="admin-level-input" type="number" min="1" step="1" value="1">
+              </label>
+              <button class="btn-start" onclick="adminSetLevel()">Поставить уровень</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-title">Прогресс и streak</div>
+          <div class="admin-controls">
+            <label class="profile-field">
+              <span class="profile-label">Предмет</span>
+              <select class="admin-select" id="admin-subject-select"></select>
+            </label>
+            <div class="admin-button-row">
+              <button class="btn-start" onclick="adminSetSubjectProgress100()">Прогресс 100%</button>
+              <button class="btn-light" onclick="adminResetSubjectProgress()">Сбросить прогресс</button>
+            </div>
+            <div class="admin-row">
+              <label class="profile-field">
+                <span class="profile-label">Streak дней</span>
+                <input class="admin-input" id="admin-streak-input" type="number" min="0" step="1" value="0">
+              </label>
+              <button class="btn-start" onclick="adminSetStreak()">Поставить streak</button>
+            </div>
+            <button class="btn-light" onclick="adminResetStreak()">Сбросить streak</button>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-title">Достижения и ошибки</div>
+          <div class="admin-controls">
+            <div class="admin-button-row">
+              <button class="btn-start" onclick="adminUnlockAchievements()">Разблокировать все достижения</button>
+              <button class="btn-light" onclick="adminResetAchievements()">Сбросить достижения</button>
+            </div>
+            <div class="admin-button-row">
+              <button class="btn-light" onclick="adminClearMistakes()">Очистить историю ошибок</button>
+              <button class="btn-light" onclick="adminResetProfile()">Сбросить профиль полностью</button>
+              <button class="btn-light" onclick="adminClearLocalStorage()">Очистить localStorage</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-title">Dev tools для тестирования</div>
+          <div class="admin-controls">
+            <div class="admin-button-row">
+              <button class="btn-start" onclick="adminSimulatePassedTest()">Симулировать пройденный тест</button>
+              <button class="btn-start" onclick="adminSimulatePerfectTest()">Симулировать 100% результат</button>
+            </div>
+            <div class="admin-row">
+              <label class="profile-field">
+                <span class="profile-label">Тема ошибки</span>
+                <input class="admin-input" id="admin-topic-input" type="text" placeholder="Например: фотосинтез">
+              </label>
+              <button class="btn-light" onclick="adminAddMistakeByTopic()">Добавить ошибку по теме</button>
+            </div>
+            <div class="admin-button-row">
+              <button class="btn-light" onclick="adminCheckStreak()">Проверить работу streak</button>
+              <button class="btn-light" onclick="adminCheckAchievement()">Проверить достижение</button>
+              <button class="btn-light" onclick="adminGenerateTestProgress()">Сгенерировать тестовый прогресс</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="admin-status" id="admin-status"></div>
     </div>
   </div>
 </section>
@@ -1445,6 +1649,8 @@ function getSubjectEntriesForGrade(grade) {
 }
 
 const PROFILE_STORAGE_KEY = 'playground-study-profile-v1';
+const ADMIN_ROLE_KEY = 'role';
+const ADMIN_CODE = 'playground-admin';
 const PROFILE_AVATARS = ['🧠', '🌿', '🚀', '📚', '⭐', '🎯', '💡', '🏆'];
 const MAX_SAVED_MISTAKES = 90;
 const LEVEL_XP = 100;
@@ -6115,6 +6321,10 @@ function renderProfile() {
   renderStreak();
   renderMistakes();
   renderAchievements();
+  syncAdminAccessUI();
+  if (isAdmin() && document.getElementById('admin-overlay') && document.getElementById('admin-overlay').classList.contains('open')) {
+    renderAdminPanel();
+  }
 }
 
 function renderProfileStrip() {
@@ -6191,6 +6401,401 @@ function openMistakeReview() {
   setTimeout(() => {
     document.getElementById('mistake-list').scrollIntoView({ block: 'center', behavior: 'smooth' });
   }, 80);
+}
+
+function isAdmin() {
+  return localStorage.getItem(ADMIN_ROLE_KEY) === 'admin';
+}
+
+function syncAdminAccessUI() {
+  const active = isAdmin();
+  const badge = document.getElementById('admin-badge');
+  const button = document.getElementById('admin-entry-button');
+  if (badge) badge.style.display = active ? 'inline-flex' : 'none';
+  if (button) button.textContent = active ? 'Admin Panel' : 'Admin';
+}
+
+function requestAdminAccess() {
+  if (isAdmin()) {
+    openAdminPanel();
+    return;
+  }
+
+  const code = prompt('Введите admin-код для локального Developer Mode:');
+  if (code === null) return;
+  if (normalizeFreeAnswer(code) === ADMIN_CODE) {
+    localStorage.setItem(ADMIN_ROLE_KEY, 'admin');
+    syncAdminAccessUI();
+    openAdminPanel();
+  } else {
+    alert('Неверный admin-код.');
+  }
+}
+
+function openAdminPanel() {
+  if (!isAdmin()) {
+    requestAdminAccess();
+    return;
+  }
+  renderAdminPanel();
+  document.getElementById('admin-overlay').classList.add('open');
+}
+
+function closeAdminPanel() {
+  document.getElementById('admin-overlay').classList.remove('open');
+}
+
+function getAdminSubjectId() {
+  const select = document.getElementById('admin-subject-select');
+  const grade = profileData && profileData.user.grade ? profileData.user.grade : selectedGrade;
+  return (select && select.value) || selectedSubject || getSubjectIdsForGrade(grade)[0];
+}
+
+function renderAdminSubjectOptions() {
+  const select = document.getElementById('admin-subject-select');
+  if (!select) return;
+  const previous = select.value || selectedSubject;
+  const grade = profileData && profileData.user.grade ? profileData.user.grade : selectedGrade;
+  select.innerHTML = getSubjectIdsForGrade(grade)
+    .map(subjectId => '<option value="' + subjectId + '">' + escapeHtml(subjects[subjectId].name) + '</option>')
+    .join('');
+  select.value = previous && getSubjectIdsForGrade(grade).includes(previous) ? previous : getSubjectIdsForGrade(grade)[0];
+}
+
+function renderAdminPanel() {
+  if (!isAdmin() || !profileData) return;
+  renderAdminSubjectOptions();
+  const xpInput = document.getElementById('admin-xp-input');
+  const levelInput = document.getElementById('admin-level-input');
+  const streakInput = document.getElementById('admin-streak-input');
+  if (xpInput) xpInput.value = profileData.stats.xp || 0;
+  if (levelInput) levelInput.value = getProfileLevel(profileData.stats.xp || 0);
+  if (streakInput) streakInput.value = profileData.stats.currentStreak || 0;
+  const stats = document.getElementById('admin-stats-grid');
+  if (stats) {
+    stats.innerHTML = [
+      renderStatCard(profileData.stats.xp || 0, 'XP'),
+      renderStatCard(getProfileLevel(profileData.stats.xp || 0), 'уровень'),
+      renderStatCard(profileData.stats.currentStreak || 0, 'streak'),
+      renderStatCard((profileData.achievements || []).length + '/' + PROFILE_ACHIEVEMENTS.length, 'достижения'),
+      renderStatCard((profileData.mistakes || []).length, 'ошибки'),
+      renderStatCard(localStorage.length, 'ключей localStorage')
+    ].join('');
+  }
+}
+
+function setAdminStatus(message) {
+  const status = document.getElementById('admin-status');
+  if (status) status.textContent = message || '';
+}
+
+function adminNumberValue(id, fallback = 0) {
+  const value = Number(document.getElementById(id)?.value);
+  return Number.isFinite(value) ? value : fallback;
+}
+
+function adminRefresh(message) {
+  saveProfile();
+  applyProfileTheme();
+  renderProfile();
+  renderSubjectChoices();
+  renderModeChoices();
+  updateHeader('selection');
+  updateSelectedNote();
+  syncAdminAccessUI();
+  renderAdminPanel();
+  setAdminStatus(message);
+}
+
+function adminSetXp() {
+  profileData.stats.xp = Math.max(0, Math.round(adminNumberValue('admin-xp-input')));
+  adminRefresh('XP установлен.');
+}
+
+function adminAddXp() {
+  profileData.stats.xp = Math.max(0, (profileData.stats.xp || 0) + Math.max(0, Math.round(adminNumberValue('admin-xp-input'))));
+  adminRefresh('XP добавлен.');
+}
+
+function adminRemoveXp() {
+  profileData.stats.xp = Math.max(0, (profileData.stats.xp || 0) - Math.max(0, Math.round(adminNumberValue('admin-xp-input'))));
+  adminRefresh('XP уменьшен.');
+}
+
+function adminSetLevel() {
+  const level = Math.max(1, Math.round(adminNumberValue('admin-level-input', 1)));
+  profileData.stats.xp = (level - 1) * LEVEL_XP;
+  adminRefresh('Уровень установлен через XP.');
+}
+
+function adminSetSubjectProgress100() {
+  const subjectId = getAdminSubjectId();
+  const progress = ensureSubjectProgress(profileData, subjectId);
+  const grade = profileData.user.grade || selectedGrade;
+  const topics = ((studyTopics[grade] && studyTopics[grade][subjectId] && studyTopics[grade][subjectId].check) || ['Общее повторение']).slice(0, 4);
+  progress.testsCompleted = 6;
+  progress.totalPercent = 600;
+  progress.bestPercent = 100;
+  progress.correct = 96;
+  progress.wrong = 0;
+  progress.mistakes = [];
+  progress.topicStats = {};
+  topics.forEach(topic => {
+    progress.topicStats[topic] = { total: 12, correct: 12, wrong: 0 };
+  });
+  progress.difficultyStats = {
+    basic: { testsCompleted: 2, totalPercent: 200, bestPercent: 100 },
+    middle: { testsCompleted: 2, totalPercent: 200, bestPercent: 100 },
+    general: { testsCompleted: 2, totalPercent: 200, bestPercent: 100 }
+  };
+  profileData.stats.subjectAttempts[subjectId] = Math.max(profileData.stats.subjectAttempts[subjectId] || 0, 6);
+  adminRefresh('Прогресс по предмету установлен на 100%.');
+}
+
+function adminResetSubjectProgress() {
+  const subjectId = getAdminSubjectId();
+  if (!confirm('Сбросить прогресс по предмету «' + subjects[subjectId].name + '»?')) return;
+  profileData.subjects[subjectId] = emptySubjectProgress();
+  delete profileData.stats.subjectAttempts[subjectId];
+  adminRefresh('Прогресс по предмету сброшен.');
+}
+
+function recentActivityKeysForAdmin(days) {
+  const result = [];
+  for (let offset = Math.max(0, days - 1); offset >= 0; offset--) {
+    const date = new Date();
+    date.setDate(date.getDate() - offset);
+    result.push(toDateKey(date));
+  }
+  return result;
+}
+
+function adminSetStreak() {
+  const days = Math.max(0, Math.round(adminNumberValue('admin-streak-input')));
+  profileData.stats.currentStreak = days;
+  profileData.stats.bestStreak = Math.max(profileData.stats.bestStreak || 0, days);
+  profileData.stats.lastActiveDate = days ? toDateKey() : null;
+  profileData.stats.activityDates = days ? recentActivityKeysForAdmin(Math.min(days, 60)) : [];
+  profileData.stats.dailyChallenge.currentStreak = days;
+  profileData.stats.dailyChallenge.bestStreak = Math.max(profileData.stats.dailyChallenge.bestStreak || 0, days);
+  profileData.stats.dailyChallenge.lastCompletedDate = days ? toDateKey() : null;
+  profileData.stats.dailyChallenge.completedDates = days ? recentActivityKeysForAdmin(Math.min(days, 90)) : [];
+  adminRefresh('Streak установлен вручную.');
+}
+
+function adminResetStreak() {
+  if (!confirm('Сбросить streak и daily streak?')) return;
+  profileData.stats.currentStreak = 0;
+  profileData.stats.bestStreak = 0;
+  profileData.stats.lastActiveDate = null;
+  profileData.stats.activityDates = [];
+  profileData.stats.dailyChallenge.currentStreak = 0;
+  profileData.stats.dailyChallenge.bestStreak = 0;
+  profileData.stats.dailyChallenge.lastCompletedDate = null;
+  profileData.stats.dailyChallenge.completedDates = [];
+  adminRefresh('Streak сброшен.');
+}
+
+function adminUnlockAchievements() {
+  profileData.achievements = PROFILE_ACHIEVEMENTS.map(achievement => achievement.id);
+  adminRefresh('Все достижения разблокированы.');
+}
+
+function adminResetAchievements() {
+  profileData.achievements = [];
+  adminRefresh('Достижения сброшены.');
+}
+
+function adminClearMistakes() {
+  if (!confirm('Очистить всю историю ошибок?')) return;
+  profileData.mistakes = [];
+  Object.values(profileData.subjects || {}).forEach(progress => {
+    progress.mistakes = [];
+  });
+  adminRefresh('История ошибок очищена.');
+}
+
+function adminResetProfile() {
+  if (!confirm('Полностью сбросить профиль? XP, streak, прогресс и ошибки будут удалены.')) return;
+  const keepTheme = profileData && profileData.user ? !!profileData.user.darkTheme : false;
+  profileData = createDefaultProfile();
+  profileData.user.darkTheme = keepTheme;
+  selectedProfileAvatar = profileData.user.avatar;
+  selectedGrade = profileData.user.grade;
+  selectedSubject = null;
+  selectedDifficulty = 'middle';
+  selectedMode = 'standard';
+  adminRefresh('Профиль полностью сброшен.');
+}
+
+function adminClearLocalStorage() {
+  if (!confirm('Очистить localStorage полностью? Роль admin тоже будет удалена.')) return;
+  localStorage.clear();
+  profileData = createDefaultProfile();
+  selectedProfileAvatar = profileData.user.avatar;
+  selectedGrade = profileData.user.grade;
+  selectedSubject = null;
+  selectedDifficulty = 'middle';
+  selectedMode = 'standard';
+  closeAdminPanel();
+  applyProfileTheme();
+  renderProfile();
+  renderSubjectChoices();
+  renderModeChoices();
+  updateHeader('selection');
+  updateSelectedNote();
+  syncAdminAccessUI();
+  alert('localStorage очищен. Для входа в Admin Panel нужно снова ввести код.');
+}
+
+function adminBuildTestQuestions(subjectId, count = 16) {
+  const oldSubject = selectedSubject;
+  selectedSubject = subjectId;
+  const pool = getRawQuestionsForSubject(subjectId, Math.max(count * 2, count + 12), { adaptive: false })
+    .map(normalizeQuestion);
+  selectedSubject = oldSubject;
+  return alternateTopics(qualityCheckQuestionSet(getUniqueQuestionSet(pool), 'admin-sim')).slice(0, count);
+}
+
+function adminWrongAnswerForQuestion(question) {
+  if (question.type === 'input') return 'admin-test-wrong';
+  return question.ans === 0 ? 1 : 0;
+}
+
+function adminSimulateResult(pct) {
+  const subjectId = getAdminSubjectId();
+  const oldQuestions = questions;
+  const oldSubject = selectedSubject;
+  const oldMode = selectedMode;
+  const total = 16;
+  questions = adminBuildTestQuestions(subjectId, total);
+  selectedSubject = subjectId;
+  selectedMode = 'standard';
+  const wrongCount = Math.max(0, total - Math.round(total * pct / 100));
+  const mistakes = questions.slice(0, wrongCount).map((question, index) => createMistakeRecord(question, adminWrongAnswerForQuestion(question), index));
+  saveTestResultToProfile({
+    score: total - wrongCount,
+    total,
+    pct: Math.round((total - wrongCount) / total * 100),
+    mistakes,
+    modeId: 'standard'
+  });
+  questions = oldQuestions;
+  selectedSubject = oldSubject;
+  selectedMode = oldMode;
+  renderProfile();
+  renderAdminPanel();
+  setAdminStatus('Симуляция теста сохранена в профиль.');
+}
+
+function adminSimulatePassedTest() {
+  adminSimulateResult(75);
+}
+
+function adminSimulatePerfectTest() {
+  adminSimulateResult(100);
+}
+
+function adminAddMistakeByTopic() {
+  const subjectId = getAdminSubjectId();
+  const topic = document.getElementById('admin-topic-input').value.trim() || 'Тестовая тема';
+  const mistake = {
+    id: 'admin-mistake-' + Date.now() + '-' + Math.random().toString(16).slice(2),
+    date: new Date().toISOString(),
+    grade: profileData.user.grade || selectedGrade,
+    subject: subjectId,
+    subjectName: subjects[subjectId].name,
+    difficulty: selectedDifficulty,
+    difficultyName: difficultyLevels[selectedDifficulty].name,
+    question: 'Тестовая ошибка по теме «' + topic + '».',
+    type: 'choice',
+    options: ['правильный ответ', 'ошибка', 'не знаю', 'пропустить'],
+    correctIndex: 0,
+    answers: [],
+    correctAnswer: 'правильный ответ',
+    selectedAnswer: 'ошибка',
+    explanation: 'Тестовая ошибка добавлена из Admin Panel.',
+    topic,
+    category: 'admin',
+    inputKind: 'choice',
+    mistakeType: 'тест',
+    questionIndex: 0,
+    sourceMistakeId: null,
+    weakTopicKey: getWeakTopicKey(subjectId, topic),
+    trainingSourceTopic: null
+  };
+  profileData.mistakes.unshift(mistake);
+  profileData.mistakes = profileData.mistakes.slice(0, MAX_SAVED_MISTAKES);
+  const progress = ensureSubjectProgress(profileData, subjectId);
+  const topicStats = ensureTopicStats(progress, topic);
+  topicStats.total += 1;
+  topicStats.wrong += 1;
+  progress.wrong += 1;
+  progress.mistakes.unshift(mistake);
+  progress.mistakes = progress.mistakes.slice(0, 35);
+  adminRefresh('Тестовая ошибка добавлена.');
+}
+
+function adminCheckStreak() {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  profileData.stats.lastActiveDate = toDateKey(yesterday);
+  profileData.stats.currentStreak = Math.max(1, profileData.stats.currentStreak || 1);
+  updateStreak(profileData);
+  adminRefresh('Streak проверен: активность за сегодня засчитана.');
+}
+
+function adminCheckAchievement() {
+  profileData.stats.testsCompleted = Math.max(profileData.stats.testsCompleted || 0, 5);
+  profileData.stats.totalCorrect = Math.max(profileData.stats.totalCorrect || 0, 100);
+  profileData.stats.perfectTests = Math.max(profileData.stats.perfectTests || 0, 1);
+  profileData.stats.bestStreak = Math.max(profileData.stats.bestStreak || 0, 5);
+  const unlocked = updateAchievements(profileData);
+  adminRefresh('Проверка достижений завершена. Новых: ' + unlocked.length + '.');
+}
+
+function adminGenerateTestProgress() {
+  const grade = profileData.user.grade || selectedGrade;
+  let totalTests = 0;
+  let totalPercent = 0;
+  let totalCorrect = 0;
+  let totalWrong = 0;
+  getSubjectIdsForGrade(grade).forEach((subjectId, index) => {
+    const attempts = 2 + (index % 5);
+    const average = 58 + ((index * 7) % 38);
+    const progress = ensureSubjectProgress(profileData, subjectId);
+    progress.testsCompleted = attempts;
+    progress.totalPercent = attempts * average;
+    progress.bestPercent = Math.min(100, average + 10);
+    progress.correct = attempts * Math.round(average / 10);
+    progress.wrong = attempts * Math.max(1, Math.round((100 - average) / 18));
+    progress.topicStats = {};
+    const topics = ((studyTopics[grade] && studyTopics[grade][subjectId] && studyTopics[grade][subjectId].check) || ['Общее повторение']).slice(0, 3);
+    topics.forEach((topic, topicIndex) => {
+      progress.topicStats[topic] = {
+        total: 8,
+        correct: Math.max(3, 8 - topicIndex - (index % 2)),
+        wrong: topicIndex + (index % 2)
+      };
+    });
+    progress.difficultyStats = {
+      basic: { testsCompleted: 1, totalPercent: Math.min(100, average + 8), bestPercent: Math.min(100, average + 8) },
+      middle: { testsCompleted: 1, totalPercent: average, bestPercent: average },
+      general: { testsCompleted: Math.max(0, attempts - 2), totalPercent: Math.max(0, attempts - 2) * Math.max(45, average - 8), bestPercent: Math.max(45, average - 8) }
+    };
+    profileData.stats.subjectAttempts[subjectId] = attempts;
+    totalTests += attempts;
+    totalPercent += attempts * average;
+    totalCorrect += progress.correct;
+    totalWrong += progress.wrong;
+  });
+  profileData.stats.testsCompleted = Math.max(profileData.stats.testsCompleted || 0, totalTests);
+  profileData.stats.totalPercent = Math.max(profileData.stats.totalPercent || 0, totalPercent);
+  profileData.stats.bestPercent = Math.max(profileData.stats.bestPercent || 0, 96);
+  profileData.stats.totalCorrect = Math.max(profileData.stats.totalCorrect || 0, totalCorrect);
+  profileData.stats.totalWrong = Math.max(profileData.stats.totalWrong || 0, totalWrong);
+  updateAchievements(profileData);
+  adminRefresh('Тестовый прогресс сгенерирован.');
 }
 
 function renderStatCard(value, label) {
