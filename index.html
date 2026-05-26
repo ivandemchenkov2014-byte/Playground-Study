@@ -335,11 +335,429 @@
   .score-grade { font-family: 'Unbounded', sans-serif; font-size: 18px; color: var(--green-dark); margin-bottom: 1rem; }
   .score-extra { font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 2rem; }
 
+  .score-insights {
+    display: grid;
+    gap: 10px;
+    max-width: 660px;
+    margin: 0 auto 1.5rem;
+    text-align: left;
+  }
+
+  .score-insight-card {
+    background: #FAFAF8;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+  }
+
+  .score-insight-title {
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--text);
+    margin-bottom: 7px;
+  }
+
+  .score-insight-card ul {
+    margin-left: 18px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .score-change {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .score-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    border-radius: 999px;
+    padding: 5px 10px;
+    background: var(--green-light);
+    color: var(--green-dark);
+    border: 1px solid #CFE9D3;
+    font-size: 12px;
+  }
+
   .score-actions {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 10px;
+  }
+
+  .profile-strip {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 14px;
+    align-items: center;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px;
+    margin-bottom: 1rem;
+  }
+
+  .profile-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    background: var(--green-light);
+    color: var(--green-dark);
+    font-size: 24px;
+    border: 1px solid #CFE9D3;
+  }
+
+  .profile-mini-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .profile-mini-meta {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+
+  .profile-strip-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .profile-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.36);
+    z-index: 60;
+    display: none;
+    padding: 18px;
+    overflow-y: auto;
+  }
+
+  .profile-overlay.open {
+    display: block;
+  }
+
+  .profile-panel {
+    width: min(980px, 100%);
+    margin: 0 auto;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: 0 24px 90px rgba(0,0,0,0.28);
+    overflow: hidden;
+  }
+
+  .profile-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .profile-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 19px;
+    color: var(--text);
+  }
+
+  .profile-subtitle {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .profile-close {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 22px;
+  }
+
+  .profile-body {
+    padding: 18px;
+    display: grid;
+    gap: 14px;
+  }
+
+  .profile-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+  }
+
+  .profile-card-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 13px;
+    color: var(--green-dark);
+    margin-bottom: 12px;
+  }
+
+  .profile-settings {
+    display: grid;
+    grid-template-columns: minmax(160px, 1fr) minmax(130px, 180px);
+    gap: 12px;
+  }
+
+  .profile-field {
+    display: grid;
+    gap: 7px;
+  }
+
+  .profile-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--green);
+  }
+
+  .profile-input,
+  .profile-select {
+    width: 100%;
+    min-height: 42px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #FAFAF8;
+    color: var(--text);
+    padding: 10px 12px;
+    font: inherit;
+    font-size: 14px;
+  }
+
+  .avatar-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .avatar-choice {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: #FAFAF8;
+    cursor: pointer;
+    font-size: 20px;
+  }
+
+  .avatar-choice.active {
+    background: var(--green-light);
+    border-color: var(--green);
+    box-shadow: 0 0 0 2px rgba(29,158,117,0.16);
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .stat-card {
+    background: #FAFAF8;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+  }
+
+  .stat-value {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 20px;
+    color: var(--text);
+    line-height: 1.1;
+  }
+
+  .stat-label {
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .profile-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .subject-progress-list,
+  .mistake-list,
+  .achievement-grid,
+  .activity-row {
+    display: grid;
+    gap: 10px;
+  }
+
+  .subject-progress-item {
+    background: #FAFAF8;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+  }
+
+  .progress-item-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .mini-progress {
+    height: 7px;
+    border-radius: 999px;
+    background: var(--border);
+    overflow: hidden;
+  }
+
+  .mini-progress-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: var(--green);
+  }
+
+  .weak-topics {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+
+  .mistake-item {
+    background: #FAFAF8;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+  }
+
+  .mistake-question {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.45;
+    margin-bottom: 8px;
+  }
+
+  .mistake-meta {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+
+  .achievement-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .achievement-item {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    background: #FAFAF8;
+    color: var(--muted);
+  }
+
+  .achievement-item.unlocked {
+    background: var(--green-light);
+    color: var(--green-dark);
+    border-color: #CFE9D3;
+  }
+
+  .achievement-name {
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .achievement-item.unlocked .achievement-name {
+    color: var(--green-dark);
+  }
+
+  .achievement-desc {
+    margin-top: 5px;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .activity-row {
+    grid-template-columns: repeat(14, 1fr);
+  }
+
+  .activity-dot {
+    aspect-ratio: 1;
+    border-radius: 6px;
+    background: #EEEDE7;
+    border: 1px solid var(--border);
+  }
+
+  .activity-dot.active {
+    background: var(--green);
+    border-color: var(--green);
+  }
+
+  .profile-empty {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  body.dark-theme {
+    --green: #38D39F;
+    --green-light: #14352C;
+    --green-dark: #B7F5D8;
+    --red-light: #3A1B1B;
+    --red-dark: #FFD7D7;
+    --red-mid: #F07171;
+    --bg: #101412;
+    --card: #181D1A;
+    --text: #F4F2EA;
+    --muted: #B6B3A8;
+    --border: rgba(255,255,255,0.12);
+  }
+
+  body.dark-theme .choice,
+  body.dark-theme .opt,
+  body.dark-theme .btn-light,
+  body.dark-theme .profile-input,
+  body.dark-theme .profile-select,
+  body.dark-theme .avatar-choice,
+  body.dark-theme .stat-card,
+  body.dark-theme .subject-progress-item,
+  body.dark-theme .mistake-item,
+  body.dark-theme .achievement-item,
+  body.dark-theme .score-insight-card,
+  body.dark-theme .ai-head,
+  body.dark-theme .ai-input-row,
+  body.dark-theme .ai-option {
+    background: #202620;
+  }
+
+  body.dark-theme .ai-input {
+    background: #101412;
+    color: var(--text);
   }
 
   .ai-callout {
@@ -599,6 +1017,31 @@
     .btn-start { width: 100%; }
     .progress-row { align-items: stretch; flex-wrap: wrap; }
     .progress-track { flex-basis: 100%; order: 3; }
+    .profile-strip {
+      grid-template-columns: auto 1fr;
+    }
+    .profile-strip-actions {
+      grid-column: 1 / -1;
+      justify-content: stretch;
+    }
+    .profile-strip-actions button {
+      flex: 1;
+    }
+    .profile-settings,
+    .profile-grid-2,
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+    .achievement-grid {
+      grid-template-columns: 1fr;
+    }
+    .profile-overlay {
+      padding: 10px;
+    }
+    .profile-body,
+    .profile-head {
+      padding: 14px;
+    }
     .ai-callout { display: none; }
     .ai-panel {
       right: 12px;
@@ -622,6 +1065,18 @@
     <h1 id="page-title">Итоговые тесты</h1>
     <p class="subtitle" id="page-subtitle">Выбери класс и предмет · 16 вопросов · 45 минут</p>
   </header>
+
+  <section class="profile-strip" id="profile-strip">
+    <div class="profile-avatar" id="profile-strip-avatar">🧠</div>
+    <div>
+      <div class="profile-mini-title" id="profile-strip-name">Ученик</div>
+      <div class="profile-mini-meta" id="profile-strip-meta">Профиль сохраняется локально в браузере</div>
+    </div>
+    <div class="profile-strip-actions">
+      <button class="btn-light" onclick="openProfile()">Личный профиль</button>
+      <button class="btn-light" onclick="openMistakeReview()">Повторить ошибки</button>
+    </div>
+  </section>
 
   <section class="selection" id="selection">
     <div class="card">
@@ -674,6 +1129,73 @@
 
   <div class="score-card" id="scorebox"></div>
 </div>
+
+<section class="profile-overlay" id="profile-overlay" aria-label="Личный профиль">
+  <div class="profile-panel">
+    <div class="profile-head">
+      <div>
+        <div class="profile-title">Личный профиль</div>
+        <div class="profile-subtitle" id="profile-subtitle">Данные хранятся только в localStorage этого браузера</div>
+      </div>
+      <button class="profile-close" onclick="closeProfile()" aria-label="Закрыть профиль">×</button>
+    </div>
+    <div class="profile-body">
+      <div class="profile-card">
+        <div class="profile-card-title">Настройки профиля</div>
+        <div class="profile-settings">
+          <label class="profile-field">
+            <span class="profile-label">Имя</span>
+            <input class="profile-input" id="profile-name-input" type="text" maxlength="24" placeholder="Твоё имя">
+          </label>
+          <label class="profile-field">
+            <span class="profile-label">Класс</span>
+            <select class="profile-select" id="profile-grade-select">
+              <option value="5">5 класс</option>
+              <option value="6">6 класс</option>
+            </select>
+          </label>
+        </div>
+        <div class="avatar-grid" id="avatar-grid"></div>
+        <div class="profile-strip-actions" style="margin-top: 12px; justify-content: space-between;">
+          <label class="theme-toggle profile-mini-meta">
+            <input type="checkbox" id="theme-toggle" onchange="toggleTheme(this.checked)">
+            Тёмная тема
+          </label>
+          <button class="btn-start" onclick="saveProfileSettings()">Сохранить профиль</button>
+        </div>
+      </div>
+
+      <div class="stats-grid" id="stats-grid"></div>
+
+      <div class="profile-grid-2">
+        <div class="profile-card">
+          <div class="profile-card-title">Прогресс по предметам</div>
+          <div class="subject-progress-list" id="subject-progress-list"></div>
+        </div>
+        <div class="profile-card">
+          <div class="profile-card-title">Streak и активность</div>
+          <div class="stats-grid" id="streak-grid"></div>
+          <div class="activity-row" id="activity-row" style="margin-top: 12px;"></div>
+        </div>
+      </div>
+
+      <div class="profile-grid-2">
+        <div class="profile-card">
+          <div class="profile-card-title">Повторить ошибки</div>
+          <div class="mistake-list" id="mistake-list"></div>
+          <div class="profile-strip-actions" style="margin-top: 12px;">
+            <button class="btn-start" onclick="startMistakeReview()">Запустить повторение</button>
+            <button class="btn-light" onclick="clearSavedMistakes()">Очистить ошибки</button>
+          </div>
+        </div>
+        <div class="profile-card">
+          <div class="profile-card-title">Достижения</div>
+          <div class="achievement-grid" id="achievement-grid"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <aside class="ai-callout" aria-hidden="true">
   <div class="ai-callout-title">ИИ Playground</div>
@@ -741,6 +1263,51 @@ function getSubjectIdsForGrade(grade) {
 function getSubjectEntriesForGrade(grade) {
   return getSubjectIdsForGrade(grade).map(id => [id, subjects[id]]);
 }
+
+const PROFILE_STORAGE_KEY = 'playground-study-profile-v1';
+const PROFILE_AVATARS = ['🧠', '🌿', '🚀', '📚', '⭐', '🎯', '💡', '🏆'];
+const MAX_SAVED_MISTAKES = 90;
+const PROFILE_ACHIEVEMENTS = [
+  {
+    id: 'first_test',
+    name: 'Первый шаг',
+    desc: 'Пройти первый тест',
+    check: profile => profile.stats.testsCompleted >= 1
+  },
+  {
+    id: 'five_tests',
+    name: '5 тестов подряд',
+    desc: 'Пройти 5 тестов',
+    check: profile => profile.stats.testsCompleted >= 5
+  },
+  {
+    id: 'hundred_correct',
+    name: '100 правильных',
+    desc: 'Набрать 100 верных ответов',
+    check: profile => profile.stats.totalCorrect >= 100
+  },
+  {
+    id: 'streak_five',
+    name: 'Стабильность',
+    desc: 'Заниматься 5 дней подряд',
+    check: profile => profile.stats.bestStreak >= 5
+  },
+  {
+    id: 'biology_master',
+    name: 'Мастер биологии',
+    desc: '3 теста по биологии со средним 85%+',
+    check: profile => {
+      const progress = getSubjectProgress(profile, 'biology');
+      return progress.testsCompleted >= 3 && getAveragePercent(progress) >= 85;
+    }
+  },
+  {
+    id: 'perfect_test',
+    name: 'Без ошибок',
+    desc: 'Пройти тест на 100%',
+    check: profile => profile.stats.perfectTests >= 1
+  }
+];
 
 function makeBank(rows) {
   return rows.map(([q, correct, wrong1, wrong2, wrong3, exp, category]) => ({
@@ -3178,6 +3745,13 @@ let finishedByTimer = false;
 let aiStarted = false;
 let aiMode = 'welcome';
 let aiPlan = { grade: null, subject: null, goal: null, examTime: null, customExamTime: null };
+let profileData = null;
+let selectedProfileAvatar = PROFILE_AVATARS[0];
+let currentTestMistakes = [];
+let currentTestAnswered = new Set();
+let currentTestSaved = false;
+let currentResultProfile = null;
+let isMistakeReview = false;
 
 function shuffle(items) {
   const mixed = [...items];
@@ -3186,6 +3760,26 @@ function shuffle(items) {
     [mixed[i], mixed[j]] = [mixed[j], mixed[i]];
   }
   return mixed;
+}
+
+function inferQuestionTopic(item) {
+  if (item.topic) return item.topic;
+  if (item.category === 'grammar') return 'Грамматика';
+  if (item.category === 'text') return 'Работа с текстом';
+
+  const source = ((item.q || '') + ' ' + (item.exp || '') + ' ' + (item.category || '')).toLowerCase();
+  if (/фотосинтез|лист|корень|клетк|ткан|цветок|семя|плод/.test(source)) return 'Растения и клетки';
+  if (/масштаб|карт|координат|река|атмосфер|климат|вулкан|литосфер|гидросфер|рельеф/.test(source)) return 'Карты и оболочки Земли';
+  if (/алгоритм|файл|диаграм|байт|бит|парол|интернет|исполнитель|таблиц/.test(source)) return 'Информатика';
+  if (/уравн|процент|дроб|скорост|площад|периметр|координат|числ/.test(source)) return 'Математика';
+  if (/фразеолог|пунктуац|пристав|суффикс|числительн|лексическ|морфем|местоим/.test(source)) return 'Русский язык';
+  if (/true|false|present|past|choose|grammar|text|reading|much|many|some|any/.test(source)) return 'Английский язык';
+  if (/richtig|falsch|wähle|deutsch|nicht|kein|haben|sein|artikel/.test(source)) return 'Немецкий язык';
+  if (/[\u4e00-\u9fff]|иероглиф|счётн|счетн|тон|正确|错误|没说|пиньин/.test(source)) return 'Китайский язык';
+  if (/basique|français|article|verbe|affirmation|vrai|faux/.test(source)) return 'Французский язык';
+  if (/басн|миф|жанр|стих|автор|произвед|сюжет|герой|эпитет/.test(source)) return 'Литература';
+  if (/средневек|русь|княз|феодал|крещени|викинг|древн(ий|его)? рим|римск|грек|египет|полис/.test(source)) return 'История';
+  return selectedSubject && subjects[selectedSubject] ? subjects[selectedSubject].name : 'Общее повторение';
 }
 
 function normalizeQuestion(item) {
@@ -3198,7 +3792,9 @@ function normalizeQuestion(item) {
     q: item.q,
     opts: shuffledOptions.map(option => option.text),
     ans: shuffledOptions.findIndex(option => option.correct),
-    exp: item.exp
+    exp: item.exp,
+    topic: inferQuestionTopic(item),
+    category: item.category || 'general'
   };
 }
 
@@ -3251,6 +3847,11 @@ function buildVariant(subjectId) {
 
 function selectGrade(grade) {
   selectedGrade = grade;
+  if (profileData) {
+    profileData.user.grade = grade;
+    saveProfile();
+    renderProfileStrip();
+  }
   if (selectedSubject && !getSubjectIdsForGrade(grade).includes(selectedSubject)) {
     selectedSubject = null;
     document.getElementById('startbtn').disabled = true;
@@ -3305,6 +3906,12 @@ function selectSubject(subjectId) {
 }
 
 function updateHeader(mode) {
+  if ((mode === 'test' || mode === 'score') && isMistakeReview) {
+    document.getElementById('page-tag').textContent = 'Работа над ошибками';
+    document.getElementById('page-title').textContent = 'Повторить ошибки';
+    document.getElementById('page-subtitle').textContent = questions.length + ' вопросов · сохранённые ошибки · 45 минут';
+    return;
+  }
   if (mode === 'test' || mode === 'score') {
     const subject = subjects[selectedSubject];
     document.getElementById('page-tag').textContent = subject.name + ' · ' + selectedGrade + ' класс';
@@ -3351,10 +3958,15 @@ function stopTimer() {
 
 function startTest() {
   if (!selectedSubject) return;
+  isMistakeReview = false;
   cur = 0;
   score = 0;
   answered = false;
   finishedByTimer = false;
+  currentTestMistakes = [];
+  currentTestAnswered = new Set();
+  currentTestSaved = false;
+  currentResultProfile = null;
   buildVariant(selectedSubject);
   updateHeader('test');
   document.getElementById('selection').style.display = 'none';
@@ -3396,11 +4008,16 @@ function answer(index) {
   if (answered || finishedByTimer) return;
   answered = true;
   const q = questions[cur];
+  currentTestAnswered.add(cur);
   const buttons = document.querySelectorAll('.opt');
   buttons.forEach(button => button.disabled = true);
   buttons[index].classList.add(index === q.ans ? 'correct' : 'wrong');
   if (index !== q.ans) buttons[q.ans].classList.add('reveal');
-  if (index === q.ans) score++;
+  if (index === q.ans) {
+    score++;
+  } else {
+    currentTestMistakes.push(createMistakeRecord(q, index, cur));
+  }
 
   const fb = document.getElementById('feedback');
   fb.className = 'feedback-box ' + (index === q.ans ? 'ok' : 'err');
@@ -3428,11 +4045,14 @@ function showScore() {
   document.getElementById('progress-row').style.display = 'none';
 
   const pct = Math.round(score / questions.length * 100);
+  const profileResult = finalizeProfileResult();
   const grade = pct >= 85 ? '5' : pct >= 65 ? '4' : pct >= 45 ? '3' : '2';
   const emoji = pct >= 85 ? '🌿' : pct >= 65 ? '🌱' : pct >= 45 ? '🍂' : '🌾';
   const timeText = finishedByTimer
     ? 'Время вышло. Засчитаны ответы, которые были даны до конца таймера.'
     : 'Осталось времени: ' + formatTime(secondsLeft) + '.';
+  const subjectTitle = isMistakeReview ? 'Повторение ошибок' : subjects[selectedSubject].name;
+  const difficultyTitle = isMistakeReview ? 'работа над ошибками' : difficultyLevels[selectedDifficulty].name;
   const scorebox = document.getElementById('scorebox');
   scorebox.style.display = 'block';
   scorebox.innerHTML = `
@@ -3440,20 +4060,27 @@ function showScore() {
     <div class="score-fraction">${score}/${questions.length}</div>
     <div class="score-desc">правильных ответов</div>
     <div class="score-grade">Оценка: ${grade}</div>
-    <div class="score-extra">${selectedGrade} класс · ${subjects[selectedSubject].name} · ${difficultyLevels[selectedDifficulty].name} · ${timeText}</div>
+    <div class="score-extra">${selectedGrade} класс · ${subjectTitle} · ${difficultyTitle} · ${timeText}</div>
+    ${renderResultInsights(profileResult)}
     <div class="score-actions">
       <button class="btn-restart" onclick="restartSameSubject()">Попробовать ещё раз</button>
       <button class="btn-light" onclick="backToSelection()">К выбору предмета</button>
+      <button class="btn-light" onclick="openProfile()">Личный профиль</button>
     </div>
   `;
 }
 
 function restartSameSubject() {
+  if (isMistakeReview) {
+    startMistakeReview();
+    return;
+  }
   startTest();
 }
 
 function backToSelection() {
   stopTimer();
+  isMistakeReview = false;
   updateHeader('selection');
   document.getElementById('selection').style.display = 'block';
   document.getElementById('scorebox').style.display = 'none';
@@ -3465,6 +4092,710 @@ function backToSelection() {
   document.getElementById('prog-label').textContent = '0 / ' + difficultyLevels[selectedDifficulty].count;
   document.getElementById('timer').textContent = formatTime(TEST_SECONDS);
   document.getElementById('timer').classList.remove('warn');
+}
+
+function createDefaultProfile() {
+  const now = new Date().toISOString();
+  return {
+    user: {
+      name: 'Ученик',
+      avatar: PROFILE_AVATARS[0],
+      firstVisit: now,
+      grade: '5',
+      darkTheme: false
+    },
+    stats: {
+      testsCompleted: 0,
+      totalPercent: 0,
+      bestPercent: 0,
+      totalCorrect: 0,
+      totalWrong: 0,
+      perfectTests: 0,
+      mistakeReviews: 0,
+      currentStreak: 0,
+      bestStreak: 0,
+      lastActiveDate: null,
+      activityDates: [],
+      subjectAttempts: {}
+    },
+    subjects: {},
+    mistakes: [],
+    achievements: []
+  };
+}
+
+function emptySubjectProgress() {
+  return {
+    testsCompleted: 0,
+    totalPercent: 0,
+    bestPercent: 0,
+    correct: 0,
+    wrong: 0,
+    topicStats: {},
+    difficultyStats: {},
+    mistakes: []
+  };
+}
+
+function mergeSubjectProgress(progress) {
+  const base = emptySubjectProgress();
+  return {
+    ...base,
+    ...(progress || {}),
+    topicStats: progress && progress.topicStats ? progress.topicStats : {},
+    difficultyStats: progress && progress.difficultyStats ? progress.difficultyStats : {},
+    mistakes: progress && Array.isArray(progress.mistakes) ? progress.mistakes : []
+  };
+}
+
+function mergeProfile(defaultProfile, savedProfile) {
+  const saved = savedProfile && typeof savedProfile === 'object' ? savedProfile : {};
+  const profile = {
+    ...defaultProfile,
+    ...saved,
+    user: { ...defaultProfile.user, ...(saved.user || {}) },
+    stats: { ...defaultProfile.stats, ...(saved.stats || {}) },
+    subjects: saved.subjects && typeof saved.subjects === 'object' ? saved.subjects : {},
+    mistakes: Array.isArray(saved.mistakes) ? saved.mistakes : [],
+    achievements: Array.isArray(saved.achievements) ? saved.achievements : []
+  };
+
+  profile.stats.activityDates = Array.isArray(profile.stats.activityDates) ? profile.stats.activityDates : [];
+  profile.stats.subjectAttempts = profile.stats.subjectAttempts && typeof profile.stats.subjectAttempts === 'object'
+    ? profile.stats.subjectAttempts
+    : {};
+  Object.keys(profile.subjects).forEach(subjectId => {
+    profile.subjects[subjectId] = mergeSubjectProgress(profile.subjects[subjectId]);
+  });
+
+  if (!subjectIdsByGrade[profile.user.grade]) profile.user.grade = '5';
+  if (!PROFILE_AVATARS.includes(profile.user.avatar)) profile.user.avatar = PROFILE_AVATARS[0];
+  return profile;
+}
+
+function loadProfile() {
+  const defaultProfile = createDefaultProfile();
+  try {
+    const saved = localStorage.getItem(PROFILE_STORAGE_KEY);
+    return saved ? mergeProfile(defaultProfile, JSON.parse(saved)) : defaultProfile;
+  } catch (error) {
+    return defaultProfile;
+  }
+}
+
+function saveProfile(profile = profileData) {
+  if (!profile) return;
+  try {
+    localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
+  } catch (error) {
+    console.warn('Не удалось сохранить профиль', error);
+  }
+}
+
+function initProfileSystem() {
+  profileData = loadProfile();
+  selectedProfileAvatar = profileData.user.avatar;
+  selectedGrade = profileData.user.grade || selectedGrade;
+  document.querySelectorAll('[data-grade]').forEach(button => {
+    button.classList.toggle('active', button.dataset.grade === selectedGrade);
+  });
+  applyProfileTheme();
+  saveProfile();
+  renderProfile();
+}
+
+function applyProfileTheme() {
+  document.body.classList.toggle('dark-theme', !!(profileData && profileData.user.darkTheme));
+}
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, char => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[char]));
+}
+
+function formatProfileDate(value) {
+  if (!value) return 'сегодня';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'сегодня';
+  return new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date);
+}
+
+function toDateKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return year + '-' + month + '-' + day;
+}
+
+function parseDateKey(key) {
+  const [year, month, day] = String(key).split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function daysBetweenKeys(fromKey, toKey) {
+  const from = parseDateKey(fromKey);
+  const to = parseDateKey(toKey);
+  if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) return 0;
+  return Math.round((to - from) / 86400000);
+}
+
+function updateStreak(profile) {
+  const today = toDateKey();
+  const lastActive = profile.stats.lastActiveDate;
+
+  if (lastActive !== today) {
+    const gap = lastActive ? daysBetweenKeys(lastActive, today) : 0;
+    profile.stats.currentStreak = gap === 1 ? (profile.stats.currentStreak || 0) + 1 : 1;
+    profile.stats.lastActiveDate = today;
+  } else if (!profile.stats.currentStreak) {
+    profile.stats.currentStreak = 1;
+  }
+
+  if (!profile.stats.activityDates.includes(today)) {
+    profile.stats.activityDates.push(today);
+  }
+  profile.stats.activityDates = profile.stats.activityDates.slice(-60);
+  profile.stats.bestStreak = Math.max(profile.stats.bestStreak || 0, profile.stats.currentStreak || 0);
+}
+
+function getSubjectProgress(profile, subjectId) {
+  return profile && profile.subjects && profile.subjects[subjectId]
+    ? mergeSubjectProgress(profile.subjects[subjectId])
+    : emptySubjectProgress();
+}
+
+function ensureSubjectProgress(profile, subjectId) {
+  if (!profile.subjects[subjectId]) {
+    profile.subjects[subjectId] = emptySubjectProgress();
+  } else {
+    profile.subjects[subjectId] = mergeSubjectProgress(profile.subjects[subjectId]);
+  }
+  return profile.subjects[subjectId];
+}
+
+function getAveragePercent(progress) {
+  return progress.testsCompleted ? Math.round((progress.totalPercent || 0) / progress.testsCompleted) : 0;
+}
+
+function getOverallAverage(profile) {
+  return profile.stats.testsCompleted ? Math.round((profile.stats.totalPercent || 0) / profile.stats.testsCompleted) : 0;
+}
+
+function calculateSubjectProgress(progress) {
+  if (!progress.testsCompleted) return 0;
+  const accuracyPart = Math.round(getAveragePercent(progress) * 0.78);
+  const practicePart = Math.min(22, progress.testsCompleted * 4);
+  return Math.min(100, accuracyPart + practicePart);
+}
+
+function ensureTopicStats(progress, topic) {
+  const topicName = topic || 'Общее повторение';
+  if (!progress.topicStats[topicName]) {
+    progress.topicStats[topicName] = { total: 0, correct: 0, wrong: 0 };
+  }
+  progress.topicStats[topicName].total = progress.topicStats[topicName].total || 0;
+  progress.topicStats[topicName].correct = progress.topicStats[topicName].correct || 0;
+  progress.topicStats[topicName].wrong = progress.topicStats[topicName].wrong || 0;
+  return progress.topicStats[topicName];
+}
+
+function getWeakTopicsFromProgress(progress, limit = 3) {
+  return Object.entries(progress.topicStats || {})
+    .filter(([, data]) => (data.wrong || 0) > 0)
+    .sort(([, a], [, b]) => (b.wrong || 0) - (a.wrong || 0) || (a.correct || 0) - (b.correct || 0))
+    .slice(0, limit)
+    .map(([topic, data]) => ({ topic, wrong: data.wrong || 0, total: data.total || 0 }));
+}
+
+function getFavoriteSubject(profile) {
+  const attempts = Object.entries(profile.stats.subjectAttempts || {})
+    .filter(([subjectId]) => subjects[subjectId])
+    .sort((a, b) => b[1] - a[1]);
+  return attempts.length ? subjects[attempts[0][0]].name : 'пока нет';
+}
+
+function pluralizeMistakes(count) {
+  const last = count % 10;
+  const lastTwo = count % 100;
+  if (last === 1 && lastTwo !== 11) return 'ошибка';
+  if (last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14)) return 'ошибки';
+  return 'ошибок';
+}
+
+function buildRecommendationsFromMistakes(mistakes) {
+  if (!mistakes.length) {
+    return ['Ошибок нет: закрепи результат ещё одним вариантом или переходи на уровень сложнее.'];
+  }
+
+  const topicCounts = {};
+  mistakes.forEach(mistake => {
+    const topic = mistake.topic || 'Общее повторение';
+    topicCounts[topic] = (topicCounts[topic] || 0) + 1;
+  });
+
+  return Object.entries(topicCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
+    .map(([topic, count]) => 'Повтори тему «' + topic + '»: ' + count + ' ' + pluralizeMistakes(count) + '.');
+}
+
+function createMistakeRecord(question, selectedIndex, questionIndex) {
+  const options = Array.isArray(question.opts) ? [...question.opts] : [];
+  const correctIndex = Number.isInteger(question.ans) ? question.ans : 0;
+  const subjectId = question.subject || selectedSubject || 'review';
+  return {
+    id: 'mistake-' + Date.now() + '-' + Math.random().toString(16).slice(2),
+    date: new Date().toISOString(),
+    grade: question.grade || selectedGrade,
+    subject: subjectId,
+    subjectName: question.subjectName || (subjects[subjectId] ? subjects[subjectId].name : 'Повторение ошибок'),
+    difficulty: question.difficulty || selectedDifficulty,
+    difficultyName: question.difficultyName || (difficultyLevels[selectedDifficulty] ? difficultyLevels[selectedDifficulty].name : 'Повторение'),
+    question: question.q,
+    options,
+    correctIndex,
+    correctAnswer: options[correctIndex] || '',
+    selectedAnswer: selectedIndex >= 0 ? (options[selectedIndex] || 'Не выбран') : 'Без ответа',
+    explanation: question.exp || 'Посмотри правильный ответ и повтори тему.',
+    topic: question.topic || 'Общее повторение',
+    questionIndex,
+    sourceMistakeId: question.sourceMistakeId || null
+  };
+}
+
+function saveTestResultToProfile(result) {
+  if (!profileData || !selectedSubject) return { progressDelta: null, unlocked: [] };
+
+  const profile = profileData;
+  const progress = ensureSubjectProgress(profile, selectedSubject);
+  const beforeProgress = calculateSubjectProgress(progress);
+  const wrongCount = Math.max(0, result.total - result.score);
+  const wrongIndexes = new Set(result.mistakes.map(mistake => mistake.questionIndex));
+
+  profile.user.grade = selectedGrade;
+  profile.stats.testsCompleted += 1;
+  profile.stats.totalPercent += result.pct;
+  profile.stats.bestPercent = Math.max(profile.stats.bestPercent || 0, result.pct);
+  profile.stats.totalCorrect += result.score;
+  profile.stats.totalWrong += wrongCount;
+  if (result.pct === 100) profile.stats.perfectTests += 1;
+  profile.stats.subjectAttempts[selectedSubject] = (profile.stats.subjectAttempts[selectedSubject] || 0) + 1;
+
+  progress.testsCompleted += 1;
+  progress.totalPercent += result.pct;
+  progress.bestPercent = Math.max(progress.bestPercent || 0, result.pct);
+  progress.correct += result.score;
+  progress.wrong += wrongCount;
+
+  const difficultyStats = progress.difficultyStats[selectedDifficulty] || { testsCompleted: 0, totalPercent: 0, bestPercent: 0 };
+  difficultyStats.testsCompleted += 1;
+  difficultyStats.totalPercent += result.pct;
+  difficultyStats.bestPercent = Math.max(difficultyStats.bestPercent || 0, result.pct);
+  progress.difficultyStats[selectedDifficulty] = difficultyStats;
+
+  questions.forEach((question, index) => {
+    const topicStats = ensureTopicStats(progress, question.topic);
+    topicStats.total += 1;
+    if (wrongIndexes.has(index)) {
+      topicStats.wrong += 1;
+    } else {
+      topicStats.correct += 1;
+    }
+  });
+
+  if (result.mistakes.length) {
+    progress.mistakes.unshift(...result.mistakes);
+    progress.mistakes = progress.mistakes.slice(0, 35);
+    profile.mistakes.unshift(...result.mistakes);
+    profile.mistakes = profile.mistakes.slice(0, MAX_SAVED_MISTAKES);
+  }
+
+  updateStreak(profile);
+  const unlocked = updateAchievements(profile);
+  const afterProgress = calculateSubjectProgress(progress);
+  saveProfile();
+  renderProfile();
+
+  return {
+    progressDelta: {
+      before: beforeProgress,
+      after: afterProgress,
+      diff: afterProgress - beforeProgress
+    },
+    unlocked
+  };
+}
+
+function updateAchievements(profile) {
+  const unlockedIds = new Set(profile.achievements || []);
+  const unlockedNow = [];
+
+  PROFILE_ACHIEVEMENTS.forEach(achievement => {
+    if (!unlockedIds.has(achievement.id) && achievement.check(profile)) {
+      profile.achievements.push(achievement.id);
+      unlockedNow.push(achievement);
+    }
+  });
+
+  return unlockedNow;
+}
+
+function updateMistakeReviewActivity(reviewMistakes) {
+  if (!profileData) return 0;
+  const reviewedIds = new Set(questions.map(question => question.sourceMistakeId).filter(Boolean));
+  const wrongIds = new Set(reviewMistakes.map(mistake => mistake.sourceMistakeId).filter(Boolean));
+  const fixedIds = new Set([...reviewedIds].filter(id => !wrongIds.has(id)));
+
+  if (fixedIds.size) {
+    profileData.mistakes = profileData.mistakes.filter(mistake => !fixedIds.has(mistake.id));
+    Object.values(profileData.subjects || {}).forEach(progress => {
+      if (Array.isArray(progress.mistakes)) {
+        progress.mistakes = progress.mistakes.filter(mistake => !fixedIds.has(mistake.id));
+      }
+    });
+  }
+
+  profileData.stats.mistakeReviews = (profileData.stats.mistakeReviews || 0) + 1;
+  updateStreak(profileData);
+  saveProfile();
+  renderProfile();
+  return fixedIds.size;
+}
+
+function finalizeProfileResult() {
+  if (currentTestSaved && currentResultProfile) return currentResultProfile;
+
+  questions.forEach((question, index) => {
+    if (!currentTestAnswered.has(index)) {
+      currentTestMistakes.push(createMistakeRecord(question, -1, index));
+      currentTestAnswered.add(index);
+    }
+  });
+
+  const total = questions.length || 1;
+  const pct = Math.round(score / total * 100);
+  const result = {
+    mistakes: [...currentTestMistakes],
+    recommendations: buildRecommendationsFromMistakes(currentTestMistakes),
+    progressDelta: null,
+    unlocked: [],
+    fixedMistakes: 0
+  };
+
+  if (isMistakeReview) {
+    result.fixedMistakes = updateMistakeReviewActivity(result.mistakes);
+  } else {
+    const saved = saveTestResultToProfile({ score, total, pct, mistakes: result.mistakes });
+    result.progressDelta = saved.progressDelta;
+    result.unlocked = saved.unlocked;
+  }
+
+  currentTestSaved = true;
+  currentResultProfile = result;
+  return result;
+}
+
+function renderResultInsights(result) {
+  const mistakes = result.mistakes || [];
+  const mistakeItems = mistakes.length
+    ? mistakes.slice(0, 5).map(mistake => (
+      '<li><b>' + escapeHtml(mistake.topic) + '.</b> ' +
+      escapeHtml(mistake.question) +
+      '<br>Правильно: ' + escapeHtml(mistake.correctAnswer) + '</li>'
+    )).join('')
+    : '<li>Ошибок нет. Можно закрепить результат новым вариантом.</li>';
+  const recommendationItems = (result.recommendations || [])
+    .map(item => '<li>' + escapeHtml(item) + '</li>')
+    .join('');
+  const progressText = isMistakeReview
+    ? '<span class="score-pill">Исправлено ошибок: ' + (result.fixedMistakes || 0) + '</span><span class="score-pill">Активность за день обновлена</span>'
+    : result.progressDelta
+      ? '<span class="score-pill">Прогресс: ' + result.progressDelta.before + '% → ' + result.progressDelta.after + '%</span><span class="score-pill">Изменение: ' + (result.progressDelta.diff >= 0 ? '+' : '') + result.progressDelta.diff + '%</span>'
+      : '<span class="score-pill">Прогресс сохранится после обычного теста</span>';
+  const achievementText = result.unlocked && result.unlocked.length
+    ? '<div class="score-insight-card"><div class="score-insight-title">Новые достижения</div><ul>' + result.unlocked.map(item => '<li>' + escapeHtml(item.name) + '</li>').join('') + '</ul></div>'
+    : '';
+
+  return `
+    <div class="score-insights">
+      <div class="score-insight-card">
+        <div class="score-insight-title">Ошибки</div>
+        <ul>${mistakeItems}</ul>
+      </div>
+      <div class="score-insight-card">
+        <div class="score-insight-title">Рекомендации</div>
+        <ul>${recommendationItems}</ul>
+      </div>
+      <div class="score-insight-card">
+        <div class="score-insight-title">Изменение прогресса</div>
+        <div class="score-change">${progressText}</div>
+      </div>
+      ${achievementText}
+    </div>
+  `;
+}
+
+function renderProfile() {
+  if (!profileData) return;
+  renderProfileSettings();
+  renderProfileStrip();
+  renderStatsGrid();
+  renderSubjectProgress();
+  renderStreak();
+  renderMistakes();
+  renderAchievements();
+}
+
+function renderProfileStrip() {
+  if (!profileData) return;
+  document.getElementById('profile-strip-avatar').textContent = profileData.user.avatar;
+  document.getElementById('profile-strip-name').textContent = profileData.user.name || 'Ученик';
+  document.getElementById('profile-strip-meta').textContent =
+    'Первый вход: ' + formatProfileDate(profileData.user.firstVisit) +
+    ' · ' + profileData.user.grade + ' класс · тестов: ' + profileData.stats.testsCompleted +
+    ' · streak: ' + (profileData.stats.currentStreak || 0);
+}
+
+function renderProfileSettings() {
+  document.getElementById('profile-subtitle').textContent =
+    'Первый вход: ' + formatProfileDate(profileData.user.firstVisit) + ' · всё хранится только в localStorage браузера';
+  document.getElementById('profile-name-input').value = profileData.user.name || '';
+  document.getElementById('profile-grade-select').value = profileData.user.grade || '5';
+  document.getElementById('theme-toggle').checked = !!profileData.user.darkTheme;
+  selectedProfileAvatar = profileData.user.avatar || PROFILE_AVATARS[0];
+  renderAvatarGrid();
+}
+
+function renderAvatarGrid() {
+  const grid = document.getElementById('avatar-grid');
+  grid.innerHTML = '';
+  PROFILE_AVATARS.forEach(avatar => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'avatar-choice';
+    button.classList.toggle('active', avatar === selectedProfileAvatar);
+    button.textContent = avatar;
+    button.onclick = () => chooseProfileAvatar(avatar);
+    grid.appendChild(button);
+  });
+}
+
+function chooseProfileAvatar(avatar) {
+  selectedProfileAvatar = avatar;
+  profileData.user.avatar = avatar;
+  saveProfile();
+  renderProfileSettings();
+  renderProfileStrip();
+}
+
+function saveProfileSettings() {
+  const name = document.getElementById('profile-name-input').value.trim();
+  const grade = document.getElementById('profile-grade-select').value;
+  profileData.user.name = name || 'Ученик';
+  profileData.user.grade = grade;
+  profileData.user.avatar = selectedProfileAvatar;
+  saveProfile();
+  selectGrade(grade);
+  renderProfile();
+}
+
+function toggleTheme(checked) {
+  profileData.user.darkTheme = checked;
+  applyProfileTheme();
+  saveProfile();
+}
+
+function openProfile() {
+  renderProfile();
+  document.getElementById('profile-overlay').classList.add('open');
+}
+
+function closeProfile() {
+  document.getElementById('profile-overlay').classList.remove('open');
+}
+
+function openMistakeReview() {
+  openProfile();
+  setTimeout(() => {
+    document.getElementById('mistake-list').scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }, 80);
+}
+
+function renderStatCard(value, label) {
+  return '<div class="stat-card"><div class="stat-value">' + escapeHtml(value) + '</div><div class="stat-label">' + escapeHtml(label) + '</div></div>';
+}
+
+function renderStatsGrid() {
+  const stats = profileData.stats;
+  document.getElementById('stats-grid').innerHTML = [
+    renderStatCard(stats.testsCompleted, 'пройденных тестов'),
+    renderStatCard((stats.bestPercent || 0) + '%', 'лучший результат'),
+    renderStatCard(getOverallAverage(profileData) + '%', 'средний результат'),
+    renderStatCard(getFavoriteSubject(profileData), 'любимый предмет'),
+    renderStatCard(stats.totalCorrect || 0, 'правильных ответов'),
+    renderStatCard(stats.totalWrong || 0, 'ошибок всего')
+  ].join('');
+}
+
+function renderSubjectProgress() {
+  const grade = profileData.user.grade || selectedGrade;
+  const html = getSubjectIdsForGrade(grade).map(subjectId => {
+    const progress = getSubjectProgress(profileData, subjectId);
+    const progressPercent = calculateSubjectProgress(progress);
+    const weakTopics = getWeakTopicsFromProgress(progress);
+    const weakText = weakTopics.length
+      ? weakTopics.map(item => item.topic + ' (' + item.wrong + ')').join(', ')
+      : 'слабые темы появятся после ошибок';
+
+    return `
+      <div class="subject-progress-item">
+        <div class="progress-item-head">
+          <b>${escapeHtml(subjects[subjectId].name)}</b>
+          <span>${progressPercent}%</span>
+        </div>
+        <div class="mini-progress"><div class="mini-progress-fill" style="width: ${progressPercent}%"></div></div>
+        <div class="weak-topics">
+          Тестов: ${progress.testsCompleted} · средний балл: ${getAveragePercent(progress)}%<br>
+          Слабые темы: ${escapeHtml(weakText)}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('subject-progress-list').innerHTML = html;
+}
+
+function getRecentDateKeys(days = 14) {
+  const dates = [];
+  for (let offset = days - 1; offset >= 0; offset--) {
+    const date = new Date();
+    date.setDate(date.getDate() - offset);
+    dates.push(toDateKey(date));
+  }
+  return dates;
+}
+
+function renderStreak() {
+  const stats = profileData.stats;
+  document.getElementById('streak-grid').innerHTML = [
+    renderStatCard(stats.currentStreak || 0, 'дней подряд'),
+    renderStatCard(stats.bestStreak || 0, 'лучший streak'),
+    renderStatCard((stats.activityDates || []).length, 'дней активности')
+  ].join('');
+
+  const activeDates = new Set(stats.activityDates || []);
+  document.getElementById('activity-row').innerHTML = getRecentDateKeys(14).map(key => (
+    '<div class="activity-dot ' + (activeDates.has(key) ? 'active' : '') + '" title="' + escapeHtml(key) + '"></div>'
+  )).join('');
+}
+
+function renderMistakes() {
+  const mistakes = profileData.mistakes || [];
+  const list = document.getElementById('mistake-list');
+  if (!mistakes.length) {
+    list.innerHTML = '<div class="profile-empty">Ошибок пока нет. Пройди тест, и сюда попадут вопросы, где нужен разбор.</div>';
+    return;
+  }
+
+  const recommendations = buildRecommendationsFromMistakes(mistakes).slice(0, 3)
+    .map(item => '<li>' + escapeHtml(item) + '</li>')
+    .join('');
+  const items = mistakes.slice(0, 8).map(mistake => `
+    <div class="mistake-item">
+      <div class="mistake-question">${escapeHtml(mistake.question)}</div>
+      <div class="mistake-meta">
+        ${escapeHtml(mistake.subjectName)} · ${escapeHtml(mistake.topic)}<br>
+        Твой ответ: ${escapeHtml(mistake.selectedAnswer)}<br>
+        Правильно: ${escapeHtml(mistake.correctAnswer)}
+      </div>
+    </div>
+  `).join('');
+
+  list.innerHTML = `
+    <div class="mistake-item">
+      <div class="mistake-question"><b>Что повторить сейчас</b></div>
+      <div class="mistake-meta"><ul>${recommendations}</ul></div>
+    </div>
+    ${items}
+  `;
+}
+
+function renderAchievements() {
+  const unlocked = new Set(profileData.achievements || []);
+  document.getElementById('achievement-grid').innerHTML = PROFILE_ACHIEVEMENTS.map(achievement => `
+    <div class="achievement-item ${unlocked.has(achievement.id) ? 'unlocked' : ''}">
+      <div class="achievement-name">${escapeHtml(achievement.name)}</div>
+      <div class="achievement-desc">${escapeHtml(achievement.desc)}</div>
+    </div>
+  `).join('');
+}
+
+function mistakeToQuestion(mistake) {
+  const options = Array.isArray(mistake.options) && mistake.options.length
+    ? [...mistake.options]
+    : [mistake.correctAnswer, mistake.selectedAnswer, 'Не уверен', 'Пропустить'].filter(Boolean);
+  while (options.length < 4) options.push('Вариант ' + (options.length + 1));
+  let correctIndex = Number.isInteger(mistake.correctIndex) ? mistake.correctIndex : options.indexOf(mistake.correctAnswer);
+  if (correctIndex < 0 || correctIndex >= options.length) correctIndex = 0;
+
+  return {
+    q: mistake.question,
+    opts: options,
+    ans: correctIndex,
+    exp: mistake.explanation || 'Повтори правило и сравни с правильным ответом.',
+    topic: mistake.topic || 'Общее повторение',
+    category: 'review',
+    grade: mistake.grade,
+    subject: mistake.subject,
+    subjectName: mistake.subjectName,
+    difficulty: mistake.difficulty,
+    difficultyName: mistake.difficultyName,
+    sourceMistakeId: mistake.id
+  };
+}
+
+function startMistakeReview() {
+  const savedMistakes = profileData && profileData.mistakes ? profileData.mistakes.slice(0, 16) : [];
+  if (!savedMistakes.length) {
+    alert('Ошибок пока нет. Пройди обычный тест, и раздел заполнится автоматически.');
+    return;
+  }
+
+  isMistakeReview = true;
+  cur = 0;
+  score = 0;
+  answered = false;
+  finishedByTimer = false;
+  currentTestMistakes = [];
+  currentTestAnswered = new Set();
+  currentTestSaved = false;
+  currentResultProfile = null;
+  questions = savedMistakes.map(mistakeToQuestion);
+  closeProfile();
+  updateHeader('test');
+  document.getElementById('selection').style.display = 'none';
+  document.getElementById('scorebox').style.display = 'none';
+  document.getElementById('progress-row').style.display = 'flex';
+  document.getElementById('qcard').style.display = 'block';
+  document.getElementById('actions').style.display = 'flex';
+  startTimer();
+  render();
+}
+
+function clearSavedMistakes() {
+  if (!profileData || !profileData.mistakes.length) return;
+  if (!confirm('Очистить все сохранённые ошибки?')) return;
+  profileData.mistakes = [];
+  Object.values(profileData.subjects || {}).forEach(progress => {
+    progress.mistakes = [];
+  });
+  saveProfile();
+  renderProfile();
 }
 
 function toggleAI(forceOpen) {
@@ -3762,8 +5093,10 @@ document.querySelectorAll('[data-difficulty]').forEach(button => {
 document.getElementById('ai-input').addEventListener('keydown', event => {
   if (event.key === 'Enter') sendAIText();
 });
+initProfileSystem();
 renderSubjectChoices();
 updateHeader('selection');
+updateSelectedNote();
 updateTimer();
 </script>
 </body>
