@@ -233,6 +233,28 @@
     gap: 8px;
   }
 
+  .input-answer-box {
+    display: grid;
+    gap: 10px;
+  }
+
+  .input-answer {
+    width: 100%;
+    min-height: 48px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #FAFAF8;
+    color: var(--text);
+    padding: 12px 14px;
+    font: inherit;
+    font-size: 15px;
+  }
+
+  .input-answer:focus {
+    outline: 2px solid rgba(29,158,117,0.18);
+    border-color: var(--green);
+  }
+
   .opt {
     display: flex;
     align-items: flex-start;
@@ -804,6 +826,7 @@
 
   body.dark-theme .choice,
   body.dark-theme .opt,
+  body.dark-theme .input-answer,
   body.dark-theme .btn-light,
   body.dark-theme .profile-input,
   body.dark-theme .profile-select,
@@ -2706,7 +2729,7 @@ function addRequiredGrammarRows() {
         ["Укажи слово, которое является существительным.", "дерево", "зелёный", "бежать", "быстро", "Существительное обозначает предмет и отвечает на вопросы кто? что?", "grammar"],
         ["Укажи слово, которое является глаголом.", "рисовать", "рисунок", "красивый", "карандаш", "Глагол обозначает действие и отвечает на вопросы что делать? что сделать?", "grammar"],
         ["В каком слове есть приставка?", "подписать", "лист", "окно", "синий", "В слове «подписать» приставка под- стоит перед корнем.", "grammar"],
-        ["Выбери правильное написание.", "жираф", "жыраф", "жераф", "жыраф", "Сочетания жи-ши пишутся с буквой и.", "grammar"],
+        ["Выбери правильное написание.", "жираф", "жыраф", "жераф", "жирафь", "Сочетания жи-ши пишутся с буквой и.", "grammar"],
         ["В каком предложении есть подлежащее и сказуемое?", "Птицы летят.", "На столе.", "Очень красиво.", "После урока.", "«Птицы» — подлежащее, «летят» — сказуемое.", "grammar"],
         ["Укажи прилагательное.", "весёлый", "веселье", "веселиться", "весело", "Прилагательное обозначает признак предмета.", "grammar"],
         ["Выбери слово с суффиксом.", "домик", "дом", "поддомный", "дома", "В слове «домик» суффикс -ик-.", "grammar"],
@@ -2882,8 +2905,10 @@ function expandQuestionBanks() {
 
 expandQuestionBanks();
 
-const DEMO_VARIANT_COUNT = 24;
-const demoVariantSubjectIds5 = ['geography', 'history', 'biology', 'informatics', 'english', 'german', 'french', 'russian'];
+const DEMO_VARIANT_COUNT = 100;
+const QUESTION_HISTORY_LIMIT = 220;
+const VARIANT_HISTORY_LIMIT = 40;
+const demoVariantSubjectIds5 = ['geography', 'history', 'biology', 'informatics', 'math', 'english', 'german', 'french', 'russian', 'literature'];
 const demoVariantSubjectIds6 = ['geography', 'history', 'biology', 'informatics', 'math', 'english', 'german', 'chinese', 'russian', 'literature'];
 
 function demoQuestion(q, correct, wrongs, exp, category) {
@@ -2893,6 +2918,23 @@ function demoQuestion(q, correct, wrongs, exp, category) {
   });
   while (opts.length < 4) opts.push('нет верного ответа ' + opts.length);
   return { q: String(q), opts, ans: 0, exp: String(exp), category: category || 'demo', level: 'middle' };
+}
+
+function openQuestion(q, answers, exp, category, options = {}) {
+  const answerList = (Array.isArray(answers) ? answers : [answers])
+    .map(answer => String(answer).trim())
+    .filter(Boolean);
+  return {
+    q: String(q),
+    type: 'input',
+    answers: answerList,
+    answerText: answerList[0] || '',
+    exp: String(exp),
+    category: category || 'open',
+    level: options.level || 'middle',
+    inputKind: options.inputKind || 'text',
+    tolerance: options.tolerance || 'soft'
+  };
 }
 
 function demoPick(items, index) {
@@ -2905,6 +2947,128 @@ function demoWrongOptions(correct, options) {
 
 function demoOrderAnswer(items, sortedItems) {
   return sortedItems.map(item => String(items.indexOf(item) + 1)).join('');
+}
+
+function makeOpenAnswerPack(subject, index, grade) {
+  const n = index + 1;
+  const number = n + (grade === '6' ? 12 : 5);
+
+  if (subject === 'math') {
+    const a = number + 7;
+    const b = 3 + (n % 8);
+    const percentBase = 80 + n * 2;
+    const percent = 25;
+    return [
+      openQuestion('Реши пример самостоятельно: ' + a + ' + ' + b + ' · 4.', String(a + b * 4), 'Сначала выполняем умножение, затем сложение.', 'calculation', { inputKind: 'number', level: 'basic' }),
+      openQuestion('Найди ' + percent + '% от числа ' + percentBase + '.', String(percentBase * percent / 100), '25% — это четверть числа.', 'calculation', { inputKind: 'number', level: 'middle' }),
+      openQuestion('Реши уравнение: x + ' + b + ' = ' + (a + b) + '.', String(a), 'Чтобы найти x, вычитаем ' + b + ' из обеих частей уравнения.', 'calculation', { inputKind: 'number', level: 'basic' }),
+      openQuestion('Впиши дробь: половина числа записывается как...', ['1/2', '0,5', '0.5'], 'Половина — это одна вторая.', 'term', { level: 'basic' }),
+      demoQuestion('Логическая задача: если число увеличить на ' + b + ', получится ' + (a + b) + '. Какое было число?', String(a), [String(a + b), String(b), String(a - b)], 'Выполняем обратное действие: вычитание.', 'logic')
+    ];
+  }
+
+  if (subject === 'english') {
+    const people = demoPick([['Tom', 'plays football'], ['Ann', 'reads books'], ['Ben', 'goes to school'], ['Kate', 'likes music']], index);
+    return [
+      openQuestion('Translate into English: «школа».', ['school'], 'School — школа.', 'translation', { level: 'basic' }),
+      openQuestion('Write the missing verb: ' + people[0] + ' ___ ' + people[1].split(' ').slice(1).join(' ') + ' every day.', [people[1].split(' ')[0]], 'В Present Simple для he/she часто добавляется -s.', 'grammar', { level: 'middle' }),
+      openQuestion('Make a negative sentence: I like apples.', ['I do not like apples', "I don't like apples"], 'В Present Simple отрицание строится через do not / don’t.', 'grammar', { level: 'middle' }),
+      openQuestion('Read: Mike has a red bike and rides it in the park. What colour is the bike?', ['red', 'red bike'], 'Цвет велосипеда указан прямо в тексте.', 'text', { level: 'basic' }),
+      demoQuestion('Variant ' + n + ': choose the correct sentence.', 'She goes to school on Monday.', ['She go to school on Monday.', 'She going to school on Monday.', 'She to school goes Monday.'], 'Для she в Present Simple нужен глагол с -s.', 'grammar')
+    ];
+  }
+
+  if (subject === 'german') {
+    return [
+      openQuestion('Переведи на немецкий: «школа».', ['Schule', 'die Schule'], 'Die Schule — школа.', 'translation', { level: 'basic' }),
+      openQuestion('Вставь форму sein: Ich ___ Schüler.', ['bin'], 'Ich bin — я есть/я являюсь.', 'grammar', { level: 'basic' }),
+      openQuestion('Вставь артикль: ___ Haus.', ['das'], 'Haus — существительное среднего рода: das Haus.', 'grammar', { level: 'middle' }),
+      openQuestion('Lies: Anna wohnt in Berlin. Wo wohnt Anna?', ['in Berlin', 'Berlin'], 'Ответ прямо указан в коротком тексте.', 'text', { level: 'basic' }),
+      demoQuestion('Welche Form ist richtig?', 'du hast', ['du habe', 'du haben', 'du hat'], 'С глаголом haben форма для du — hast.', 'grammar')
+    ];
+  }
+
+  if (subject === 'french') {
+    return [
+      openQuestion('Переведи на французский: «школа».', ['école', "l'école", 'ecole'], 'L’école — школа.', 'translation', { level: 'basic' }),
+      openQuestion('Вставь форму être: Je ___ élève.', ['suis'], 'Je suis — я есть/я являюсь.', 'grammar', { level: 'basic' }),
+      openQuestion('Вставь артикль: ___ livre.', ['un', 'le'], 'Livre — существительное мужского рода; возможны un livre или le livre по контексту.', 'grammar', { level: 'middle' }),
+      openQuestion('Lis: Marie habite à Paris. Où habite Marie ?', ['à Paris', 'Paris', 'a Paris'], 'Ответ прямо указан в коротком тексте.', 'text', { level: 'basic' }),
+      demoQuestion('Choisis la bonne phrase.', 'J’ai onze ans.', ['Je avoir onze ans.', 'Je suis onze ans.', 'Tu ai onze ans.'], 'Возраст во французском выражают с avoir: j’ai.', 'grammar')
+    ];
+  }
+
+  if (subject === 'chinese') {
+    return [
+      openQuestion('Напиши перевод слова 学校.', ['школа'], '学校 означает «школа».', 'translation', { level: 'basic' }),
+      openQuestion('Впиши пиньинь для 你.', ['ni', 'nǐ', 'ni3'], 'Иероглиф 你 читается nǐ.', 'grammar', { level: 'basic' }),
+      openQuestion('Вставь счётное слово: 一___书.', ['本'], 'Для книг используется счётное слово 本.', 'grammar', { level: 'middle' }),
+      openQuestion('读短文：小明在学校学习中文。小明在哪里学习中文？', ['学校', '在学校'], 'В тексте сказано: 在学校.', 'text', { level: 'middle' }),
+      demoQuestion('Выбери правильный порядок слов.', '我在学校学习中文。', ['在学校我中文学习。', '中文我在学习学校。', '学校中文我学习在。'], 'В китайском обычно: подлежащее + обстоятельство места + сказуемое + дополнение.', 'grammar')
+    ];
+  }
+
+  if (subject === 'russian') {
+    return [
+      openQuestion('Выпиши грамматическую основу: «Тёплый ветер качал ветви».', ['ветер качал'], 'Основа — подлежащее «ветер» и сказуемое «качал».', 'grammar', { level: 'middle' }),
+      openQuestion('Впиши термин: слова с противоположным значением называются...', ['антонимы', 'антонимами'], 'Антонимы имеют противоположное значение.', 'term', { level: 'basic' }),
+      openQuestion('Вставь букву: ж_раф.', ['и'], 'В сочетании жи пишется буква И.', 'grammar', { level: 'basic' }),
+      openQuestion('Определи часть речи слова «быстро».', ['наречие'], 'Слово «быстро» обозначает признак действия.', 'grammar', { level: 'middle' }),
+      demoQuestion('Укажи слово с приставкой.', 'подписал', ['писал', 'письмо', 'писатель'], 'В слове «подписал» есть приставка под-.', 'grammar')
+    ];
+  }
+
+  if (subject === 'biology') {
+    return [
+      openQuestion('Впиши термин: зелёный пигмент растений называется...', ['хлорофилл'], 'Хлорофилл поглощает свет для фотосинтеза.', 'term', { level: 'middle' }),
+      openQuestion('Какой газ растения выделяют при фотосинтезе?', ['кислород', 'O2', 'о2'], 'При фотосинтезе выделяется кислород.', 'term', { level: 'basic' }),
+      openQuestion('Мини-кейс: растение поставили в темноту, и рост замедлился. Какой процесс нарушился?', ['фотосинтез'], 'Без света фотосинтез резко ослабевает.', 'case', { level: 'middle' }),
+      openQuestion('Ответь по тексту: корневые волоски всасывают воду и минеральные соли. Что всасывают корневые волоски?', ['воду и минеральные соли', 'воду, минеральные соли'], 'Ответ содержится в тексте.', 'text', { level: 'basic' }),
+      demoQuestion('Что будет первым звеном простой пищевой цепи?', 'растение', ['хищник', 'гриб-разрушитель', 'камень'], 'Продуценты создают органические вещества и начинают цепь питания.', 'case')
+    ];
+  }
+
+  if (subject === 'geography') {
+    const distance = 2 + (n % 9);
+    const scale = 100000;
+    return [
+      openQuestion('Впиши термин: условная линия, делящая Землю на Северное и Южное полушария.', ['экватор'], 'Экватор делит Землю на два полушария.', 'term', { level: 'basic' }),
+      openQuestion('На карте 1 см соответствует 1 км. Сколько километров на местности составят ' + distance + ' см?', String(distance), 'Если 1 см — 1 км, то ' + distance + ' см — ' + distance + ' км.', 'calculation', { inputKind: 'number', level: 'middle' }),
+      openQuestion('Впиши термин: многолетний режим погоды территории.', ['климат'], 'Климат — многолетний режим погоды.', 'term', { level: 'basic' }),
+      openQuestion('Мини-кейс: турист идёт по компасу на N. В какую сторону он идёт?', ['север', 'на север'], 'N обозначает North, то есть север.', 'case', { level: 'basic' }),
+      demoQuestion('Что можно узнать по горизонталям на плане?', 'высоту и форму рельефа', ['солёность океана', 'возраст карты', 'население города'], 'Горизонтали показывают рельеф.', 'case')
+    ];
+  }
+
+  if (subject === 'history') {
+    const year = 400 + n * 9;
+    return [
+      openQuestion('Впиши термин: наука, изучающая прошлое человечества.', ['история'], 'История изучает прошлое людей и общества.', 'term', { level: 'basic' }),
+      openQuestion('К какому веку относится ' + year + ' год?', String(Math.ceil(year / 100)), 'Век находят делением года на 100 с округлением вверх.', 'calculation', { inputKind: 'number', level: 'middle' }),
+      openQuestion('Впиши термин: самостоятельный город-государство в Древней Греции.', ['полис'], 'Полис — город-государство.', 'term', { level: 'middle' }),
+      openQuestion('Ответь по тексту: фараон управлял Египтом и считался сыном бога. Кто управлял Египтом?', ['фараон'], 'Ответ прямо указан в тексте.', 'text', { level: 'basic' }),
+      demoQuestion('Что является причиной появления земледелия?', 'переход к выращиванию растений около поселений', ['изобретение интернета', 'строительство железных дорог', 'появление пороха'], 'Земледелие связано с производящим хозяйством.', 'case')
+    ];
+  }
+
+  if (subject === 'informatics') {
+    const kb = 1 + (n % 8);
+    return [
+      openQuestion('Впиши термин: точная последовательность команд для исполнителя.', ['алгоритм'], 'Алгоритм задаёт порядок действий.', 'term', { level: 'basic' }),
+      openQuestion('Сколько байтов в ' + kb + ' Кбайт? Используй 1 Кбайт = 1024 байта.', String(kb * 1024), 'Умножаем ' + kb + ' на 1024.', 'calculation', { inputKind: 'number', level: 'middle' }),
+      openQuestion('Впиши расширение текстового файла из имени report.txt.', ['txt', '.txt'], 'Расширение стоит после точки.', 'term', { level: 'basic' }),
+      openQuestion('Мини-кейс: нужно повторить команду 10 раз. Какой тип алгоритма нужен?', ['циклический', 'цикл'], 'Повторение команд выполняется циклом.', 'case', { level: 'middle' }),
+      demoQuestion('Какой пароль безопаснее?', 'R7!mQ42_z', ['123456', 'qwerty', 'ivan2000'], 'Надёжный пароль содержит разные типы символов и не является очевидным.', 'case')
+    ];
+  }
+
+  return [
+    openQuestion('Впиши термин: краткое нравоучительное произведение с моралью.', ['басня'], 'Басня содержит мораль и часто высмеивает недостатки.', 'term', { level: 'basic' }),
+    openQuestion('Как называется разговор двух героев в произведении?', ['диалог'], 'Диалог состоит из реплик двух или нескольких персонажей.', 'term', { level: 'basic' }),
+    openQuestion('Ответь по тексту: герой помог другу и понял цену честности. Какая главная мысль текста?', ['честность важна', 'надо быть честным', 'важна честность'], 'Главная мысль связана с честностью героя.', 'text', { level: 'middle' }),
+    openQuestion('Впиши термин: описание природы в художественном тексте.', ['пейзаж'], 'Пейзаж — изображение природы.', 'term', { level: 'basic' }),
+    demoQuestion('Какой приём есть в выражении «золотая осень»?', 'эпитет', ['сюжет', 'диалог', 'экспозиция'], 'Образное определение называется эпитетом.', 'case')
+  ];
 }
 
 function makeDemoGeographyVariant(index) {
@@ -3353,13 +3517,45 @@ function makeDemoVariantUniqueQuestions(subject, index) {
 
 function finalizeDemoVariant(subject, variant, index) {
   const uniqueQuestions = makeDemoVariantUniqueQuestions(subject, index);
+  const openAnswerQuestions = makeOpenAnswerPack(subject, index, '5');
   if (!languageSubjectIds.includes(subject)) {
-    return [...uniqueQuestions, ...variant];
+    return [...openAnswerQuestions, ...uniqueQuestions, ...variant];
   }
 
   const grammar = variant.filter(question => question.category === 'grammar').slice(0, REQUIRED_GRAMMAR_COUNT);
   const rest = variant.filter(question => question.category !== 'grammar');
-  return [...grammar, ...uniqueQuestions, ...rest];
+  return [...grammar, ...openAnswerQuestions, ...uniqueQuestions, ...rest];
+}
+
+function makeDemoMathVariant(index) {
+  const n = index + 1;
+  const a = 25 + n;
+  const b = 4 + (n % 9);
+  const side = 3 + (n % 8);
+  return [
+    demoQuestion('Вычисли: ' + a + ' - ' + b + ' + 12.', String(a - b + 12), [String(a + b), String(a - b), String(a + 12)], 'Действия сложения и вычитания выполняем слева направо.'),
+    demoQuestion('Периметр квадрата со стороной ' + side + ' см равен...', String(side * 4), [String(side * side), String(side + 4), String(side * 2)], 'Периметр квадрата равен четырём сторонам.'),
+    demoQuestion('Какая дробь больше: 1/2 или 1/3?', '1/2', ['1/3', 'они равны', 'нельзя сравнить'], 'При одинаковом числителе больше дробь с меньшим знаменателем.'),
+    demoQuestion('Скорость велосипедиста 12 км/ч. Сколько километров он проедет за 2 часа?', '24', ['14', '12', '6'], 'Расстояние равно скорости, умноженной на время.'),
+    demoQuestion('Реши уравнение: x - ' + b + ' = ' + a + '.', String(a + b), [String(a - b), String(a), String(b)], 'К обеим частям прибавляем ' + b + '.')
+  ];
+}
+
+function makeDemoLiteratureVariant(index) {
+  const n = index + 1;
+  const genres = demoPick([
+    ['басня', 'мораль'],
+    ['сказка', 'волшебные события'],
+    ['стихотворение', 'рифма'],
+    ['рассказ', 'сюжет']
+  ], index);
+  return [
+    demoQuestion('Вариант ' + n + ': какой признак помогает узнать жанр «' + genres[0] + '»?', genres[1], ['масштаб', 'координаты', 'деление клетки'], 'Жанр определяют по его литературным признакам.'),
+    demoQuestion('Кто рассказывает о событиях в произведении?', 'рассказчик', ['масштаб', 'корень растения', 'процессор'], 'Рассказчик ведёт повествование.'),
+    demoQuestion('Что такое сюжет?', 'последовательность событий произведения', ['размер страницы', 'число букв', 'способ вычисления'], 'Сюжет показывает развитие событий.'),
+    demoQuestion('Как называется главный вывод басни?', 'мораль', ['пейзаж', 'экватор', 'файл'], 'Мораль формулирует урок басни.'),
+    demoQuestion('Какой термин обозначает образное определение?', 'эпитет', ['алгоритм', 'устье', 'процент'], 'Эпитет делает образ выразительнее.')
+  ];
 }
 
 function makeDemoVariantBanks5() {
@@ -3368,10 +3564,12 @@ function makeDemoVariantBanks5() {
     history: makeDemoHistoryVariant,
     biology: makeDemoBiologyVariant,
     informatics: makeDemoInformaticsVariant,
+    math: makeDemoMathVariant,
     english: makeDemoEnglishVariant,
     german: makeDemoGermanVariant,
     french: makeDemoFrenchVariant,
-    russian: makeDemoRussianVariant
+    russian: makeDemoRussianVariant,
+    literature: makeDemoLiteratureVariant
   };
   const banks = {};
   demoVariantSubjectIds5.forEach(subject => {
@@ -3402,7 +3600,13 @@ function completeDemoVariant6(subject, index, rows) {
       'Этот вопрос закрепляет формат итоговой работы: внимательно читаем условие, выделяем данные и проверяем ответ.'
     ));
   }
-  return rows;
+  const openAnswerQuestions = makeOpenAnswerPack(subject, index, '6');
+  if (!languageSubjectIds.includes(subject)) {
+    return [...openAnswerQuestions, ...rows];
+  }
+  const grammar = rows.filter(question => question.category === 'grammar').slice(0, REQUIRED_GRAMMAR_COUNT);
+  const rest = rows.filter(question => question.category !== 'grammar');
+  return [...grammar, ...openAnswerQuestions, ...rest];
 }
 
 function makeDemoGeography6Variant(index) {
@@ -3775,13 +3979,8 @@ const demoVariantBanksByGrade = {
 function chooseDemoVariantIndex(storageKey, variants) {
   const usedKey = storageKey + '-demo-used';
   const lastKey = storageKey + '-demo-last';
-  const lastIndex = Number(sessionStorage.getItem(lastKey));
-  let used = [];
-  try {
-    used = JSON.parse(sessionStorage.getItem(usedKey) || '[]').filter(index => Number.isInteger(index) && index >= 0 && index < variants.length);
-  } catch (error) {
-    used = [];
-  }
+  const lastIndex = Number(localStorage.getItem(lastKey));
+  let used = readStorageJson(usedKey, []).filter(index => Number.isInteger(index) && index >= 0 && index < variants.length);
 
   let available = variants.map((_, index) => index).filter(index => !used.includes(index) && index !== lastIndex);
   if (!available.length) {
@@ -3791,8 +3990,8 @@ function chooseDemoVariantIndex(storageKey, variants) {
 
   const pickedIndex = demoPick(shuffle(available), 0);
   used.push(pickedIndex);
-  sessionStorage.setItem(usedKey, JSON.stringify(used.slice(-variants.length)));
-  sessionStorage.setItem(lastKey, String(pickedIndex));
+  writeStorageJson(usedKey, used.slice(-Math.min(variants.length, VARIANT_HISTORY_LIMIT)));
+  localStorage.setItem(lastKey, String(pickedIndex));
   return pickedIndex;
 }
 
@@ -3999,7 +4198,88 @@ function inferQuestionTopic(item) {
   return selectedSubject && subjects[selectedSubject] ? subjects[selectedSubject].name : 'Общее повторение';
 }
 
+function normalizeFreeAnswer(value) {
+  return String(value ?? '')
+    .toLowerCase()
+    .replace(/ё/g, 'е')
+    .replace(/[“”«»"']/g, '')
+    .replace(/[.,!?;:。！？，、]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function normalizeOptionValue(value) {
+  return String(value ?? '')
+    .toLowerCase()
+    .replace(/ё/g, 'е')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function simplifyNumericAnswer(value) {
+  return normalizeFreeAnswer(value).replace(',', '.').replace(/\s/g, '');
+}
+
+function levenshteinDistance(a, b) {
+  const left = normalizeFreeAnswer(a);
+  const right = normalizeFreeAnswer(b);
+  if (left === right) return 0;
+  const matrix = Array.from({ length: left.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= right.length; j++) matrix[0][j] = j;
+  for (let i = 1; i <= left.length; i++) {
+    for (let j = 1; j <= right.length; j++) {
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1,
+        matrix[i][j - 1] + 1,
+        matrix[i - 1][j - 1] + (left[i - 1] === right[j - 1] ? 0 : 1)
+      );
+    }
+  }
+  return matrix[left.length][right.length];
+}
+
+function isFreeAnswerCorrect(input, question) {
+  const raw = String(input ?? '').trim();
+  if (!raw) return false;
+  const answers = (question.answers || [question.answerText]).filter(Boolean);
+  const normalizedInput = normalizeFreeAnswer(raw);
+  const numericInput = simplifyNumericAnswer(raw);
+
+  return answers.some(answer => {
+    const normalizedAnswer = normalizeFreeAnswer(answer);
+    if (normalizedInput === normalizedAnswer) return true;
+    if (simplifyNumericAnswer(answer) === numericInput) return true;
+    if (question.tolerance !== 'strict' && normalizedAnswer.length >= 6 && levenshteinDistance(normalizedInput, normalizedAnswer) <= 1) return true;
+    return false;
+  });
+}
+
 function normalizeQuestion(item) {
+  if (item.type === 'input') {
+    const answers = (item.answers && item.answers.length ? item.answers : [item.answerText])
+      .map(answer => String(answer).trim())
+      .filter(Boolean);
+    return {
+      q: item.q,
+      type: 'input',
+      opts: [],
+      ans: 0,
+      answers,
+      answerText: item.answerText || answers[0] || '',
+      exp: item.exp,
+      topic: inferQuestionTopic(item),
+      category: item.category || 'open',
+      inputKind: item.inputKind || 'text',
+      tolerance: item.tolerance || 'soft',
+      subject: item.subject || selectedSubject,
+      subjectName: item.subjectName || (item.subject && subjects[item.subject] ? subjects[item.subject].name : (selectedSubject && subjects[selectedSubject] ? subjects[selectedSubject].name : 'Смешанный режим')),
+      grade: item.grade || selectedGrade,
+      difficulty: item.difficulty || selectedDifficulty,
+      difficultyName: item.difficultyName || (difficultyLevels[selectedDifficulty] ? difficultyLevels[selectedDifficulty].name : 'Свободный режим'),
+      sourceMistakeId: item.sourceMistakeId || null
+    };
+  }
+
   const optionObjects = item.opts.map((text, index) => ({
     text,
     correct: index === item.ans
@@ -4019,6 +4299,180 @@ function normalizeQuestion(item) {
     difficultyName: item.difficultyName || (difficultyLevels[selectedDifficulty] ? difficultyLevels[selectedDifficulty].name : 'Свободный режим'),
     sourceMistakeId: item.sourceMistakeId || null
   };
+}
+
+function getQuestionSignature(question) {
+  return normalizeFreeAnswer((question.subject || '') + '|' + (question.grade || '') + '|' + question.q);
+}
+
+function readStorageJson(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch (error) {
+    return fallback;
+  }
+}
+
+function writeStorageJson(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    console.warn('Не удалось сохранить данные smart random', error);
+  }
+}
+
+function validateQuestionShape(question) {
+  const errors = [];
+  if (!question || typeof question !== 'object') errors.push('question is not object');
+  if (!String(question.q || '').trim()) errors.push('empty question');
+  if (!String(question.exp || '').trim()) errors.push('empty explanation');
+  if (!question.subject || !subjects[question.subject]) errors.push('unknown subject');
+  if (!question.grade || !subjectIdsByGrade[question.grade]) errors.push('unknown grade');
+
+  if (question.type === 'input') {
+    if (!question.answers || !question.answers.length || !question.answers.some(answer => String(answer).trim())) {
+      errors.push('input question without answer');
+    }
+  } else {
+    if (!Array.isArray(question.opts) || question.opts.length < 2) errors.push('choice question without options');
+    if (!Number.isInteger(question.ans) || question.ans < 0 || question.ans >= (question.opts || []).length) errors.push('correct answer index missing');
+    const normalizedOptions = (question.opts || []).map(normalizeOptionValue);
+    if (new Set(normalizedOptions).size !== normalizedOptions.length) errors.push('duplicate options');
+    if (!String((question.opts || [])[question.ans] || '').trim()) errors.push('correct option empty');
+  }
+
+  return errors;
+}
+
+function qualityCheckQuestionSet(list, context = 'test') {
+  const signatures = new Set();
+  const accepted = [];
+  const errors = [];
+
+  list.forEach((question, index) => {
+    const questionErrors = validateQuestionShape(question);
+    const signature = getQuestionSignature(question);
+    if (signatures.has(signature)) questionErrors.push('duplicate question in set');
+
+    if (questionErrors.length) {
+      errors.push({ index, subject: question.subject, q: question.q, errors: questionErrors });
+      return;
+    }
+
+    signatures.add(signature);
+    accepted.push(question);
+  });
+
+  if (errors.length) {
+    console.warn('Quality-check warnings for ' + context, errors.slice(0, 20));
+  }
+  return accepted;
+}
+
+function getQuestionHistoryKey(modeId) {
+  return 'playground-question-history-' + selectedGrade + '-' + modeId;
+}
+
+function recordQuestionHistory(modeId, list) {
+  const key = getQuestionHistoryKey(modeId);
+  const previous = readStorageJson(key, []);
+  const next = [...list.map(getQuestionSignature), ...previous].filter(Boolean);
+  writeStorageJson(key, [...new Set(next)].slice(0, QUESTION_HISTORY_LIMIT));
+}
+
+function alternateTopics(list) {
+  const buckets = {};
+  list.forEach(question => {
+    const topic = question.topic || 'Общее повторение';
+    if (!buckets[topic]) buckets[topic] = [];
+    buckets[topic].push(question);
+  });
+
+  const orderedTopics = Object.keys(buckets).sort((a, b) => buckets[b].length - buckets[a].length);
+  const result = [];
+  while (result.length < list.length) {
+    let added = false;
+    orderedTopics.forEach(topic => {
+      const next = buckets[topic].shift();
+      if (next) {
+        result.push(next);
+        added = true;
+      }
+    });
+    if (!added) break;
+  }
+  return result;
+}
+
+function finalizeQuestionSet(list, modeId) {
+  const checked = shuffle(qualityCheckQuestionSet(list, modeId));
+  const recent = new Set(readStorageJson(getQuestionHistoryKey(modeId), []));
+  const fresh = [];
+  const repeated = [];
+
+  checked.forEach(question => {
+    (recent.has(getQuestionSignature(question)) ? repeated : fresh).push(question);
+  });
+
+  const arranged = alternateTopics([...fresh, ...repeated]);
+  recordQuestionHistory(modeId, arranged);
+  return arranged;
+}
+
+function runFullQuestionBankQualityCheck() {
+  const report = {
+    checkedQuestions: 0,
+    checkedVariants: 0,
+    variantProblems: [],
+    questionProblems: [],
+    variantCounts: {}
+  };
+
+  Object.entries(demoVariantBanksByGrade).forEach(([grade, subjectsMap]) => {
+    Object.entries(subjectsMap).forEach(([subjectId, variants]) => {
+      const key = grade + '-' + subjectId;
+      report.variantCounts[key] = variants.length;
+      if (variants.length < 100) {
+        report.variantProblems.push(key + ': меньше 100 вариантов (' + variants.length + ')');
+      }
+
+      variants.forEach((variant, variantIndex) => {
+        report.checkedVariants++;
+        const signatures = new Set();
+        variant.forEach(rawQuestion => {
+          const question = normalizeQuestion(attachQuestionMeta(rawQuestion, subjectId, { grade }));
+          report.checkedQuestions++;
+          const errors = validateQuestionShape(question);
+          const signature = getQuestionSignature(question);
+          if (signatures.has(signature)) errors.push('duplicate inside variant');
+          signatures.add(signature);
+          if (errors.length) {
+            report.questionProblems.push({ grade, subjectId, variant: variantIndex + 1, q: question.q, errors });
+          }
+        });
+      });
+    });
+  });
+
+  Object.entries(questionBanksByGrade).forEach(([grade, subjectsMap]) => {
+    Object.entries(subjectsMap).forEach(([subjectId, bank]) => {
+      bank.forEach(rawQuestion => {
+        const question = normalizeQuestion(attachQuestionMeta(rawQuestion, subjectId, { grade }));
+        report.checkedQuestions++;
+        const errors = validateQuestionShape(question);
+        if (errors.length) report.questionProblems.push({ grade, subjectId, bank: true, q: question.q, errors });
+      });
+    });
+  });
+
+  window.playgroundQualityReport = report;
+  if (report.variantProblems.length || report.questionProblems.length) {
+    console.warn('Playground quality-check report', report);
+  } else {
+    console.info('Playground quality-check passed', report);
+  }
+  return report;
 }
 
 function pickQuestionsForVariant(pool, bank, subjectId, count) {
@@ -4361,6 +4815,7 @@ function startConfiguredTest(modeId) {
   currentTestSaved = false;
   currentResultProfile = null;
   buildModeVariant(modeId);
+  questions = finalizeQuestionSet(questions, modeId);
   updateHeader('test');
   document.getElementById('selection').style.display = 'none';
   document.getElementById('scorebox').style.display = 'none';
@@ -4392,19 +4847,96 @@ function render() {
 
   const opts = document.getElementById('opts');
   opts.innerHTML = '';
-  q.opts.forEach((option, index) => {
+  if (q.type === 'input') {
+    const box = document.createElement('div');
+    box.className = 'input-answer-box';
+    const input = document.createElement('input');
+    input.className = 'input-answer';
+    input.id = 'free-answer-input';
+    input.type = q.inputKind === 'number' ? 'text' : 'text';
+    input.placeholder = 'Впиши ответ';
+    input.autocomplete = 'off';
+    input.onkeydown = event => {
+      if (event.key === 'Enter') answerInput();
+    };
     const button = document.createElement('button');
-    button.className = 'opt';
-    button.innerHTML = '<span class="letter">' + letters[index] + '</span><span>' + option + '</span>';
-    button.onclick = () => answer(index);
-    opts.appendChild(button);
-  });
+    button.className = 'btn-start';
+    button.textContent = 'Проверить ответ';
+    button.onclick = answerInput;
+    box.appendChild(input);
+    box.appendChild(button);
+    opts.appendChild(box);
+    setTimeout(() => input.focus(), 0);
+  } else {
+    q.opts.forEach((option, index) => {
+      const button = document.createElement('button');
+      button.className = 'opt';
+      button.innerHTML = '<span class="letter">' + letters[index] + '</span><span>' + option + '</span>';
+      button.onclick = () => answer(index);
+      opts.appendChild(button);
+    });
+  }
 
   const fb = document.getElementById('feedback');
   fb.style.display = 'none';
   fb.className = 'feedback-box';
   document.getElementById('nextbtn').style.display = 'none';
   answered = false;
+}
+
+function answerInput() {
+  if (answered || finishedByTimer) return;
+  const q = questions[cur];
+  const input = document.getElementById('free-answer-input');
+  if (!input) return;
+  const value = input.value.trim();
+  if (!value) {
+    input.focus();
+    return;
+  }
+
+  const isCorrect = isFreeAnswerCorrect(value, q);
+
+  if (selectedMode === 'perfect' && !isCorrect) {
+    currentTestMistakes.push(createMistakeRecord(q, value, cur));
+    const fb = document.getElementById('feedback');
+    fb.className = 'feedback-box err';
+    fb.textContent = 'Пока не засчитываем. Правильный ответ: ' + q.answerText + '. ' + q.exp;
+    fb.style.display = 'block';
+    input.select();
+    return;
+  }
+
+  answered = true;
+  currentTestAnswered.add(cur);
+  input.disabled = true;
+  const checkButton = document.querySelector('.input-answer-box .btn-start');
+  if (checkButton) checkButton.disabled = true;
+
+  if (isCorrect) {
+    score++;
+  } else {
+    currentTestMistakes.push(createMistakeRecord(q, value, cur));
+    if (currentTestMode.lives) {
+      currentLives--;
+      updateHeader('test');
+      if (currentLives <= 0) currentTestEndedEarly = true;
+    }
+  }
+
+  const fb = document.getElementById('feedback');
+  if (currentTestMode.feedback) {
+    fb.className = 'feedback-box ' + (isCorrect ? 'ok' : 'err');
+    fb.textContent = (isCorrect ? '✓ Верно! ' : '✗ Неверно. Правильный ответ: ' + q.answerText + '. ') + q.exp;
+    fb.style.display = 'block';
+  } else {
+    fb.style.display = 'none';
+  }
+
+  const nextButton = document.getElementById('nextbtn');
+  nextButton.style.display = 'inline-block';
+  nextButton.textContent = currentTestEndedEarly || cur >= questions.length - 1 ? 'Результат →' : 'Следующий →';
+  if (currentTestEndedEarly) setTimeout(showScore, 550);
 }
 
 function answer(index) {
@@ -4874,6 +5406,11 @@ function createMistakeRecord(question, selectedIndex, questionIndex) {
   const options = Array.isArray(question.opts) ? [...question.opts] : [];
   const correctIndex = Number.isInteger(question.ans) ? question.ans : 0;
   const subjectId = question.subject || selectedSubject || 'review';
+  const isInput = question.type === 'input';
+  const selectedAnswer = isInput
+    ? (selectedIndex === -1 ? 'Без ответа' : (String(selectedIndex ?? '').trim() || 'Без ответа'))
+    : (selectedIndex >= 0 ? (options[selectedIndex] || 'Не выбран') : 'Без ответа');
+  const correctAnswer = isInput ? (question.answerText || (question.answers && question.answers[0]) || '') : (options[correctIndex] || '');
   return {
     id: 'mistake-' + Date.now() + '-' + Math.random().toString(16).slice(2),
     date: new Date().toISOString(),
@@ -4883,10 +5420,12 @@ function createMistakeRecord(question, selectedIndex, questionIndex) {
     difficulty: question.difficulty || selectedDifficulty,
     difficultyName: question.difficultyName || (difficultyLevels[selectedDifficulty] ? difficultyLevels[selectedDifficulty].name : 'Повторение'),
     question: question.q,
+    type: question.type || 'choice',
     options,
     correctIndex,
-    correctAnswer: options[correctIndex] || '',
-    selectedAnswer: selectedIndex >= 0 ? (options[selectedIndex] || 'Не выбран') : 'Без ответа',
+    answers: question.answers || [],
+    correctAnswer,
+    selectedAnswer,
     explanation: question.exp || 'Посмотри правильный ответ и повтори тему.',
     topic: question.topic || 'Общее повторение',
     questionIndex,
@@ -5422,6 +5961,26 @@ function renderAchievements() {
 }
 
 function mistakeToQuestion(mistake) {
+  if (mistake.type === 'input') {
+    return {
+      q: mistake.question,
+      type: 'input',
+      opts: [],
+      ans: 0,
+      answers: mistake.answers && mistake.answers.length ? mistake.answers : [mistake.correctAnswer],
+      answerText: mistake.correctAnswer,
+      exp: mistake.explanation || 'Повтори правило и сравни с правильным ответом.',
+      topic: mistake.topic || 'Общее повторение',
+      category: 'review',
+      grade: mistake.grade,
+      subject: mistake.subject,
+      subjectName: mistake.subjectName,
+      difficulty: mistake.difficulty,
+      difficultyName: mistake.difficultyName,
+      sourceMistakeId: mistake.id
+    };
+  }
+
   const options = Array.isArray(mistake.options) && mistake.options.length
     ? [...mistake.options]
     : [mistake.correctAnswer, mistake.selectedAnswer, 'Не уверен', 'Пропустить'].filter(Boolean);
@@ -5808,6 +6367,7 @@ renderModeChoices();
 updateHeader('selection');
 updateSelectedNote();
 updateTimer();
+runFullQuestionBankQualityCheck();
 </script>
 </body>
 </html>
