@@ -1839,8 +1839,17 @@ function getSubjectIdsForGrade(grade) {
   return subjectIdsByGrade[grade] || Object.keys(subjects);
 }
 
+function getSubjectName(subjectId, grade = selectedGrade) {
+  if (subjectId === 'math' && String(grade) === '5') return 'Математика (десятичные дроби)';
+  return subjects[subjectId] ? subjects[subjectId].name : 'Смешанный режим';
+}
+
+function isDecimalMath5(subjectId = selectedSubject, grade = selectedGrade) {
+  return subjectId === 'math' && String(grade) === '5';
+}
+
 function getSubjectEntriesForGrade(grade) {
-  return getSubjectIdsForGrade(grade).map(id => [id, subjects[id]]);
+  return getSubjectIdsForGrade(grade).map(id => [id, { ...subjects[id], name: getSubjectName(id, grade) }]);
 }
 
 const PROFILE_STORAGE_KEY = 'playground-study-profile-v1';
@@ -3349,7 +3358,7 @@ expandQuestionBanks();
 const DEMO_VARIANT_COUNT = 100;
 const QUESTION_HISTORY_LIMIT = 220;
 const RECENT_QUESTION_BLOCK = 30;
-const VARIANT_HISTORY_LIMIT = 40;
+const VARIANT_HISTORY_LIMIT = 100;
 const MAX_QUESTIONS_FROM_ONE_VARIANT = 4;
 const demoVariantSubjectIds5 = ['geography', 'history', 'biology', 'informatics', 'math', 'english', 'german', 'french', 'russian', 'literature'];
 const demoVariantSubjectIds6 = ['geography', 'history', 'biology', 'informatics', 'math', 'english', 'german', 'chinese', 'russian', 'literature'];
@@ -3959,6 +3968,15 @@ function makeDemoVariantUniqueQuestions(subject, index) {
 }
 
 function finalizeDemoVariant(subject, variant, index) {
+  if (subject === 'math') {
+    return variant.map((question, questionIndex) => ({
+      ...question,
+      fixedOrder: true,
+      order: question.order || questionIndex + 1,
+      variantId: 'math5-decimal-' + (index + 1)
+    }));
+  }
+
   const uniqueQuestions = makeDemoVariantUniqueQuestions(subject, index);
   const openAnswerQuestions = makeOpenAnswerPack(subject, index, '5');
   if (!languageSubjectIds.includes(subject)) {
@@ -3970,18 +3988,128 @@ function finalizeDemoVariant(subject, variant, index) {
   return [...grammar, ...openAnswerQuestions, ...uniqueQuestions, ...rest];
 }
 
+function decimalAnswer(value, digits = 2) {
+  const sign = value < 0 ? '-' : '';
+  const abs = Math.abs(value);
+  const base = 10 ** digits;
+  const integer = Math.floor(abs / base);
+  let fraction = String(abs % base).padStart(digits, '0');
+  while (fraction.length > 1 && fraction.endsWith('0')) fraction = fraction.slice(0, -1);
+  return sign + integer + ',' + fraction;
+}
+
+function decimalText(value, digits = 2) {
+  return decimalAnswer(value, digits);
+}
+
+function formatTimeOfDay(totalMinutes) {
+  const minutesInDay = ((totalMinutes % 1440) + 1440) % 1440;
+  const hours = Math.floor(minutesInDay / 60);
+  const minutes = minutesInDay % 60;
+  return String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0');
+}
+
+function russianNumberBelow10000(value) {
+  const ones = ['', 'одна', 'две', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять'];
+  const teens = ['десять', 'одиннадцать', 'двенадцать', 'тринадцать', 'четырнадцать', 'пятнадцать', 'шестнадцать', 'семнадцать', 'восемнадцать', 'девятнадцать'];
+  const tens = ['', '', 'двадцать', 'тридцать', 'сорок', 'пятьдесят', 'шестьдесят', 'семьдесят', 'восемьдесят', 'девяносто'];
+  const hundreds = ['', 'сто', 'двести', 'триста', 'четыреста', 'пятьсот', 'шестьсот', 'семьсот', 'восемьсот', 'девятьсот'];
+  const parts = [];
+  const thousands = Math.floor(value / 1000);
+  const rest = value % 1000;
+  if (thousands) {
+    const thousandsWord = thousands === 1
+      ? 'одна тысяча'
+      : thousands === 2
+        ? 'две тысячи'
+        : thousands >= 3 && thousands <= 4
+          ? ones[thousands] + ' тысячи'
+          : ones[thousands] + ' тысяч';
+    parts.push(thousandsWord);
+  }
+  if (Math.floor(rest / 100)) parts.push(hundreds[Math.floor(rest / 100)]);
+  const lastTwo = rest % 100;
+  if (lastTwo >= 10 && lastTwo < 20) {
+    parts.push(teens[lastTwo - 10]);
+  } else {
+    if (Math.floor(lastTwo / 10)) parts.push(tens[Math.floor(lastTwo / 10)]);
+    if (lastTwo % 10) parts.push(ones[lastTwo % 10]);
+  }
+  return parts.filter(Boolean).join(' ');
+}
+
 function makeDemoMathVariant(index) {
   const n = index + 1;
-  const a = 25 + n;
-  const b = 4 + (n % 9);
-  const side = 3 + (n % 8);
-  return [
-    demoQuestion('Вычисли: ' + a + ' - ' + b + ' + 12.', String(a - b + 12), [String(a + b), String(a - b), String(a + 12)], 'Действия сложения и вычитания выполняем слева направо.'),
-    demoQuestion('Периметр квадрата со стороной ' + side + ' см равен...', String(side * 4), [String(side * side), String(side + 4), String(side * 2)], 'Периметр квадрата равен четырём сторонам.'),
-    demoQuestion('Какая дробь больше: 1/2 или 1/3?', '1/2', ['1/3', 'они равны', 'нельзя сравнить'], 'При одинаковом числителе больше дробь с меньшим знаменателем.'),
-    demoQuestion('Скорость велосипедиста 12 км/ч. Сколько километров он проедет за 2 часа?', '24', ['14', '12', '6'], 'Расстояние равно скорости, умноженной на время.'),
-    demoQuestion('Реши уравнение: x - ' + b + ' = ' + a + '.', String(a + b), [String(a - b), String(a), String(b)], 'К обеим частям прибавляем ' + b + '.')
+  const movies = ['Северное сияние', 'Лесная тайна', 'Планета роботов', 'Морской поход', 'Звёздный щенок', 'Остров чудес'];
+  const targetMovie = demoPick(movies, index);
+  const arrivalMinutes = 12 * 60;
+  const nearestDelta = 20 + (index * 7 % 85);
+  const decimalPart = 103 + (index * 73 % 8900);
+  const decimalAnswerText = '0,' + String(decimalPart).padStart(4, '0');
+  const exprA = 720 + (index * 13 % 620);
+  const exprB = 305 + (index * 17 % 290);
+  const exprC = 40 + (index * 9 % 150);
+  const exprResult = exprA - exprB + exprC;
+  const compareLeftValue = 100 + index * 6;
+  const compareRightValue = compareLeftValue + demoPick([5, 12, 25, 40], index + 1);
+  const compareLeftText = '0,' + String(compareLeftValue).padStart(3, '0');
+  const compareRightText = '0,' + String(compareRightValue).padStart(3, '0');
+  const compareCorrect = compareLeftText + ' < ' + compareRightText;
+  const divideBase = 3 + (index % 17);
+  const divisor = 2 + (index % 8);
+  const multiplier = demoPick([2, 4, 5, 8, 10], index);
+  const firstValue = divideBase * divisor * 10;
+  const divisorValue = divisor * 10;
+  const multiplierValue = multiplier * 10;
+  const divisionResult = divideBase * multiplierValue;
+  const bread = 18 + (index % 7) * 2;
+  const cheese = 320 + (index % 6) * 20;
+  const potatoes = 32 + (index % 5) * 4;
+  const money = 500 + (index % 4) * 100;
+  const change = money - (bread * 2 + cheese / 2 + potatoes * 2.5);
+  const students = demoPick([100, 150, 200, 250], index);
+  const p1 = 50 + (index * 5 % 35);
+  const p2 = demoPick([40, 50, 60, 70, 80, 90], index + 2);
+  const p3 = 45 + (index * 10 % 45);
+  const p4 = 35 + (index * 15 % 55);
+  const solvedSecond = students * p2 / 100;
+  const footMm = 200 + index;
+  const footCm = Math.floor(footMm / 10);
+  const footRemainderMm = footMm % 10;
+  const footLengthText = footCm + ' см' + (footRemainderMm ? ' ' + footRemainderMm + ' мм' : '');
+  const inchApprox = footMm / 25;
+  const rangeStart = Math.floor(inchApprox);
+  const correctRange = 'от ' + rangeStart + ' до ' + (rangeStart + 1) + ' дюймов';
+  const wrongRanges = [rangeStart - 3, rangeStart - 1, rangeStart + 2, rangeStart + 4]
+    .filter(start => start > 0 && start !== rangeStart)
+    .slice(0, 3)
+    .map(start => 'от ' + start + ' до ' + (start + 1) + ' дюймов');
+  const scheduleDelta2 = nearestDelta + 95 + (index % 5) * 5;
+  const scheduleDelta3 = nearestDelta + 180 + (index % 4) * 10;
+  const otherDelta = 35 + (index * 11 % 120);
+  const rows = [
+    '1 зал: 10:30 ' + demoPick(movies, index + 1) + '; ' + formatTimeOfDay(arrivalMinutes + scheduleDelta2) + ' ' + targetMovie + '; ' + formatTimeOfDay(arrivalMinutes + scheduleDelta3) + ' ' + targetMovie + ' 3D',
+    '2 зал: 11:00 ' + demoPick(movies, index + 2) + ' 3D; ' + formatTimeOfDay(arrivalMinutes + nearestDelta) + ' ' + targetMovie + ' 3D; ' + formatTimeOfDay(arrivalMinutes + 240) + ' ' + demoPick(movies, index + 3),
+    '3 зал: 11:10 ' + targetMovie + '; ' + formatTimeOfDay(arrivalMinutes + otherDelta) + ' ' + demoPick(movies, index + 4) + ' 3D; ' + formatTimeOfDay(arrivalMinutes + 300) + ' ' + demoPick(movies, index + 5) + ' 3D'
   ];
+  const variant = [
+    openQuestion('Запишите цифрами десятичную дробь «ноль целых ' + russianNumberBelow10000(decimalPart) + ' десятитысячных».', [decimalAnswerText, decimalAnswerText.replace(',', '.')], 'Десятитысячные занимают четыре знака после запятой, поэтому ответ: ' + decimalAnswerText + '.', 'decimal-write', { level: 'basic' }),
+    openQuestion('Ученик хочет посмотреть фильм «' + targetMovie + '» в 3D-формате. Он подошёл к кинотеатру в 12:00. Пользуясь расписанием, определите, через сколько минут начнётся ближайший подходящий сеанс. ' + rows.join(' | '), String(nearestDelta), 'Нужен ближайший сеанс именно фильма «' + targetMovie + '» в формате 3D после 12:00.', 'table', { inputKind: 'number', level: 'middle' }),
+    openQuestion('Найдите значение выражения ' + decimalText(exprA, 2) + ' − ' + decimalText(exprB, 2) + ' + ' + decimalText(exprC, 2) + '.', [decimalAnswer(exprResult, 2), decimalAnswer(exprResult, 2).replace(',', '.')], 'Выполняем действия слева направо и записываем десятичную дробь по разрядам.', 'calculation', { inputKind: 'number', level: 'middle' }),
+    openQuestion('Укажите все верные утверждения. 1) При делении десятичной дроби на 10 запятая переносится влево на один знак. 2) При умножении десятичной дроби на 100 запятая переносится влево на два знака. 3) Частное двух десятичных дробей не может быть целым числом. 4) При делении натурального числа на 0,' + String(120 + index * 7).padStart(3, '0') + ' число увеличится.', ['14', '1 4', '1,4'], 'Верны утверждения 1 и 4: деление на 10 переносит запятую влево, а деление на число меньше 1 увеличивает натуральное число.', 'rules', { level: 'middle' }),
+    demoQuestion('Для того чтобы узнать размер обуви, ученик измерил длину стопы и получил ' + footLengthText + '. Известно, что один дюйм примерно равен 2 см 5 мм. Какова примерная длина стопы в дюймах?', correctRange, wrongRanges, '2 см 5 мм — это 2,5 см. Переводим длину стопы в сантиметры и выбираем подходящий промежуток.', 'measurement'),
+    demoQuestion('Сравните числа ' + compareLeftText + ' и ' + compareRightText + '.', compareCorrect, [compareLeftText + ' > ' + compareRightText, compareLeftText + ' = ' + compareRightText, 'сравнить нельзя'], 'При сравнении десятичных дробей дописываем нули и сравниваем разряды.', 'comparison'),
+    openQuestion('Найдите значение выражения ' + decimalText(firstValue, 2) + ' : ' + decimalText(divisorValue, 2) + ' · ' + decimalText(multiplierValue, 2) + '.', [decimalAnswer(divisionResult, 2), decimalAnswer(divisionResult, 2).replace(',', '.')], 'Сначала выполняем деление, затем умножение слева направо.', 'calculation', { inputKind: 'number', level: 'general' }),
+    openQuestion('Покупатель купил два батона хлеба, полкило сыра и два с половиной килограмма картофеля. Один батон хлеба стоит ' + bread + ' рублей, один килограмм сыра — ' + cheese + ' рублей, один килограмм картофеля — ' + potatoes + ' рублей. Какую сдачу он получит с ' + money + ' рублей? Ответ укажите в рублях.', String(change).replace('.', ','), 'Считаем стоимость покупки: 2 батона, 0,5 кг сыра и 2,5 кг картофеля, затем вычитаем из ' + money + '.', 'word-problem', { inputKind: 'number', level: 'general' }),
+    openQuestion(students + ' учеников решали контрольную работу из четырёх задач. На диаграмме указано: задача 1 — ' + p1 + '%, задача 2 — ' + p2 + '%, задача 3 — ' + p3 + '%, задача 4 — ' + p4 + '%. Сколько учеников решило вторую задачу?', String(solvedSecond), 'Находим ' + p2 + '% от числа ' + students + '.', 'diagram', { inputKind: 'number', level: 'middle' })
+  ];
+  return variant.map((question, order) => ({
+    ...question,
+    topic: ['Запись десятичных дробей', 'Работа с таблицей', 'Действия с десятичными дробями', 'Правила действий с десятичными дробями', 'Прикидка и измерения', 'Сравнение десятичных дробей', 'Действия с десятичными дробями', 'Текстовая задача', 'Работа с диаграммой'][order],
+    order: order + 1,
+    fixedOrder: true,
+    variantId: 'math5-decimal-' + n
+  }));
 }
 
 function makeDemoLiteratureVariant(index) {
@@ -4464,7 +4592,28 @@ function pickDemoStyleVariant(subjectId) {
   const difficulty = difficultyLevels[selectedDifficulty];
   const storageKey = LAST_TEST_PREFIX + selectedGrade + '-' + subjectId + '-' + selectedDifficulty;
   const variantIndex = chooseDemoVariantIndex(storageKey, variants);
+  if (isDecimalMath5(subjectId)) {
+    return variants[variantIndex].slice();
+  }
   return pickDemoQuestionsForDifficulty(variants[variantIndex], subjectId, difficulty.count);
+}
+
+function pickDecimalMathDemoVariant(modeId = 'standard') {
+  const variants = demoVariantBanksByGrade['5'] && demoVariantBanksByGrade['5'].math;
+  if (!variants || !variants.length) return [];
+  const storageKey = LAST_TEST_PREFIX + '5-math-decimal-' + modeId;
+  const variantIndex = chooseDemoVariantIndex(storageKey, variants);
+  return variants[variantIndex].map((item, index) => attachQuestionMeta({
+    ...item,
+    fixedOrder: true,
+    order: item.order || index + 1,
+    variantId: 'math5-decimal-' + (variantIndex + 1)
+  }, 'math', {
+    grade: '5',
+    subjectName: getSubjectName('math', '5'),
+    difficulty: 'decimal-demo',
+    difficultyName: 'Десятичные дроби'
+  }));
 }
 
 const studyTopics = {
@@ -4486,8 +4635,8 @@ const studyTopics = {
       check: ['что такое информация', 'основные устройства компьютера', 'файл и папка', 'простые алгоритмы', 'правила безопасного поведения онлайн']
     },
     math: {
-      exam: ['натуральные числа и порядок действий', 'периметр и площадь простых фигур', 'уравнения базового уровня', 'дроби и сравнение дробей', 'задачи на скорость, время и расстояние'],
-      check: ['сложение, вычитание, умножение и деление', 'порядок действий', 'периметр и площадь', 'простые дроби', 'текстовые задачи']
+      exam: ['запись десятичных дробей', 'сравнение десятичных дробей', 'сложение и вычитание десятичных дробей', 'деление и умножение десятичных дробей', 'задачи с таблицами, диаграммами и покупками'],
+      check: ['запись десятичных дробей', 'действия с десятичными дробями', 'правила переноса запятой', 'сравнение десятичных дробей', 'работа с таблицами и диаграммами']
     },
     english: {
       exam: ['to be и have/has', 'Present Simple и вопросы', 'множественное число существительных', 'артикли a/an и there is/are', 'базовая лексика: школа, семья, время, еда'],
@@ -4624,7 +4773,7 @@ function attachQuestionMeta(item, subjectId, extra = {}) {
   return {
     ...item,
     subject: item.subject || subjectId,
-    subjectName: item.subjectName || (subjects[subjectId] ? subjects[subjectId].name : 'Смешанный режим'),
+    subjectName: item.subjectName || getSubjectName(subjectId, item.grade || selectedGrade),
     grade: item.grade || selectedGrade,
     difficulty: item.difficulty || selectedDifficulty,
     difficultyName: item.difficultyName || (difficultyLevels[selectedDifficulty] ? difficultyLevels[selectedDifficulty].name : 'Свободный режим'),
@@ -4649,7 +4798,7 @@ function inferQuestionTopic(item) {
   if (/basique|français|article|verbe|affirmation|vrai|faux/.test(source)) return 'Французский язык';
   if (/басн|миф|жанр|стих|автор|произвед|сюжет|герой|эпитет/.test(source)) return 'Литература';
   if (/средневек|русь|княз|феодал|крещени|викинг|древн(ий|его)? рим|римск|грек|египет|полис/.test(source)) return 'История';
-  return selectedSubject && subjects[selectedSubject] ? subjects[selectedSubject].name : 'Общее повторение';
+  return selectedSubject && subjects[selectedSubject] ? getSubjectName(selectedSubject) : 'Общее повторение';
 }
 
 function normalizeFreeAnswer(value) {
@@ -4727,13 +4876,16 @@ function normalizeQuestion(item) {
       inputKind: item.inputKind || 'text',
       tolerance: item.tolerance || 'soft',
       subject: item.subject || selectedSubject,
-      subjectName: item.subjectName || (item.subject && subjects[item.subject] ? subjects[item.subject].name : (selectedSubject && subjects[selectedSubject] ? subjects[selectedSubject].name : 'Смешанный режим')),
+      subjectName: item.subjectName || (item.subject && subjects[item.subject] ? getSubjectName(item.subject, item.grade || selectedGrade) : (selectedSubject && subjects[selectedSubject] ? getSubjectName(selectedSubject) : 'Смешанный режим')),
       grade: item.grade || selectedGrade,
       difficulty: item.difficulty || selectedDifficulty,
       difficultyName: item.difficultyName || (difficultyLevels[selectedDifficulty] ? difficultyLevels[selectedDifficulty].name : 'Свободный режим'),
       sourceMistakeId: item.sourceMistakeId || null,
       weakTopicKey: item.weakTopicKey || null,
-      trainingSourceTopic: item.trainingSourceTopic || null
+      trainingSourceTopic: item.trainingSourceTopic || null,
+      fixedOrder: !!item.fixedOrder,
+      order: item.order || null,
+      variantId: item.variantId || null
     };
   }
 
@@ -4751,13 +4903,16 @@ function normalizeQuestion(item) {
     category: item.category || 'general',
     level: item.level || 'middle',
     subject: item.subject || selectedSubject,
-    subjectName: item.subjectName || (item.subject && subjects[item.subject] ? subjects[item.subject].name : (selectedSubject && subjects[selectedSubject] ? subjects[selectedSubject].name : 'Смешанный режим')),
+    subjectName: item.subjectName || (item.subject && subjects[item.subject] ? getSubjectName(item.subject, item.grade || selectedGrade) : (selectedSubject && subjects[selectedSubject] ? getSubjectName(selectedSubject) : 'Смешанный режим')),
     grade: item.grade || selectedGrade,
     difficulty: item.difficulty || selectedDifficulty,
     difficultyName: item.difficultyName || (difficultyLevels[selectedDifficulty] ? difficultyLevels[selectedDifficulty].name : 'Свободный режим'),
     sourceMistakeId: item.sourceMistakeId || null,
     weakTopicKey: item.weakTopicKey || null,
-    trainingSourceTopic: item.trainingSourceTopic || null
+    trainingSourceTopic: item.trainingSourceTopic || null,
+    fixedOrder: !!item.fixedOrder,
+    order: item.order || null,
+    variantId: item.variantId || null
   };
 }
 
@@ -4942,6 +5097,14 @@ function getUniqueQuestionSet(list) {
 }
 
 function finalizeQuestionSet(list, modeId, limit = null) {
+  if (Array.isArray(list) && list.length && list.every(question => question.fixedOrder)) {
+    const checkedOrdered = qualityCheckQuestionSet(getUniqueQuestionSet(list), modeId)
+      .sort((a, b) => (a.order || 999) - (b.order || 999));
+    const finalOrdered = Number.isInteger(limit) && limit > 0 ? checkedOrdered.slice(0, limit) : checkedOrdered;
+    recordQuestionHistory(modeId, finalOrdered);
+    return finalOrdered;
+  }
+
   const checked = shuffle(qualityCheckQuestionSet(getUniqueQuestionSet(list), modeId));
   const { fresh, olderRepeated, recentRepeated } = splitByRecentHistory(checked, modeId);
   const preferred = alternateTopics([...fresh, ...olderRepeated]);
@@ -5189,6 +5352,12 @@ function getRawQuestionsForSubject(subjectId, count, options = {}) {
 
 function buildSubjectModeVariant(subjectId, modeId) {
   const mode = testModes[modeId];
+  if (isDecimalMath5(subjectId)) {
+    currentQuestionTargetCount = 9;
+    questions = pickDecimalMathDemoVariant(modeId).map(normalizeQuestion);
+    return;
+  }
+
   if (modeId === 'standard' || modeId === 'exam') {
     const count = difficultyLevels[selectedDifficulty].count;
     currentQuestionTargetCount = count;
@@ -5319,7 +5488,7 @@ function updateSelectedNote() {
     return;
   }
 
-  const subjectText = selectedSubject ? subjects[selectedSubject].name : 'разные предметы';
+  const subjectText = selectedSubject ? getSubjectName(selectedSubject) : 'разные предметы';
   note.textContent = 'Выбрано: ' + selectedGrade + ' класс · ' + subjectText + ' · ' + difficultyLevels[selectedDifficulty].name + ' · ' + mode.name + '.';
 }
 
@@ -5387,7 +5556,7 @@ function updateHeader(mode) {
   if (mode === 'test' || mode === 'score') {
     const subject = ['mixed', 'daily'].includes(currentModeId)
       ? 'разные предметы'
-      : (selectedSubject && subjects[selectedSubject] ? subjects[selectedSubject].name : 'разные предметы');
+      : (selectedSubject && subjects[selectedSubject] ? getSubjectName(selectedSubject) : 'разные предметы');
     const modeName = currentTestMode && currentTestMode.name ? currentTestMode.name : testModes[selectedMode].name;
     const timerText = currentTestMode && currentTestMode.timer ? '45 минут' : 'без таймера';
     const livesText = currentTestMode && currentTestMode.lives ? ' · жизни: ' + currentLives + '/' + currentTestMode.lives : '';
@@ -5674,7 +5843,7 @@ function showScore() {
     : 'Осталось времени: ' + formatTime(secondsLeft) + '.';
   const subjectTitle = isMistakeReview
     ? 'Работа над ошибками'
-    : (['mixed', 'daily'].includes(currentModeId) ? 'разные предметы' : (selectedSubject && subjects[selectedSubject] ? subjects[selectedSubject].name : 'разные предметы'));
+    : (['mixed', 'daily'].includes(currentModeId) ? 'разные предметы' : (selectedSubject && subjects[selectedSubject] ? getSubjectName(selectedSubject) : 'разные предметы'));
   const difficultyTitle = isMistakeReview ? 'работа над ошибками' : difficultyLevels[selectedDifficulty].name;
   const modeTitle = currentTestMode && currentTestMode.name ? currentTestMode.name : testModes[selectedMode].name;
   const scorebox = document.getElementById('scorebox');
@@ -6053,7 +6222,7 @@ function getBestSubjectFromPeriod(period) {
     .filter(subjectId => subjects[subjectId])
     .map(subjectId => ({
       subjectId,
-      name: subjects[subjectId].name,
+      name: getSubjectName(subjectId, profile.user.grade || selectedGrade),
       attempts: period.subjectAttempts[subjectId] || 0,
       average: getMonthSubjectAverage(period, subjectId)
     }))
@@ -6066,7 +6235,7 @@ function getHardestSubjectFromPeriod(period) {
     .filter(subjectId => subjects[subjectId])
     .map(subjectId => ({
       subjectId,
-      name: subjects[subjectId].name,
+      name: getSubjectName(subjectId, profile.user.grade || selectedGrade),
       wrong: (period.subjectWrong || {})[subjectId] || 0,
       attempts: period.subjectAttempts[subjectId] || 0,
       average: getMonthSubjectAverage(period, subjectId)
@@ -6086,7 +6255,7 @@ function getImprovedSubjectForMonth(profile, month) {
     .filter(subjectId => subjects[subjectId])
     .map(subjectId => ({
       subjectId,
-      name: subjects[subjectId].name,
+      name: getSubjectName(subjectId, profile.user.grade || selectedGrade),
       diff: getMonthSubjectAverage(month, subjectId) - getMonthSubjectAverage(previous, subjectId),
       average: getMonthSubjectAverage(month, subjectId)
     }))
@@ -6425,7 +6594,7 @@ function getFavoriteSubject(profile) {
   const attempts = Object.entries(profile.stats.subjectAttempts || {})
     .filter(([subjectId]) => subjects[subjectId])
     .sort((a, b) => b[1] - a[1]);
-  return attempts.length ? subjects[attempts[0][0]].name : 'пока нет';
+  return attempts.length ? getSubjectName(attempts[0][0], profile.user.grade || selectedGrade) : 'пока нет';
 }
 
 function pluralizeMistakes(count) {
@@ -6467,7 +6636,7 @@ function createMistakeRecord(question, selectedIndex, questionIndex) {
     date: new Date().toISOString(),
     grade: question.grade || selectedGrade,
     subject: subjectId,
-    subjectName: question.subjectName || (subjects[subjectId] ? subjects[subjectId].name : 'Работа над ошибками'),
+    subjectName: question.subjectName || (subjects[subjectId] ? getSubjectName(subjectId, question.grade || selectedGrade) : 'Работа над ошибками'),
     difficulty: question.difficulty || selectedDifficulty,
     difficultyName: question.difficultyName || (difficultyLevels[selectedDifficulty] ? difficultyLevels[selectedDifficulty].name : 'Повторение'),
     question: question.q,
@@ -6663,7 +6832,7 @@ function updateMistakeReviewActivity(reviewMistakes, summary = {}) {
       topicResults[key] = {
         key,
         subject: subjectId,
-        subjectName: question.subjectName || (subjects[subjectId] ? subjects[subjectId].name : 'разные предметы'),
+        subjectName: question.subjectName || (subjects[subjectId] ? getSubjectName(subjectId, question.grade || selectedGrade) : 'разные предметы'),
         topic,
         total: 0,
         correct: 0,
@@ -6869,7 +7038,7 @@ function buildAIResultAnalysis(result, pct) {
   const mistakes = result.mistakes || [];
   const weakTopics = summarizeMistakesByTopic(mistakes).slice(0, 3);
   const subjectText = selectedSubject && subjects[selectedSubject] && !['mixed', 'daily'].includes(currentModeId)
-    ? 'по предмету «' + subjects[selectedSubject].name + '»'
+    ? 'по предмету «' + getSubjectName(selectedSubject) + '»'
     : 'в смешанном тесте';
   const strengthText = pct >= 85
     ? 'У тебя хороший результат ' + subjectText + '.'
@@ -7085,7 +7254,7 @@ function renderSubjectProgressChart() {
       const progress = getSubjectProgress(profileData, subjectId);
       return {
         subjectId,
-        name: subjects[subjectId].name,
+        name: getSubjectName(subjectId, grade),
         percent: calculateSubjectProgress(progress),
         average: getAveragePercent(progress),
         tests: progress.testsCompleted || 0
@@ -7332,7 +7501,7 @@ function renderAdminSubjectOptions() {
   const previous = select.value || selectedSubject;
   const grade = profileData && profileData.user.grade ? profileData.user.grade : selectedGrade;
   select.innerHTML = getSubjectIdsForGrade(grade)
-    .map(subjectId => '<option value="' + subjectId + '">' + escapeHtml(subjects[subjectId].name) + '</option>')
+    .map(subjectId => '<option value="' + subjectId + '">' + escapeHtml(getSubjectName(subjectId, grade)) + '</option>')
     .join('');
   select.value = previous && getSubjectIdsForGrade(grade).includes(previous) ? previous : getSubjectIdsForGrade(grade)[0];
 }
@@ -7429,7 +7598,7 @@ function adminSetSubjectProgress100() {
 
 function adminResetSubjectProgress() {
   const subjectId = getAdminSubjectId();
-  if (!confirm('Сбросить прогресс по предмету «' + subjects[subjectId].name + '»?')) return;
+  if (!confirm('Сбросить прогресс по предмету «' + getSubjectName(subjectId, profileData.user.grade || selectedGrade) + '»?')) return;
   profileData.subjects[subjectId] = emptySubjectProgress();
   delete profileData.stats.subjectAttempts[subjectId];
   adminRefresh('Прогресс по предмету сброшен.');
@@ -7579,7 +7748,7 @@ function adminAddMistakeByTopic() {
     date: new Date().toISOString(),
     grade: profileData.user.grade || selectedGrade,
     subject: subjectId,
-    subjectName: subjects[subjectId].name,
+    subjectName: getSubjectName(subjectId, profileData.user.grade || selectedGrade),
     difficulty: selectedDifficulty,
     difficultyName: difficultyLevels[selectedDifficulty].name,
     question: 'Тестовая ошибка по теме «' + topic + '».',
@@ -7750,7 +7919,7 @@ function renderSubjectProgress() {
     return `
       <div class="subject-progress-item">
         <div class="progress-item-head">
-          <b>${escapeHtml(subjects[subjectId].name)}</b>
+          <b>${escapeHtml(getSubjectName(subjectId, grade))}</b>
           <span>${progressPercent}%</span>
         </div>
         <div class="mini-progress"><div class="mini-progress-fill" style="width: ${progressPercent}%"></div></div>
@@ -7981,7 +8150,7 @@ function addWeakTopicGroup(groups, subjectId, topic, data = {}) {
     groups[key] = {
       key,
       subject: subjectId,
-      subjectName: subjects[subjectId].name,
+      subjectName: getSubjectName(subjectId, selectedGrade),
       topic: topicName,
       savedMistakes: 0,
       wrong: 0,
@@ -8195,7 +8364,7 @@ function getSimilarQuestionFor(question) {
   const weakTopic = {
     key: getWeakTopicKey(subjectId, question.trainingSourceTopic || question.topic),
     subject: subjectId,
-    subjectName: question.subjectName || subjects[subjectId].name,
+    subjectName: question.subjectName || getSubjectName(subjectId, question.grade || selectedGrade),
     topic: question.trainingSourceTopic || question.topic || 'Общее повторение',
     categories: question.category ? { [question.category]: 1 } : {},
     errorRate: 50,
@@ -8366,7 +8535,7 @@ function chooseAIGrade(grade) {
 
 function chooseAISubject(subjectId) {
   aiPlan.subject = subjectId;
-  addAIMessage('user', subjects[subjectId].name);
+  addAIMessage('user', getSubjectName(subjectId, aiPlan.grade || selectedGrade));
   addAIMessage('bot', 'Круто! Создаём план обучения для экзамена или для проверки знаний?');
   setAIOptions([
     { text: 'для экзамена', action: () => chooseAIGoal('exam') },
@@ -8456,7 +8625,7 @@ function getExamSchedule() {
 }
 
 function buildAIPlanText() {
-  const subjectName = subjects[aiPlan.subject].name;
+  const subjectName = getSubjectName(aiPlan.subject, aiPlan.grade || selectedGrade);
   const data = studyTopics[aiPlan.grade][aiPlan.subject][aiPlan.goal];
   const topicLines = data.map((topic, index) => (index + 1) + '. ' + topic).join('\n');
 
