@@ -706,7 +706,7 @@ const QUESTION_COUNT = 16;
 const TEST_SECONDS = 45 * 60;
 const LAST_TEST_PREFIX = 'school-tests-last-variant-';
 const letters = ['А','Б','В','Г'];
-const languageSubjectIds = ['russian', 'english', 'german', 'french'];
+const languageSubjectIds = ['russian', 'english', 'german', 'french', 'chinese'];
 const REQUIRED_GRAMMAR_COUNT = 5;
 
 const difficultyLevels = {
@@ -724,9 +724,23 @@ const subjects = {
   english: { name: 'Английский' },
   german: { name: 'Немецкий' },
   french: { name: 'Французский' },
+  chinese: { name: 'Китайский' },
   russian: { name: 'Русский' },
   literature: { name: 'Литература' }
 };
+
+const subjectIdsByGrade = {
+  '5': ['geography', 'history', 'biology', 'informatics', 'math', 'english', 'german', 'french', 'russian', 'literature'],
+  '6': ['geography', 'history', 'biology', 'informatics', 'math', 'english', 'german', 'chinese', 'russian', 'literature']
+};
+
+function getSubjectIdsForGrade(grade) {
+  return subjectIdsByGrade[grade] || Object.keys(subjects);
+}
+
+function getSubjectEntriesForGrade(grade) {
+  return getSubjectIdsForGrade(grade).map(id => [id, subjects[id]]);
+}
 
 function makeBank(rows) {
   return rows.map(([q, correct, wrong1, wrong2, wrong3, exp, category]) => ({
@@ -2133,6 +2147,7 @@ expandQuestionBanks();
 
 const DEMO_VARIANT_COUNT = 24;
 const demoVariantSubjectIds5 = ['geography', 'history', 'biology', 'informatics', 'english', 'german', 'french', 'russian'];
+const demoVariantSubjectIds6 = ['geography', 'history', 'biology', 'informatics', 'math', 'english', 'german', 'chinese', 'russian', 'literature'];
 
 function demoQuestion(q, correct, wrongs, exp, category) {
   const opts = [String(correct)];
@@ -2628,8 +2643,396 @@ function makeDemoVariantBanks5() {
   return banks;
 }
 
+function completeDemoVariant6(subject, index, rows) {
+  const subjectNames = {
+    geography: 'географии',
+    history: 'истории',
+    biology: 'биологии',
+    informatics: 'информатике',
+    math: 'математике',
+    english: 'английскому языку',
+    german: 'немецкому языку',
+    chinese: 'китайскому языку',
+    russian: 'русскому языку',
+    literature: 'литературе'
+  };
+  while (rows.length < 24) {
+    const n = index + rows.length + 1;
+    rows.push(demoQuestion(
+      'Демо-шаблон по ' + subjectNames[subject] + ', вариант ' + (index + 1) + ': выбери верное учебное действие для задания №' + n + '.',
+      'прочитать условие, найти ключевые данные и проверить ответ',
+      ['выбрать случайный ответ', 'пропустить пояснение', 'не читать текст задания'],
+      'Этот вопрос закрепляет формат итоговой работы: внимательно читаем условие, выделяем данные и проверяем ответ.'
+    ));
+  }
+  return rows;
+}
+
+function makeDemoGeography6Variant(index) {
+  const n = index + 1;
+  const volcanoes = [
+    ['Чимборасо', 'Южная Америка', 3500, 25], ['Килиманджаро', 'Африка', 4000, 26],
+    ['Этна', 'Евразия', 3000, 24], ['Ориса́ба', 'Северная Америка', 4500, 27]
+  ];
+  const volcano = demoPick(volcanoes, index);
+  const temp = volcano[3] - Math.round(volcano[2] * 6 / 1000);
+  const distance = 180 + n * 10;
+  return completeDemoVariant6('geography', index, [
+    demoQuestion('По плану местности варианта ' + n + ': расстояние от точки А до родника на карте соответствует ' + distance + ' м на местности. Какой ответ нужно записать?', String(distance), [String(distance + 40), String(distance - 40), String(distance * 10)], 'В демо-задании расстояние округляют и записывают числом в метрах.'),
+    demoQuestion('Верны ли утверждения о плане местности? А) Родник обычно обозначают условным знаком. Б) Горизонтали помогают определить подъём и спуск.', 'оба утверждения верны', ['верно только А', 'верно только Б', 'оба неверны'], 'План местности читают по условным знакам и горизонталям.'),
+    demoQuestion('Вулкан ' + volcano[0] + ' имеет координаты около экваториальных или умеренных широт. На каком материке он расположен?', volcano[1], demoWrongOptions(volcano[1], ['Южная Америка', 'Африка', 'Евразия', 'Северная Америка']), 'Материк определяют по координатам и географическому положению объекта.'),
+    demoQuestion('На высоте ' + volcano[2] + ' м температура у лагеря будет какой, если у подножья ' + volcano[3] + ' °C? Используй понижение на 6 °C на 1 км.', String(temp), [String(temp + 3), String(temp - 3), String(volcano[3])], 'Температура падает примерно на 6 °C на каждый километр высоты.'),
+    demoQuestion('Верны ли утверждения? А) В центре Земли находится ядро. Б) Овраги могут образовываться под действием внешних сил.', 'оба утверждения верны', ['верно только А', 'верно только Б', 'оба неверны'], 'Ядро относится к внутреннему строению Земли, овраги формируются внешними процессами.'),
+    demoQuestion('Заполни пропуски: нижняя часть атмосферы — ___, в воздухе больше всего ___, с высотой давление становится ___.', 'тропосфера, азот, ниже', ['стратосфера, кислород, выше', 'тропосфера, кислород, выше', 'мантия, азот, ниже'], 'В тропосфере происходит погода, в воздухе преобладает азот, давление с высотой падает.'),
+    demoQuestion('В каком высказывании говорится о климате?', 'в Сахаре круглый год жарко и почти нет осадков', ['завтра будет облачно', 'сегодня слабый ветер', 'вечером ожидается дождь'], 'Климат описывает многолетний режим погоды.'),
+    demoQuestion('Верны ли утверждения? А) Земля вращается вокруг оси с запада на восток. Б) Земля ближайшая к Солнцу планета.', 'верно только А', ['верно только Б', 'оба верны', 'оба неверны'], 'Земля вращается с запада на восток, но ближайшая к Солнцу планета — Меркурий.'),
+    demoQuestion('Как называется ветер на берегах водоёмов, меняющий направление два раза в сутки?', 'бриз', ['муссон', 'пассат', 'ураган'], 'Бриз возникает из-за различий нагревания суши и воды.'),
+    demoQuestion('Температура поверхностных вод океана от тропиков к полюсам становится...', 'ниже', ['выше', 'одинаковой', 'солёнее всегда'], 'К полюсам поступает меньше солнечного тепла.'),
+    demoQuestion('Верны ли утверждения о реках? А) Исток может быть в озере. Б) Приток входит в речную систему главной реки.', 'оба утверждения верны', ['верно только А', 'верно только Б', 'оба неверны'], 'Реки могут вытекать из озёр, а притоки входят в систему главной реки.'),
+    demoQuestion('Путешественник вышел из Средиземного моря через Гибралтарский пролив. В какой океан он попал?', 'Атлантический', ['Индийский', 'Северный Ледовитый', 'Тихий'], 'Гибралтарский пролив соединяет Средиземное море с Атлантическим океаном.'),
+    demoQuestion('Какой вывод соответствует тексту о движении путешественника на север?', 'чем севернее летом, тем длиннее световой день', ['день везде одинаковый', 'на севере всегда жарче', 'широта не влияет на день'], 'В умеренных и высоких широтах летом день увеличивается к северу.'),
+    demoQuestion('Что показывает абсолютная высота точки?', 'высоту над уровнем моря', ['глубину реки', 'расстояние до экватора', 'скорость ветра'], 'Абсолютная высота отсчитывается от уровня моря.'),
+    demoQuestion('Какая горная порода образуется при застывании лавы на поверхности?', 'базальт', ['каменный уголь', 'мел', 'торф'], 'Базальт — магматическая излившаяся порода.'),
+    demoQuestion('Какая оболочка Земли состоит из земной коры и верхней мантии?', 'литосфера', ['гидросфера', 'атмосфера', 'биосфера'], 'Литосфера — твёрдая оболочка Земли.'),
+    demoQuestion('Что является причиной смены дня и ночи?', 'вращение Земли вокруг своей оси', ['движение Луны вокруг Земли', 'смена времён года', 'океанические течения'], 'Из-за вращения Земли разные участки освещаются Солнцем по очереди.'),
+    demoQuestion('Как называется участок реки, где она впадает в море, озеро или другую реку?', 'устье', ['исток', 'водораздел', 'порог'], 'Устье — место окончания реки.'),
+    demoQuestion('Какой процесс относится к внешним силам рельефообразования?', 'работа текучих вод', ['движение мантии', 'образование ядра', 'магнитное поле'], 'Текучие воды размывают и переносят горные породы.'),
+    demoQuestion('Какая характеристика относится к погоде, а не климату?', 'температура сегодня утром', ['жаркое сухое лето каждый год', 'многолетняя сумма осадков', 'типичный режим ветров'], 'Погода описывает состояние атмосферы сейчас или в ближайшее время.'),
+    demoQuestion('Что такое водораздел?', 'граница между бассейнами рек', ['место впадения реки', 'песчаный остров', 'солёное озеро'], 'Водораздел разделяет сток соседних речных бассейнов.'),
+    demoQuestion('Почему давление воздуха с высотой уменьшается?', 'над точкой остаётся меньший столб воздуха', ['воздух превращается в воду', 'Земля вращается медленнее', 'исчезает кислород полностью'], 'Чем выше, тем меньше масса воздуха над наблюдателем.'),
+    demoQuestion('Какая вода преобладает в Мировом океане?', 'солёная', ['пресная', 'дистиллированная', 'минеральная без солей'], 'Воды океана содержат растворённые соли.'),
+    demoQuestion('Какая форма рельефа чаще всего изображается замкнутыми горизонталями с отметками высот?', 'холм или гора', ['река', 'ветер', 'болото'], 'Горизонтали показывают высоту и форму поверхности.')
+  ]);
+}
+
+function makeDemoBiology6Variant(index) {
+  const n = index + 1;
+  const crop = demoPick([['пшеницы', 'белый хлеб'], ['ячменя', 'перловую крупу'], ['овса', 'овсяные хлопья'], ['проса', 'пшено']], index);
+  return completeDemoVariant6('biology', index, [
+    demoQuestion('Вариант ' + n + ': выявить периодичность фаз развития растения лучше методом...', 'наблюдения', ['моделирования', 'измерения', 'вычисления'], 'Фазы развития отслеживают регулярными наблюдениями.'),
+    demoQuestion('В молодых растительных клетках, в отличие от старых, вакуоли обычно...', 'мелкие и плохо видны', ['занимают почти всю клетку', 'заменяют ядро', 'полностью отсутствуют вместе с цитоплазмой'], 'У молодых клеток вакуоли небольшие, у старых часто крупная центральная вакуоль.'),
+    demoQuestion('Какая структура растительной клетки заполнена клеточным соком?', 'вакуоль', ['ядро', 'хлоропласт', 'клеточная стенка'], 'Клеточный сок находится в вакуоли.'),
+    demoQuestion('Какая ткань обеспечивает рост ствола в толщину?', 'образовательная', ['проводящая', 'запасающая', 'механическая'], 'Камбий — образовательная ткань, обеспечивающая рост в толщину.'),
+    demoQuestion('Через какие структуры листа происходит газообмен и испарение воды?', 'устьица', ['жилки', 'корневые волоски', 'пыльники'], 'Устьица регулируют газообмен и испарение воды.'),
+    demoQuestion('Фотосинтезирующие клетки зелёного листа относятся к ткани...', 'основной', ['проводящей', 'образовательной', 'покровной без устьиц'], 'Мякоть листа — основная фотосинтезирующая ткань.'),
+    demoQuestion('Какие функции выполняют жилки листа?', 'проводят вещества и придают листу прочность', ['только запасают крахмал', 'только образуют цветки', 'только защищают семя'], 'Жилки содержат проводящие и механические элементы.'),
+    demoQuestion('Выбери верную схему фотосинтеза.', 'вода + углекислый газ + свет = сахар + кислород', ['вода + кислород = углекислый газ + сахар', 'сахар + кислород = вода + свет', 'азот + вода = белок + тепло'], 'При фотосинтезе из воды и углекислого газа на свету образуются органические вещества и кислород.'),
+    demoQuestion('Порядок опыта по корневому давлению начинается с действия...', 'взять комнатное растение', ['сразу наблюдать сок', 'сначала выбросить почву', 'закрыть листья бумагой'], 'Сначала готовят растение и оборудование.'),
+    demoQuestion(crop[1][0].toUpperCase() + crop[1].slice(1) + ' получают из зёрен...', crop[0], demoWrongOptions(crop[0], ['пшеницы', 'ячменя', 'овса', 'проса']), 'Продукт получают из определённой зерновой культуры.'),
+    demoQuestion('Какие растения из списка ядовиты?', 'борщевик Сосновского и вороний глаз', ['малина и мать-и-мачеха', 'крапива и малина', 'берёза и клён'], 'Борщевик Сосновского и вороний глаз опасны для человека.'),
+    demoQuestion('Орган цветкового растения — это...', 'часть организма с определённым строением и функциями', ['любая почвенная частица', 'только цветок', 'только семя'], 'Орган имеет строение и выполняет функции.'),
+    demoQuestion('Соотнеси функции: поддержание формы и жёсткость клетки выполняет...', 'клеточная стенка', ['цитоплазма', 'ядрышко', 'клеточный сок'], 'Клеточная стенка придаёт растительной клетке форму и прочность.'),
+    demoQuestion('С какой поверхности листа испарение обычно меньше при меньшем числе устьиц?', 'с поверхности с меньшим количеством устьиц', ['с любой одинаково', 'только с края листа', 'только с жилки'], 'Скорость испарения зависит от количества устьиц.'),
+    demoQuestion('Заполни пропуски: корни всасывают воду с ___ веществами, листья образуют ___ вещества, углекислый газ поступает из ___.', 'минеральными, органические, воздуха', ['органическими, кислород, почвы', 'минеральными, воду, стебля', 'воздушными, соли, корня'], 'Корень поглощает минеральные вещества, лист создаёт органические вещества из CO2 и воды.'),
+    demoQuestion('Для зелёных мхов характерно наличие...', 'стебля и листьев', ['только одной клетки', 'плода с семенами', 'древесины и шишек'], 'У мхов есть стеблевидные и листовидные органы.'),
+    demoQuestion('Какое утверждение неверно для папоротникообразных?', 'тело не разделено на органы', ['есть корни и побеги', 'есть проводящие ткани', 'часто имеют корневище'], 'Папоротникообразные имеют органы и ткани.'),
+    demoQuestion('Продолжи ряд: мхи, папоротники, голосеменные, ...', 'цветковые', ['водоросли', 'бактерии', 'грибы'], 'Ряд показывает усложнение строения растений.'),
+    demoQuestion('При недостатке удобрений комнатные растения обычно...', 'отстают в росте', ['образуют гигантские соцветия', 'становятся животными', 'перестают дышать'], 'Минеральное питание влияет на рост.'),
+    demoQuestion('Покрытосеменные, как и голосеменные, ...', 'размножаются семенами', ['всегда имеют плод', 'не фотосинтезируют', 'не дышат'], 'Обе группы относятся к семенным растениям.'),
+    demoQuestion('Первое действие при размножении стеблевыми черенками — ...', 'срезать черенки с несколькими листьями', ['сразу посадить сухую палку', 'удалить все почки', 'закрыть растение от света навсегда'], 'Для черенкования сначала получают подходящий черенок.'),
+    demoQuestion('Какая часть корня всасывает воду наиболее активно?', 'зона корневых волосков', ['корневой чехлик', 'цветок', 'плод'], 'Корневые волоски увеличивают поверхность всасывания.'),
+    demoQuestion('Как называется испарение воды листьями?', 'транспирация', ['опыление', 'прорастание', 'деление'], 'Транспирация — испарение воды растением.'),
+    demoQuestion('Почему лист называют органом воздушного питания?', 'в нём происходит фотосинтез', ['он удерживает растение в почве', 'он образует корневые волоски', 'он превращает цветки в плоды'], 'Лист поглощает углекислый газ и образует органические вещества.')
+  ]);
+}
+
+function makeDemoInformatics6Variant(index) {
+  const n = index + 1;
+  const kb = n + 2;
+  return completeDemoVariant6('informatics', index, [
+    demoQuestion('Отметьте устройства для хранения информации.', 'DVD-диск, жёсткий диск, флеш-память', ['монитор, мышь, проектор', 'микрофон, динамики, монитор', 'клавиатура, мышь, сканер'], 'Носители хранения сохраняют данные после записи.'),
+    demoQuestion('Если ребёнок слышит музыку, какой вид информации он получает?', 'звуковая', ['зрительная', 'осязательная', 'вкусовая'], 'Музыка воспринимается слухом.'),
+    demoQuestion('В шифре буквы заменены номерами. Если 3-16-5-1 означает “вода”, что делает ученик?', 'расшифровывает сообщение по таблице', ['строит диаграмму', 'удаляет файл', 'рисует линию'], 'Нужно сопоставить номера буквам алфавита.'),
+    demoQuestion('Что произойдёт при нажатии Enter в середине строки текста?', 'текст после курсора перейдёт на новую строку', ['удалится весь документ', 'появится картинка', 'изменится язык клавиатуры'], 'Enter создаёт переход на новую строку.'),
+    demoQuestion('Если все надписи на банках неверны, какое действие поможет решить логическую задачу?', 'проверить каждый вариант на противоречие', ['выбрать самую красивую надпись', 'сложить числа', 'измерить банку линейкой'], 'Логические задачи решают перебором и исключением противоречий.'),
+    demoQuestion('Для круговой диаграммы сектор с самым большим числом учеников должен быть...', 'самым большим', ['самым маленьким', 'невидимым', 'одинаковым с нулём'], 'Размер сектора соответствует величине данных.'),
+    demoQuestion('Какой инструмент графического редактора закрашивает область?', 'заливка цветом', ['ластик', 'линия', 'толщина'], 'Заливка заполняет замкнутую область цветом.'),
+    demoQuestion('Сколько байтов в ' + kb + ' Кбайт?', String(kb * 1024), [String(kb * 1000), String(kb * 8), String(kb + 1024)], 'В школьных задачах 1 Кбайт = 1024 байта.'),
+    demoQuestion('Какой файл похож на изображение?', 'photo' + n + '.png', ['text' + n + '.txt', 'sound' + n + '.mp3', 'program' + n + '.exe'], 'PNG — графический формат.'),
+    demoQuestion('Какая команда отменяет последнее действие во многих программах?', 'Ctrl+Z', ['Ctrl+P', 'Ctrl+S', 'Ctrl+O'], 'Ctrl+Z обычно отменяет действие.'),
+    demoQuestion('Как называется точная последовательность команд?', 'алгоритм', ['пиксель', 'архив', 'ярлык'], 'Алгоритм описывает порядок действий.'),
+    demoQuestion('Какой алгоритм содержит повторение?', 'циклический', ['линейный', 'безусловный один шаг', 'табличный файл'], 'Цикл повторяет действия.'),
+    demoQuestion('Что показывает ромб в блок-схеме?', 'условие', ['начало', 'конец', 'обычное действие'], 'Ромб используется для ветвления по условию.'),
+    demoQuestion('Как называется минимальная точка растрового изображения?', 'пиксель', ['байт', 'папка', 'клавиша'], 'Растровое изображение состоит из пикселей.'),
+    demoQuestion('Что лучше использовать для защиты аккаунта?', 'сложный пароль', ['имя 123', 'дату рождения', 'слово password'], 'Сложный пароль труднее подобрать.'),
+    demoQuestion('Что такое резервная копия?', 'дубликат важных данных', ['яркость экрана', 'тип мыши', 'звук ошибки'], 'Копия нужна для восстановления информации.'),
+    demoQuestion('Какой пример относится к табличной форме информации?', 'расписание уроков', ['устный рассказ', 'запах цветка', 'звук звонка'], 'Расписание удобно хранить в таблице.'),
+    demoQuestion('Что такое папка?', 'место для группировки файлов', ['только картинка', 'вид процессора', 'тип вируса'], 'Папки упорядочивают файлы.'),
+    demoQuestion('Какая программа нужна для просмотра сайтов?', 'браузер', ['архиватор', 'калькулятор', 'графический драйвер'], 'Браузер открывает веб-страницы.'),
+    demoQuestion('Что обозначает URL?', 'адрес ресурса в сети', ['скорость интернета', 'размер экрана', 'тип клавиатуры'], 'URL — адрес страницы или файла в интернете.'),
+    demoQuestion('Что нельзя сообщать незнакомцам в интернете?', 'пароль и домашний адрес', ['любимый цвет', 'название школьного предмета', 'погоду'], 'Пароли и личный адрес относятся к важным личным данным.'),
+    demoQuestion('Какой инструмент удаляет часть рисунка?', 'ластик', ['заливка', 'кривая', 'пипетка'], 'Ластик стирает фрагменты изображения.'),
+    demoQuestion('Что делает команда “Сохранить”?', 'записывает изменения в файл', ['удаляет папку', 'переводит текст', 'выключает компьютер'], 'Сохранение фиксирует изменения на носителе.'),
+    demoQuestion('Какой тип информации получает человек при чтении текста на экране?', 'зрительная', ['обонятельная', 'вкусовая', 'осязательная'], 'Текст на экране воспринимается зрением.')
+  ]);
+}
+
+function makeDemoMath6Variant(index) {
+  const n = index + 1;
+  const percentPart = 10 + n;
+  const percent = 20;
+  const total = percentPart * 100 / percent;
+  const ginger = total - percentPart;
+  const xResult = n + 2;
+  return completeDemoVariant6('math', index, [
+    demoQuestion('Вычислите: ' + (30 + n) + ' · (4/5 - 2/5).', String((30 + n) * 2 / 5), [String((30 + n) * 3 / 5), String(30 + n), String((30 + n) / 5)], 'Сначала вычитаем дроби, затем умножаем число на результат.'),
+    demoQuestion('Вычислите: ' + (10 + n / 100).toFixed(2).replace('.', ',') + ' + 0,2 · (23,5 - 3,5).', String((10 + n / 100 + 4).toFixed(2)).replace('.', ','), ['14,01', '12,01', '10,41'], 'В скобках 20, затем 0,2 · 20 = 4.'),
+    demoQuestion('Шоколадных пряников ' + percentPart + ', это 20% от всех. Сколько имбирных пряников?', String(ginger), [String(total), String(percentPart), String(ginger - 5)], 'Находим общее число и вычитаем шоколадные пряники.'),
+    demoQuestion('Вычислите: (' + (8 + n) + ' - ' + (13 + n) + ') · (-6 + 15) + 25.', '-20', ['20', '-45', '25'], 'Первая скобка равна -5, вторая 9: -5 · 9 + 25 = -20.'),
+    demoQuestion('В доме 9 этажей, по 4 квартиры на этаже в каждом подъезде. На каком этаже квартира № ' + (144 + n) + '?', String(Math.ceil(((144 + n - 1) % 36 + 1) / 4)), ['1', '5', '9'], 'В одном подъезде 36 квартир; определяем номер квартиры внутри подъезда и этаж.'),
+    demoQuestion('Решите уравнение: ' + (5 + n) + ' + 8x = ' + (5 + n + 8 * xResult) + '.', String(xResult), [String(xResult + 1), String(xResult - 1), String(xResult * 8)], 'Переносим свободный член и делим на 8.'),
+    demoQuestion('Катя пробежала 30 м за 5 с, Миша 105 м за 15 с. На сколько скорость Кати ниже?', '1', ['2', '6', '7'], 'Скорости: 6 м/с и 7 м/с, разница 1 м/с.'),
+    demoQuestion('Площадь большого прямоугольника ' + (80 + n) + ', вырезали прямоугольник площади ' + (20 + n) + '. Найдите оставшуюся площадь.', '60', [String(100 + n), String(20 + n), String(80 + n)], 'Из площади большого прямоугольника вычитаем площадь вырезанного.'),
+    demoQuestion('Плот прошёл 12 км за 6 ч. Скорость течения?', '2 км/ч', ['3 км/ч', '6 км/ч', '12 км/ч'], 'Скорость равна расстоянию, делённому на время.'),
+    demoQuestion('Лодка идёт против течения: собственная скорость 6 км/ч, течение 2 км/ч, расстояние 12 км. Время?', '3 ч', ['2 ч', '4 ч', '6 ч'], 'Против течения скорость 4 км/ч, 12 : 4 = 3.'),
+    demoQuestion('Какое наибольшее число вида 26*** с разными чётными цифрами делится на 90?', '26820', ['26802', '26480', '26082'], 'Для делимости на 90 число должно оканчиваться на 0 и делиться на 9.'),
+    demoQuestion('Найдите ' + percent + '% от ' + total + '.', String(percentPart), [String(ginger), String(total), String(percentPart * 2)], '20% — это пятая часть числа.'),
+    demoQuestion('Сократите дробь ' + (18 + n) + '/' + (36 + 2 * n) + '.', '1/2', ['2/1', '1/3', '2/3'], 'Числитель вдвое меньше знаменателя.'),
+    demoQuestion('Вычислите: -' + (10 + n) + ' + ' + (15 + n) + '.', '5', ['-5', String(25 + 2 * n), '0'], 'Разность чисел сохраняет результат 5.'),
+    demoQuestion('Чему равно ' + (n + 3) + '²?', String((n + 3) * (n + 3)), [String(n + 6), String((n + 3) * 2), String((n + 4) * (n + 4))], 'Квадрат числа — произведение числа на само себя.'),
+    demoQuestion('Найдите среднее арифметическое чисел ' + n + ' и ' + (n + 10) + '.', String(n + 5), [String(n + 10), String(n + 3), String(2 * n + 10)], 'Сумму двух чисел делим на 2.'),
+    demoQuestion('Упростите отношение ' + (2 * n) + ':' + (4 * n) + '.', '1:2', ['2:1', '1:4', '2:4'], 'Делим обе части отношения на общий множитель.'),
+    demoQuestion('Сколько минут в ' + (n + 1) + ' часах?', String((n + 1) * 60), [String(n + 1), String((n + 1) * 100), String((n + 1) * 30)], 'В одном часе 60 минут.'),
+    demoQuestion('Решите: x - ' + n + ' = ' + (n + 4) + '.', String(2 * n + 4), [String(n + 4), String(4), String(2 * n)], 'Прибавляем n к обеим частям уравнения.'),
+    demoQuestion('Периметр квадрата ' + (4 * (n + 2)) + ' см. Чему равна сторона?', String(n + 2), [String(4 * (n + 2)), String(2 * (n + 2)), String(n)], 'Сторона квадрата равна периметру, делённому на 4.'),
+    demoQuestion('Десятичная дробь 0,' + n + '5 больше какого числа?', '0,' + n + '4', ['0,' + n + '6', '1,' + n + '5', '0,' + (n + 1) + '5'], 'Сравниваем десятичные дроби по разрядам.'),
+    demoQuestion('Сколько процентов составляет половина числа?', '50%', ['25%', '20%', '10%'], 'Половина — это 50 процентов.'),
+    demoQuestion('Найдите модуль числа -' + (n + 7) + '.', String(n + 7), [String(-(n + 7)), '0', String(n)], 'Модуль отрицательного числа равен противоположному положительному числу.'),
+    demoQuestion('Какой знак нужно поставить: -' + (n + 3) + ' ___ ' + (n + 3) + '?', '<', ['>', '=', 'нельзя сравнить'], 'Любое отрицательное число меньше положительного.')
+  ]);
+}
+
+function makeDemoEnglish6Variant(index) {
+  const n = index + 1;
+  const city = demoPick([['Bristol', 'London', 'Thursday'], ['Oxford', 'Cambridge', 'Wednesday'], ['York', 'Edinburgh', 'Tuesday'], ['Bath', 'Manchester', 'Friday']], index);
+  const grammar = [
+    demoQuestion('Choose the correct preposition: Sharks live ___ seas and oceans.', 'in', ['at', 'on', 'among'], 'We say in seas and oceans.', 'grammar'),
+    demoQuestion('Choose the correct word: When ___ catch fish, they can see sharks.', 'fishermen', ['fisherman', 'hunters', 'sportsmen'], 'Plural subject needs fishermen.', 'grammar'),
+    demoQuestion('Choose the correct adjective: The great white shark is very ___.', 'dangerous', ['dangerously', 'danger', 'goodly'], 'An adjective describes the noun shark.', 'grammar'),
+    demoQuestion('Choose the correct adverb: Sharks can hear very ___.', 'well', ['good', 'goodly', 'bad'], 'Hear is described by the adverb well.', 'grammar'),
+    demoQuestion('Choose the correct plural: Sharks replace their ___ all life.', 'teeth', ['tooths', 'teeths', 'tooth'], 'The plural of tooth is teeth.', 'grammar')
+  ];
+  return completeDemoVariant6('english', index, [
+    ...grammar,
+    demoQuestion('Listening-style question, variant ' + n + ': Jack buys ticket ' + (100 + n) + ', lives in ' + city[0] + ' and sometimes visits museums in ' + city[1] + '. What ticket number is mentioned?', String(100 + n), [String(101 + n), String(200 + n), String(n)], 'The answer is taken directly from the short listening-style text.'),
+    demoQuestion('In which city does Jack go to museums in variant ' + n + '?', city[1], [city[0], 'Berlin', 'Paris'], 'The city is stated in the text.'),
+    demoQuestion('Listening-style question: Jack has two Maths on ' + city[2] + '. On what day does Jack have two Maths?', city[2], ['Monday', 'Saturday', 'Sunday'], 'The day is stated in the text.'),
+    demoQuestion('Read: A new park has a bridge with a view of the river, a concert hall and an ice cave. What gives a view of the river?', 'the bridge', ['the school', 'the train', 'the zoo'], 'The bridge is the attraction with a river view.'),
+    demoQuestion('Fill the gap: The park is in the historic ___ of the city.', 'centre', ['weather', 'teeth', 'fishermen'], 'Centre fits the phrase historic centre.'),
+    demoQuestion('Fill the gap: People can hide when the weather is not ___.', 'fine', ['teeth', 'dangerous', 'writer'], 'Fine weather means good weather.'),
+    demoQuestion('Fill the gap: There are plants from different climate ___.', 'zones', ['teeth', 'days', 'letters'], 'Climate zones is the correct phrase.'),
+    demoQuestion('Word family: Last year Jenny ___ a story.', 'wrote', ['writer', 'writing', 'to write'], 'Past Simple of write is wrote.'),
+    demoQuestion('Word family: I do not like ___ letters at exams.', 'writing', ['wrote', 'writer', 'written'], 'After like we can use -ing form.'),
+    demoQuestion('Word family: His book is interesting, but I do not know the ___.', 'writer', ['write', 'wrote', 'written'], 'A writer is a person who writes books.'),
+    demoQuestion('Can you ___ in English?', 'write', ['writer', 'wrote', 'written'], 'After can we use the base verb.'),
+    demoQuestion('What is Michael ___ about in his essay?', 'writing', ['writer', 'wrote', 'written'], 'Present Continuous uses writing.'),
+    demoQuestion('Choose the correct sentence.', 'The zoo was more interesting than the tower.', ['The zoo was interestinger than the tower.', 'The zoo more interesting tower.', 'The zoo was most interesting than the tower.'], 'Long adjectives use more for comparison.', 'grammar'),
+    demoQuestion('Choose the correct modal sentence.', 'You must put on warm clothes.', ['You must to put on warm clothes.', 'You must putting on warm clothes.', 'You must puts warm clothes.'], 'After must we use the base verb.', 'grammar'),
+    demoQuestion('Choose the correct Past Simple question.', 'Did Jack visit museums?', ['Did Jack visited museums?', 'Does Jack visited museums?', 'Was Jack visit museums?'], 'Past Simple questions use did + base verb.', 'grammar'),
+    demoQuestion('Choose the correct word: A place with animals in special areas is a...', 'zoo', ['tower', 'lesson', 'letter'], 'A zoo is a place where animals live for visitors.'),
+    demoQuestion('Choose the correct word: A very cold attraction is an...', 'ice cave', ['essay', 'shore', 'tooth'], 'Ice cave is a cold attraction.'),
+    demoQuestion('Choose the correct meaning of “abroad”.', 'in another country', ['at home', 'in the classroom', 'under the table'], 'Abroad means in or to a foreign country.'),
+    demoQuestion('Choose the correct form: There ___ many attractions.', 'are', ['is', 'am', 'be'], 'Many attractions is plural.'),
+    demoQuestion('Choose the correct form: The bridge ___ 70 meters long.', 'is', ['are', 'am', 'be'], 'The bridge is singular.'),
+    demoQuestion('Choose the correct word: A person who designs parks and landscapes is a landscape ___.', 'designer', ['fisherman', 'tooth', 'week'], 'Landscape designers create park spaces.'),
+    demoQuestion('Choose the correct answer: Which day comes after Thursday?', 'Friday', ['Monday', 'Wednesday', 'Sunday'], 'Friday follows Thursday.')
+  ]);
+}
+
+function makeDemoGerman6Variant(index) {
+  const n = index + 1;
+  const names = demoPick([['Niko', 'Hamburg', 'Informatik'], ['Mia', 'Berlin', 'Musik'], ['Ben', 'Köln', 'Sport'], ['Lena', 'München', 'Deutsch']], index);
+  const grammar = [
+    demoQuestion('Forme richtig: in ___ Klasse sind viele Schüler. (DEIN)', 'deiner', ['dein', 'deinen', 'deinem'], 'With in deiner Klasse we use dative feminine.', 'grammar'),
+    demoQuestion('Forme richtig: Der Staat ___ wissen, wie viele Kinder es gibt. (MÜSSEN)', 'muss', ['müssen', 'musst', 'müsst'], 'Der Staat is singular: muss.', 'grammar'),
+    demoQuestion('Forme richtig: Wie viele Kinder ___ in einer Klasse? (SEIN)', 'sind', ['ist', 'bist', 'seid'], 'Viele Kinder is plural: sind.', 'grammar'),
+    demoQuestion('Forme richtig: in ___ Klassen fünf bis acht. (DIE)', 'den', ['die', 'der', 'das'], 'Plural dative after in: den Klassen.', 'grammar'),
+    demoQuestion('Forme richtig: ___ du die Antwort? (WISSEN)', 'Weißt', ['Wissen', 'Weiß', 'Wisst'], 'With du: weißt.', 'grammar')
+  ];
+  return completeDemoVariant6('german', index, [
+    ...grammar,
+    demoQuestion('Hör-/Lesestil, Variante ' + n + ': ' + names[0] + ' hat Kursnummer ' + (40 + n) + ', ist zwölf Jahre alt und kommt aus ' + names[1] + '. Welche Kursnummer steht im Text?', String(40 + n), [String(41 + n), String(50 + n), String(n)], 'Die Nummer steht direkt im Text.'),
+    demoQuestion('Woher kommt ' + names[0] + ' in Variante ' + n + '?', 'aus ' + names[1], ['aus Paris', 'aus Rom', 'aus Wien'], 'Der Ort steht direkt im Text.'),
+    demoQuestion(names[0] + ' mag besonders ' + names[2] + '. Was mag er/sie?', names[2], ['Mathe', 'Regen', 'Kochen'], 'Das Lieblingsfach steht im Text.'),
+    demoQuestion('Bestimme: "' + names[0] + ' ist elf Jahre alt."', 'Falsch', ['Richtig', 'Steht nicht im Text', 'Keine Antwort'], 'Im Text steht zwölf Jahre alt.'),
+    demoQuestion('Bestimme: "' + names[0] + ' möchte anderen Kindern helfen."', 'Richtig', ['Falsch', 'Steht nicht im Text', 'Beides'], 'Diese Aussage entspricht dem Hörtext-Stil.'),
+    demoQuestion('Welcher Titel passt zu einem Text über Clowns, Artisten und Zauberer?', 'In der Manege', ['Den Himmel sehen', 'Für junge Musikfreunde', 'Backen und Schlittschuh fahren'], 'Manege gehört zum Zirkus.'),
+    demoQuestion('Welcher Titel passt zu einem Text über Sterne und Teleskop?', 'Den Himmel sehen', ['In der Manege', 'Blick hinter die Kulissen', 'Zu Hause essen'], 'Sterne und Teleskop gehören zum Himmel.'),
+    demoQuestion('Welcher Titel passt zu einem Text über Puppentheater hinter der Bühne?', 'Blick hinter die Kulissen', ['In der Manege', 'Den Himmel sehen', 'Musikfreunde'], 'Hinter die Kulissen bedeutet backstage.'),
+    demoQuestion('Welcher Titel passt zu Plätzchen-Werkstatt und Eisbahn?', 'Backen und Schlittschuh fahren', ['Den Himmel sehen', 'In der Manege', 'Für junge Musikfreunde'], 'Plätzchen backt man, auf der Eisbahn fährt man Schlittschuh.'),
+    demoQuestion('Lies: Im Museum leben Katzen im Keller und fangen Mäuse. Welche Aussage ist richtig?', 'Die Katzen fangen Mäuse.', ['Die Katzen wohnen im Kino.', 'Die Katzen sind Roboter.', 'Das Museum ist geschlossen.'], 'Die Aussage steht im Lesetext-Stil.'),
+    demoQuestion('Was bedeutet “Steht nicht im Text”?', 'об этом в тексте не сказано', ['это точно правда', 'это точно ложь', 'это перевод'], 'Steht nicht im Text means not stated.'),
+    demoQuestion('Setze ein: Du ___ bestimmt auch nicht alles.', 'magst', ['kennen', 'essen', 'zu'], 'With du: magst.'),
+    demoQuestion('Setze ein: Jedem ___ schmeckt verschiedenes Essen.', 'Menschen', ['England', 'dritten', 'zu'], 'Jedem Menschen is correct.'),
+    demoQuestion('Setze ein: In ___ essen die Leute Eier und Würstchen.', 'England', ['kennen', 'magst', 'zu'], 'England is a country.'),
+    demoQuestion('Setze ein: 16 Kinder aus der ___ Klasse.', 'dritten', ['essen', 'zu', 'Menschen'], 'Dritten Klasse fits the phrase.'),
+    demoQuestion('Setze ein: Vieles ___ die Schüler noch gar nicht.', 'kennen', ['zu', 'England', 'magst'], 'Kennen means know.'),
+    demoQuestion('Setze ein: anders essen als ___ Hause.', 'zu', ['dritten', 'Menschen', 'magst'], 'Zu Hause is a fixed phrase.'),
+    demoQuestion('Was bedeutet “Wunderkind”?', 'одарённый ребёнок', ['старый дом', 'спортивная обувь', 'учебная тетрадь'], 'Wunderkind means a very gifted child.'),
+    demoQuestion('Was ist eine Universität?', 'место учёбы после школы', ['магазин еды', 'вид транспорта', 'погодное явление'], 'Universität is a higher education institution.'),
+    demoQuestion('Welche Antwort passt auf “Wie alt bist du?”', 'Ich bin zwölf Jahre alt.', ['Ich komme aus Hamburg.', 'Ich mag Tee.', 'Ich lese ein Buch.'], 'Wie alt asks about age.')
+  ]);
+}
+
+function makeDemoChinese6Variant(index) {
+  const n = index + 1;
+  const texts = [
+    ['昨天天气不好，我没带雨伞，所以感冒了。今天妈妈带我去看医生。', '昨天我没带雨伞。', '正确', '今天我去上学了。', '错误'],
+    ['星期六我跟朋友去图书馆做作业。下午我们一起喝茶。', '我跟朋友去图书馆。', '正确', '我们去医院看医生。', '错误'],
+    ['我姐姐喜欢学习汉语。她觉得这些课真有意思。', '姐姐觉得课有意思。', '正确', '姐姐不喜欢学习。', '错误'],
+    ['医生在医院工作。妈妈做的菜很好吃。', '医生在医院工作。', '正确', '医生在学校工作。', '错误']
+  ];
+  const text = demoPick(texts, index);
+  const grammar = [
+    demoQuestion('Укажите счётное слово: 我有两___本子。', '个', ['本', '件', '支'], 'Для 本子 в базовом школьном шаблоне используется 个.', 'grammar'),
+    demoQuestion('Укажите счётное слово: 他要买一___毛笔。', '支', ['条', '个', '本'], 'Для пишущих предметов подходит 支.', 'grammar'),
+    demoQuestion('Укажите пропущенную лексическую единицу: 我___去中国学习汉语。', '想', ['喜欢', '让', '能'], '想 выражает желание: хочу поехать.', 'grammar'),
+    demoQuestion('Укажите частицу: 妈妈做___菜很好吃。', '的', ['了', '得', '过'], '的 связывает определение с существительным.', 'grammar'),
+    demoQuestion('Укажите предлог: 我常常___朋友一起去图书馆。', '跟', ['从', '给', '在'], '跟 означает “с кем-то”.', 'grammar')
+  ];
+  return completeDemoVariant6('chinese', index, [
+    ...grammar,
+    demoQuestion('Китайский текст, вариант ' + n + ', номер карточки ' + (60 + n) + ': ' + text[0] + ' Какой номер карточки указан?', String(60 + n), [String(61 + n), String(70 + n), String(n)], 'Номер указан прямо в условии, это делает вариант уникальным.'),
+    demoQuestion('Прочитайте текст варианта ' + n + ': ' + text[0] + ' Утверждение: ' + text[1], text[2], ['错误', '没说', '不知道'], 'Ответ выбирается по содержанию китайского текста.'),
+    demoQuestion('Прочитайте текст: ' + text[0] + ' Утверждение: ' + text[3], text[4], ['正确', '没说', '不知道'], 'Если утверждение противоречит тексту, выбираем 错误.'),
+    demoQuestion('Что означает ответ 没说?', 'в тексте не сказано', ['верно', 'ошибка', 'перевод'], '没说 означает, что информации нет в тексте.'),
+    demoQuestion('Укажите сочетание тонов в слове 咳嗽.', '2-0', ['1-2', '4-0', '2-4'], 'В демо-шаблоне проверяется знание тонов слова.'),
+    demoQuestion('Укажите сочетание тонов в слове 星期.', '1-1', ['4-4', '1-4', '4-1'], '星期 произносится с первым тоном в обоих слогах в школьном шаблоне.'),
+    demoQuestion('Укажите предлог: 医生___医院工作。', '在', ['跟', '给', '从'], '在 указывает место действия.'),
+    demoQuestion('Соберите предложение из слов: 我 / 朋友 / 非常 / 喜欢 / 学习 / 文学 / 的.', '我的朋友非常喜欢学习文学', ['朋友我的学习文学非常喜欢', '非常我的文学朋友学习喜欢', '学习文学我的朋友非常的'], 'Порядок: определение + подлежащее + обстоятельство + сказуемое + дополнение.'),
+    demoQuestion('Соберите предложение: 我 / 觉得 / 我姐姐 / 的 / 这些课 / 真 / 有意思.', '我觉得我姐姐的这些课真有意思', ['我姐姐觉得我的这些课真有意思', '这些课我觉得真我姐姐的有意思', '真有意思觉得我的这些课姐姐'], 'Сохраняем порядок китайского предложения.'),
+    demoQuestion('Какие графемы входят в таблицу иероглифических ключей?', '鼻, 入, 丨, 子', ['吗, 好, 学, 课', '风, 痛, 吃, 医', '的, 了, 在, 跟'], 'В задании проверяется распознавание ключей.'),
+    demoQuestion('Сколько черт в иероглифе 风?', '4', ['6', '8', '10'], '风 пишется четырьмя чертами.'),
+    demoQuestion('Сколько черт в иероглифе 吃?', '6', ['4', '8', '10'], '吃 состоит из шести черт.'),
+    demoQuestion('Сколько черт в иероглифе 课?', '10', ['6', '8', '12'], 'В демо-шаблоне ответ для 课 — 10.'),
+    demoQuestion('Сколько черт в иероглифе 痛?', '12', ['8', '10', '14'], 'В демо-шаблоне ответ для 痛 — 12.'),
+    demoQuestion('Как переводится 医生?', 'врач', ['учитель', 'ученик', 'друг'], '医生 означает врач.'),
+    demoQuestion('Как переводится 医院?', 'больница', ['школа', 'библиотека', 'магазин'], '医院 означает больница.'),
+    demoQuestion('Как переводится 图书馆?', 'библиотека', ['стадион', 'аптека', 'дом'], '图书馆 означает библиотека.'),
+    demoQuestion('Как сказать “китайский язык”?', '汉语', ['天气', '雨伞', '感冒'], '汉语 — китайский язык.'),
+    demoQuestion('Как сказать “простудиться”?', '感冒', ['学习', '工作', '休息'], '感冒 — простуда, простудиться.'),
+    demoQuestion('Что означает 天气?', 'погода', ['врач', 'тетрадь', 'урок'], '天气 означает погода.')
+  ]);
+}
+
+function makeDemoRussian6Variant(index) {
+  const n = index + 1;
+  const grammar = [
+    demoQuestion('Какое слово соответствует схеме приставка + корень + суффикс + окончание?', 'закладка', ['замечательно', 'присмотреться', 'народный'], 'В слове “закладка” выделяются приставка, корень, суффикс и окончание.', 'grammar'),
+    demoQuestion('Выберите две характеристики слова “проект” в школьном тексте.', 'общеупотребительное и заимствованное', ['устаревшее и диалектное', 'разговорное и просторечное', 'междометие и союз'], 'Слово употребляется широко и пришло из другого языка.', 'grammar'),
+    demoQuestion('В предложении “Определить приоритеты развития” слово “приоритет” означает...', 'то, что наиболее важно и требует первоочередного внимания', ['первенство открытия', 'название города', 'старинную меру длины'], 'Контекст говорит о важнейших направлениях.', 'grammar'),
+    demoQuestion('Поставьте числительное в форму: с (двести сорок три) работниками.', 'двумястами сорока тремя', ['двести сорок три', 'двухсот сорок трёх', 'двумстам сорок три'], 'После “с” нужен творительный падеж.', 'grammar'),
+    demoQuestion('Исправьте ошибку: “самый крупнейший музей”.', 'крупнейший музей', ['самый крупнейший музей', 'более крупнейший музей', 'наиболее самый крупный'], 'Нельзя сочетать “самый” с простой превосходной степенью.', 'grammar')
+  ];
+  return completeDemoVariant6('russian', index, [
+    ...grammar,
+    demoQuestion('Русский язык, вариант ' + n + ': в объявлении указан зал №' + (200 + n) + '. Какой номер зала указан?', '№' + (200 + n), ['№' + (201 + n), '№' + (300 + n), '№' + n], 'Номер взят прямо из условия, это уникальный элемент варианта.'),
+    demoQuestion('Соотнеси фразеологизм “переливать из пустого в порожнее” со значением.', 'заниматься бесполезным делом', ['решить проблему', 'быстро бежать', 'молчать'], 'Фразеологизм означает пустую, бесполезную деятельность.'),
+    demoQuestion('Укажите предложение с пунктуационной ошибкой.', 'Ребята для общения с животными нужно знать их повадки.', ['В парках живут птицы: воробьи, дятлы, сороки.', 'Учитель сказал: “Повторите правила”.', 'Грива и хвост у коня чёрные.'], 'Обращение “Ребята” нужно отделить запятой.'),
+    demoQuestion('В каких предложениях запятая ставится по одному правилу?', 'в предложениях с однородными членами', ['между подлежащим и сказуемым', 'после каждого слова всегда', 'только перед тире'], 'Нужно определить одинаковое пунктуационное правило.'),
+    demoQuestion('Выберите слово с чередующейся гласной О/А в корне.', 'излагать', ['посадить', 'благословение', 'прополоскать'], 'Корень -лаг-/-лож- относится к чередующимся.'),
+    demoQuestion('В каком ряду одна и та же буква в приставке?', 'бесполезный, сдержать', ['обыграть, спортинвентарь', 'привстать, препротивный', 'объявление, вьюнок'], 'В приставках перед глухим согласным пишется С.'),
+    demoQuestion('Какое слово неверно занесено в таблицу Н/НН?', 'старинное', ['юный', 'оловянный', 'туманное'], 'В слове старинное пишется НН.'),
+    demoQuestion('В какой строке слова пишутся слитно?', 'древнерусская литература, зеленоглазый юноша', ['розово-красный, тёмно-синее', 'кое-кто, что-нибудь', 'англо-немецкий словарь'], 'Сложные прилагательные с первой частью древне- и зелено- в этих примерах пишутся слитно.'),
+    demoQuestion('В каком предложении НЕ пишется слитно?', 'В недоумении смотрели на мои движения.', ['вовсе не убедительные аргументы', 'не досмотрели спектакль', 'не удача, а трудности'], 'Недоумение без НЕ не употребляется.'),
+    demoQuestion('Выберите слова с О после шипящих в суффиксе под ударением.', 'галчонок, грошовый', ['сбережёшь, молодожён', 'чёрный, решётка', 'шёпот, печёт'], 'В суффиксах после шипящих под ударением пишется О.'),
+    demoQuestion('В каком ряду глагольные окончания записаны верно?', 'ты дышишь, ты смотришь', ['он строет, он разговариваит', 'вы гуляите, вы держете', 'мы подпрыгиваим, мы не обидем'], 'Глаголы второго спряжения во 2 лице ед. числа имеют -ишь.'),
+    demoQuestion('Какой союз лучше вставить: “... извилистые аллеи идут к концертному залу”?', 'Отсюда', ['Потому что', 'Зато', 'Хотя'], 'По смыслу нужна указательная связь с предыдущим предложением.'),
+    demoQuestion('Что такое фразеологизм?', 'устойчивое выражение с целостным значением', ['любое длинное слово', 'только имя собственное', 'ошибка в тексте'], 'Фразеологизм нельзя понимать только по отдельным словам.'),
+    demoQuestion('Укажите слово с приставкой ПРИ- в значении приближения.', 'приехать', ['преграда', 'преувеличить', 'прекрасный'], 'При- часто обозначает приближение.'),
+    demoQuestion('Укажите местоимение.', 'который', ['быстро', 'зелёный', 'читать'], 'Который — местоимение.'),
+    demoQuestion('Укажите собирательное числительное.', 'семеро', ['семь', 'седьмой', 'одна седьмая'], 'Собирательные числительные обозначают совокупность.'),
+    demoQuestion('Укажите качественное прилагательное.', 'смелый', ['деревянный', 'лисий', 'вчерашний'], 'Качественные прилагательные могут иметь степени сравнения.'),
+    demoQuestion('Найдите грамматическую основу: “Парк открылся рядом с Кремлём”.', 'парк открылся', ['рядом с Кремлём', 'парк рядом', 'открылся рядом'], 'Основа — подлежащее и сказуемое.'),
+    demoQuestion('Что такое лексическое значение слова?', 'то, что слово обозначает', ['его количество букв', 'только ударение', 'место в строке'], 'Лексическое значение — смысл слова.'),
+    demoQuestion('Выберите правильную форму: к ' + (200 + n) + ' ученикам.', 'двумстам с лишним ученикам', ['двести ученикам', 'двухсот ученикам', 'двумястами ученикам'], 'После “к” нужен дательный падеж; точная форма зависит от всего числительного.'),
+    demoQuestion('Как пишется НЕ с глаголами в обычном случае?', 'раздельно', ['слитно всегда', 'через дефис', 'только с большой буквы'], 'НЕ с глаголами обычно пишется раздельно.')
+  ]);
+}
+
+function makeDemoLiterature6Variant(index) {
+  const n = index + 1;
+  return completeDemoVariant6('literature', index, [
+    demoQuestion('Литература, вариант ' + n + ': как называется малый жанр устного народного творчества, где предмет описан и его надо отгадать?', 'загадка', ['роман', 'ода', 'повесть'], 'Загадка описывает предмет косвенно.'),
+    demoQuestion('Соотнеси: “Журавль и цапля”, “Василиса Прекрасная”, “Солдат и царь”.', 'сказка о животных — волшебная — бытовая', ['волшебная — бытовая — миф', 'басня — роман — послание', 'песня — былина — загадка'], 'Виды сказок различаются героями и конфликтом.'),
+    demoQuestion('Миф — это...', 'картина мира через истории богов и героев', ['только школьная заметка', 'короткая смешная реплика', 'научная формула'], 'Миф объясняет мир через образы богов и героев.'),
+    demoQuestion('Какое выражение означает опасность с двух сторон?', 'между Сциллой и Харибдой', ['ахиллесова пята', 'ящик Пандоры', 'троянский конь'], 'Сцилла и Харибда — две опасности по обе стороны пути.'),
+    demoQuestion('Почему князю Владимиру важна победа кожемяки?', 'победа могла предотвратить разорение и войну', ['он хотел получить кожу', 'он боялся читать летопись', 'он хотел построить театр'], 'Поединок решал исход столкновения с печенегами.'),
+    demoQuestion('Соотнеси жанры: “И.И. Пущину”, “Ночь перед Рождеством”, “Кавказский пленник”.', 'послание — повесть — рассказ', ['роман — басня — миф', 'загадка — роман — комедия', 'былина — послание — сказка'], 'Произведения относятся к разным литературным жанрам.'),
+    demoQuestion('Фраза “А ларчик просто открывался” стала крылатой из басни...', 'И. А. Крылова “Ларчик”', ['Пушкина “Метель”', 'Лермонтова “Бородино”', 'Гоголя “Ревизор”'], 'Автор выражения — Крылов, басня “Ларчик”.'),
+    demoQuestion('Слово “срамиться” в басне можно заменить словом...', 'позориться', ['гордиться', 'молчать', 'путешествовать'], 'Срамиться — значит позориться.'),
+    demoQuestion('Какая идея басни “Слон и Моська”?', 'высмеивается желание казаться сильным за счёт шума', ['прославляется честный труд', 'объясняется строение слона', 'рассказывается о зиме'], 'Моська создаёт видимость смелости, не рискуя.'),
+    demoQuestion('Соотнеси авторов и произведения: Лесков, Пушкин, Лермонтов.', '“Левша” — “Метель” — “Бородино”', ['“Метель” — “Левша” — “Железная дорога”', '“Бородино” — “Левша” — “Метель”', '“Кавказский пленник” — “Ларчик” — “Дубровский”'], 'Эти произведения изучаются в курсе литературы.'),
+    demoQuestion('Какой размер в строке “На севере диком стоит одиноко”?', 'амфибрахий', ['ямб', 'хорей', 'дактиль'], 'В строке повторяется трёхсложный размер с ударением на втором слоге.'),
+    demoQuestion('Как называется приём, когда сосна “дремлет” и ей “снится”?', 'олицетворение', ['гипербола', 'антитеза', 'сравнение без образа'], 'Предмету природы приписаны действия живого существа.'),
+    demoQuestion('Какие чувства выражены через образы сосны и пальмы?', 'одиночество и тоска по пониманию', ['весёлый спор', 'гордость победителя', 'страх перед экзаменом'], 'Оба образа одиноки.'),
+    demoQuestion('Какой герой связан с романом “Дубровский”?', 'Владимир Дубровский', ['Моська', 'Солон', 'Нико'], 'Главный герой романа Пушкина — Владимир Дубровский.'),
+    demoQuestion('Что такое басня?', 'краткое нравоучительное произведение с моралью', ['большой исторический роман', 'список дат', 'научная статья'], 'Басня обычно содержит мораль и сатиру.'),
+    demoQuestion('Что такое мораль басни?', 'главный нравственный вывод', ['место действия', 'имя автора', 'количество строк'], 'Мораль формулирует урок басни.'),
+    demoQuestion('Что такое крылатое выражение?', 'устойчивое широко известное выражение из текста или речи', ['случайная ошибка', 'только рифма', 'название главы'], 'Крылатые выражения часто цитируются.'),
+    demoQuestion('Как называется противопоставление образов?', 'антитеза', ['эпитет', 'сюжет', 'инверсия'], 'Антитеза строится на контрасте.'),
+    demoQuestion('Как называется образное определение?', 'эпитет', ['завязка', 'диалог', 'размер'], 'Эпитет усиливает художественный образ.'),
+    demoQuestion('Как называется разговор двух героев?', 'диалог', ['монолог', 'пейзаж', 'экспозиция'], 'Диалог состоит из реплик нескольких персонажей.'),
+    demoQuestion('Как называется описание природы в произведении?', 'пейзаж', ['портрет', 'мораль', 'рифма'], 'Пейзаж — картина природы.'),
+    demoQuestion('Как называется момент наивысшего напряжения в сюжете?', 'кульминация', ['экспозиция', 'эпиграф', 'строфа'], 'Кульминация — вершина конфликта.'),
+    demoQuestion('Вариант ' + n + ': что проверяет задание на соответствие автора и произведения?', 'знание литературных фактов', ['умение считать проценты', 'строение клетки', 'координаты вулкана'], 'Такое задание проверяет знание авторов, названий и жанров.'),
+    demoQuestion('Как называется группа строк в стихотворении?', 'строфа', ['абзац карты', 'формула', 'параграф'], 'Строфа объединяет стихотворные строки.')
+  ]);
+}
+
+function makeDemoHistory6Variant(index) {
+  const n = index + 1;
+  return completeDemoVariant6('history', index, [
+    demoQuestion('История, вариант ' + n + ': период III–VII вв. в Европе называют Великим переселением народов. Что отличает этот период?', 'передвижения германцев, гуннов и других племён', ['первые крестовые походы', 'открытие Америки', 'строительство пирамид'], 'Великое переселение связано с массовыми миграциями племён.'),
+    demoQuestion('Какие признаки характерны для феодального хозяйства?', 'крестьяне получали надел и несли повинности', ['работали машины и заводы', 'вся продукция шла на экспорт', 'основой были античные рабы'], 'Феодальное хозяйство держалось на зависимых крестьянах и натуральном производстве.'),
+    demoQuestion('Верны ли утверждения о католической церкви? А) Она была крупным землевладельцем. Б) Она совсем не влияла на политику.', 'верно только А', ['верно только Б', 'оба верны', 'оба неверны'], 'Церковь владела землями и влияла на политическую жизнь.'),
+    demoQuestion('Какие черты относятся к духовно-рыцарским орденам?', 'возникли в эпоху крестовых походов и давали обеты', ['использовали мушкеты как главное оружие', 'были союзами купцов', 'создали парламент Англии'], 'Ордена совмещали монашеские обеты и военную службу.'),
+    demoQuestion('Соотнеси ювелирные техники: чеканка и эмаль.', 'обработка металла — цветное покрытие металла', ['книжная миниатюра — фреска', 'мозаика — летопись', 'ткачество — земледелие'], 'Чеканка и эмаль — способы работы с металлическими изделиями.'),
+    demoQuestion('Расположи события: А) вестготское королевство Б) битва при Креси В) первый крестовый поход.', 'АВБ', ['ВАБ', 'БВА', 'ВБА'], 'Вестготы раньше крестовых походов, Креси — XIV век.'),
+    demoQuestion('Какой союз восточных славян жил у северных озёр, по Ловати и Волхову?', 'словене', ['поляне', 'вятичи', 'волыняне'], 'Ильменские словене жили в районе Новгорода.'),
+    demoQuestion('К какому году относится призвание Рюрика?', '862 г.', ['780 г.', '882 г.', '911 г.'], '862 год традиционно связывают с призванием варягов.'),
+    demoQuestion('Правитель Святослав известен...', 'разорением Хазарского каганата', ['крещением Руси', 'созданием Устава о резах', 'первым крестовым походом'], 'Святослав разгромил Хазарский каганат.'),
+    demoQuestion('Какие последствия имело крещение Руси?', 'укрепление княжеской власти, распространение письменности, смягчение нравов', ['основание Переяславца, отмена всех налогов, исчезновение городов', 'переход к исламу, распад торговли, запрет книг', 'начало каменного века'], 'Крещение усилило государство и культурные связи.'),
+    demoQuestion('Как в “Русской Правде” называли свободных сельских общинников?', 'смерды', ['холопы', 'закупы', 'тысяцкие'], 'Смерды были лично свободными земледельцами.'),
+    demoQuestion('Какие факты связаны с Андреем Боголюбским?', 'перенёс центр во Владимир и строил Успенский собор', ['крестил Русь', 'создал Афинскую демократию', 'открыл Америку'], 'Андрей Боголюбский связан с усилением Владимиро-Суздальской земли.'),
+    demoQuestion('Что было сходным для Новгорода и Владимиро-Суздальской земли?', 'боярские вотчины и княжеская дружина', ['одинаковая власть веча', 'полное отсутствие князей', 'столица в Киеве'], 'В обеих землях были бояре и княжеская военная сила.'),
+    demoQuestion('Первой удар войск Батыя встретила...', 'Рязань', ['Москва', 'Кострома', 'Астрахань'], 'Рязань одной из первых подверглась нашествию Батыя.'),
+    demoQuestion('Какие факты относятся к битве на Калке?', '1223 год и первое столкновение Руси с монголами', ['1240 год и Невская битва', '1380 год и Куликово поле', '988 год и крещение'], 'Калка показала военную мощь монголов.'),
+    demoQuestion('События Невской битвы произошли в...', '1240 г.', ['862 г.', '988 г.', '1380 г.'], 'Невская битва датируется 1240 годом.'),
+    demoQuestion('Соотнеси памятники: Софийский собор Киева и Золотые ворота Владимира.', 'Киев — Владимир', ['Новгород — Киев', 'Владимир — Новгород', 'Москва — Рязань'], 'Памятники соотносятся с городами Древней Руси.'),
+    demoQuestion('Расположи события: А) поход Игоря против половцев Б) оборона Киева от Батыя В) поход Олега на Византию.', 'ВАБ', ['АБВ', 'БВА', 'ВБА'], 'Олег — X век, Игорь — XII век, Батый — XIII век.'),
+    demoQuestion('Что такое барщина?', 'работа крестьянина на земле феодала', ['денежная монета', 'рыцарский турнир', 'городское вече'], 'Барщина — трудовая повинность зависимого крестьянина.'),
+    demoQuestion('Что такое оброк?', 'платёж крестьянина феодалу продуктами или деньгами', ['военный поход', 'королевская корона', 'монастырская книга'], 'Оброк — одна из феодальных повинностей.'),
+    demoQuestion('Кто такие викинги?', 'скандинавские мореходы и воины', ['египетские жрецы', 'китайские чиновники', 'римские сенаторы'], 'Викинги совершали походы и торговые плавания.'),
+    demoQuestion('Что такое вече?', 'народное собрание', ['письменный закон', 'крепостная башня', 'вид налога'], 'Вече участвовало в управлении ряда русских земель.'),
+    demoQuestion('Вариант ' + n + ': к какой теме относится хан Батый?', 'монгольское нашествие на Русь', ['Древний Египет', 'Афинская демократия', 'первобытная охота'], 'Батый возглавлял походы монголов на Русь.'),
+    demoQuestion('Как назывался сборник законов Древней Руси?', 'Русская Правда', ['Салическая правда', 'Законы XII таблиц', 'Коран'], 'Русская Правда — древнерусский правовой памятник.')
+  ]);
+}
+
+function makeDemoVariantBanks6() {
+  const builders = {
+    geography: makeDemoGeography6Variant,
+    history: makeDemoHistory6Variant,
+    biology: makeDemoBiology6Variant,
+    informatics: makeDemoInformatics6Variant,
+    math: makeDemoMath6Variant,
+    english: makeDemoEnglish6Variant,
+    german: makeDemoGerman6Variant,
+    chinese: makeDemoChinese6Variant,
+    russian: makeDemoRussian6Variant,
+    literature: makeDemoLiterature6Variant
+  };
+  const banks = {};
+  demoVariantSubjectIds6.forEach(subject => {
+    banks[subject] = Array.from({ length: DEMO_VARIANT_COUNT }, (_, index) => builders[subject](index));
+  });
+  return banks;
+}
+
 const demoVariantBanksByGrade = {
-  '5': makeDemoVariantBanks5()
+  '5': makeDemoVariantBanks5(),
+  '6': makeDemoVariantBanks6()
 };
 
 function chooseDemoVariantIndex(storageKey, variants) {
@@ -2747,9 +3150,9 @@ const studyTopics = {
       exam: ['спряжение глаголов wohnen, lernen, spielen', 'haben, sein и модальные глаголы', 'артикли в именительном и винительном падеже', 'отрицание nicht и kein', 'вопросительные слова wo, woher, wann, warum'],
       check: ['окончания глаголов', 'ich habe, ich bin', 'der/die/das и den', 'nicht/kein', 'время, школа, каникулы']
     },
-    french: {
-      exam: ['глаголы être, avoir, aller, faire', 'настоящее время глаголов на -er', 'отрицание ne...pas', 'артикли и притяжательные прилагательные', 'согласование прилагательных и вопросы'],
-      check: ['je suis, j’ai, je vais', 'nous parlons, vous habitez', 'ne...pas', 'mon/ma/mes', 'время, школа, город']
+    chinese: {
+      exam: ['чтение короткого текста и ответы 正确/错误/没说', 'тоны слов и базовая фонетика', 'счётные слова 个, 本, 支', 'служебные слова 的, предлоги 跟 и 在', 'порядок слов и подсчёт черт в иероглифах'],
+      check: ['正确/错误/没说', 'тона 咳嗽 и 星期', 'счётные слова', 'частица 的', 'ключи и количество черт']
     },
     russian: {
       exam: ['лексика, фразеологизмы, синонимы и антонимы', 'словообразование и морфемный разбор', 'имя существительное и имя прилагательное', 'числительные и местоимения', 'глагол, приставки пре-/при- и пунктуация'],
@@ -2848,9 +3251,14 @@ function buildVariant(subjectId) {
 
 function selectGrade(grade) {
   selectedGrade = grade;
+  if (selectedSubject && !getSubjectIdsForGrade(grade).includes(selectedSubject)) {
+    selectedSubject = null;
+    document.getElementById('startbtn').disabled = true;
+  }
   document.querySelectorAll('[data-grade]').forEach(button => {
     button.classList.toggle('active', button.dataset.grade === grade);
   });
+  renderSubjectChoices();
   updateHeader('selection');
   updateSelectedNote();
 }
@@ -2876,11 +3284,12 @@ function updateSelectedNote() {
 function renderSubjectChoices() {
   const grid = document.getElementById('subject-grid');
   grid.innerHTML = '';
-  Object.entries(subjects).forEach(([id, subject]) => {
+  getSubjectEntriesForGrade(selectedGrade).forEach(([id, subject]) => {
     const button = document.createElement('button');
     button.className = 'choice';
     button.dataset.subject = id;
     button.textContent = subject.name;
+    button.classList.toggle('active', id === selectedSubject);
     button.onclick = () => selectSubject(id);
     grid.appendChild(button);
   });
@@ -3139,7 +3548,7 @@ function chooseAIGrade(grade) {
   aiPlan.grade = grade;
   addAIMessage('user', grade + ' класс');
   addAIMessage('bot', 'Отлично. Теперь выбери предмет.');
-  setAIOptions(Object.entries(subjects).map(([id, subject]) => ({
+  setAIOptions(getSubjectEntriesForGrade(grade).map(([id, subject]) => ({
     text: subject.name,
     action: () => chooseAISubject(id)
   })));
