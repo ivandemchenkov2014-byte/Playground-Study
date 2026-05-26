@@ -1363,10 +1363,11 @@ const testModes = {
   },
   mistakes: {
     name: 'Работа над ошибками',
-    desc: 'только вопросы из прошлых ошибок',
+    desc: 'новые задания по слабым темам',
     requiresSubject: false,
     timer: false,
     feedback: true,
+    count: 16,
     saveResult: false
   },
   mixed: {
@@ -1448,6 +1449,7 @@ const PROFILE_AVATARS = ['🧠', '🌿', '🚀', '📚', '⭐', '🎯', '💡', 
 const MAX_SAVED_MISTAKES = 90;
 const LEVEL_XP = 100;
 const DAILY_CHALLENGE_XP = 25;
+const MISTAKE_TRAINING_XP = 18;
 const PROFILE_ACHIEVEMENTS = [
   {
     id: 'first_test',
@@ -2907,7 +2909,9 @@ expandQuestionBanks();
 
 const DEMO_VARIANT_COUNT = 100;
 const QUESTION_HISTORY_LIMIT = 220;
+const RECENT_QUESTION_BLOCK = 30;
 const VARIANT_HISTORY_LIMIT = 40;
+const MAX_QUESTIONS_FROM_ONE_VARIANT = 4;
 const demoVariantSubjectIds5 = ['geography', 'history', 'biology', 'informatics', 'math', 'english', 'german', 'french', 'russian', 'literature'];
 const demoVariantSubjectIds6 = ['geography', 'history', 'biology', 'informatics', 'math', 'english', 'german', 'chinese', 'russian', 'literature'];
 
@@ -3995,14 +3999,24 @@ function chooseDemoVariantIndex(storageKey, variants) {
   return pickedIndex;
 }
 
-function pickDemoQuestionsForDifficulty(variant, subjectId, count) {
+function pickDemoQuestionsForDifficulty(variant, subjectId, count, difficultyId = selectedDifficulty) {
+  const difficulty = difficultyLevels[difficultyId] || difficultyLevels[selectedDifficulty] || difficultyLevels.middle;
+  const preferred = variant.filter(question => !question.level || difficulty.pool.includes(question.level));
+  const pool = preferred.length >= Math.min(count, variant.length) ? preferred : variant;
+
   if (!languageSubjectIds.includes(subjectId)) {
-    return variant.slice(0, count);
+    return shuffle(pool).slice(0, count);
   }
 
-  const grammar = variant.filter(question => question.category === 'grammar').slice(0, Math.min(REQUIRED_GRAMMAR_COUNT, count));
-  const rest = variant.filter(question => question.category !== 'grammar').slice(0, count - grammar.length);
-  return [...grammar, ...rest];
+  const grammarPool = pool.filter(question => question.category === 'grammar');
+  const fallbackGrammar = variant.filter(question => question.category === 'grammar');
+  const grammarSource = grammarPool.length >= Math.min(REQUIRED_GRAMMAR_COUNT, count) ? grammarPool : fallbackGrammar;
+  const grammar = shuffle(grammarSource).slice(0, Math.min(REQUIRED_GRAMMAR_COUNT, count));
+  const picked = new Set(grammar);
+  const restPool = pool.filter(question => !picked.has(question) && question.category !== 'grammar');
+  const fallbackRest = variant.filter(question => !picked.has(question) && question.category !== 'grammar');
+  const restSource = restPool.length >= count - grammar.length ? restPool : fallbackRest;
+  return shuffle([...grammar, ...shuffle(restSource).slice(0, count - grammar.length)]);
 }
 
 function pickDemoStyleVariant(subjectId) {
@@ -4126,6 +4140,7 @@ let currentTestAnswered = new Set();
 let currentTestSaved = false;
 let currentResultProfile = null;
 let isMistakeReview = false;
+let currentQuestionTargetCount = null;
 
 function shuffle(items) {
   const mixed = [...items];
@@ -4269,6 +4284,7 @@ function normalizeQuestion(item) {
       exp: item.exp,
       topic: inferQuestionTopic(item),
       category: item.category || 'open',
+      level: item.level || 'middle',
       inputKind: item.inputKind || 'text',
       tolerance: item.tolerance || 'soft',
       subject: item.subject || selectedSubject,
@@ -4276,7 +4292,9 @@ function normalizeQuestion(item) {
       grade: item.grade || selectedGrade,
       difficulty: item.difficulty || selectedDifficulty,
       difficultyName: item.difficultyName || (difficultyLevels[selectedDifficulty] ? difficultyLevels[selectedDifficulty].name : 'Свободный режим'),
-      sourceMistakeId: item.sourceMistakeId || null
+      sourceMistakeId: item.sourceMistakeId || null,
+      weakTopicKey: item.weakTopicKey || null,
+      trainingSourceTopic: item.trainingSourceTopic || null
     };
   }
 
@@ -4292,17 +4310,36 @@ function normalizeQuestion(item) {
     exp: item.exp,
     topic: inferQuestionTopic(item),
     category: item.category || 'general',
+    level: item.level || 'middle',
     subject: item.subject || selectedSubject,
     subjectName: item.subjectName || (item.subject && subjects[item.subject] ? subjects[item.subject].name : (selectedSubject && subjects[selectedSubject] ? subjects[selectedSubject].name : 'Смешанный режим')),
     grade: item.grade || selectedGrade,
     difficulty: item.difficulty || selectedDifficulty,
     difficultyName: item.difficultyName || (difficultyLevels[selectedDifficulty] ? difficultyLevels[selectedDifficulty].name : 'Свободный режим'),
-    sourceMistakeId: item.sourceMistakeId || null
+    sourceMistakeId: item.sourceMistakeId || null,
+    weakTopicKey: item.weakTopicKey || null,
+    trainingSourceTopic: item.trainingSourceTopic || null
   };
 }
 
 function getQuestionSignature(question) {
   return normalizeFreeAnswer((question.subject || '') + '|' + (question.grade || '') + '|' + question.q);
+}
+
+function getQuestionTaskType(question) {
+  if (question.type === 'input') return question.inputKind === 'number' ? 'свой ответ: число' : 'свой ответ';
+  if (question.category === 'text') return 'работа с текстом';
+  if (question.category === 'case') return 'мини-кейс';
+  if (question.category === 'calculation') return 'расчёт';
+  if (question.category === 'grammar') return 'грамматика';
+  if (question.category === 'translation') return 'перевод';
+  if (question.category === 'term') return 'термин';
+  if (/соотнеси|соответств/i.test(question.q || '')) return 'соответствие';
+  return 'тест';
+}
+
+function getQuestionPatternKey(question) {
+  return normalizeFreeAnswer((question.category || 'general') + '|' + getQuestionTaskType(question) + '|' + (question.topic || ''));
 }
 
 function readStorageJson(key, fallback) {
@@ -4374,50 +4411,107 @@ function getQuestionHistoryKey(modeId) {
   return 'playground-question-history-' + selectedGrade + '-' + modeId;
 }
 
+function getGlobalQuestionHistoryKey() {
+  return 'playground-question-history-' + selectedGrade + '-global';
+}
+
+function getRecentQuestionSignatures(modeId, limit = RECENT_QUESTION_BLOCK) {
+  return new Set([
+    ...readStorageJson(getQuestionHistoryKey(modeId), []).slice(0, limit),
+    ...readStorageJson(getGlobalQuestionHistoryKey(), []).slice(0, limit)
+  ]);
+}
+
 function recordQuestionHistory(modeId, list) {
-  const key = getQuestionHistoryKey(modeId);
-  const previous = readStorageJson(key, []);
-  const next = [...list.map(getQuestionSignature), ...previous].filter(Boolean);
-  writeStorageJson(key, [...new Set(next)].slice(0, QUESTION_HISTORY_LIMIT));
+  const signatures = list.map(getQuestionSignature).filter(Boolean);
+  [getQuestionHistoryKey(modeId), getGlobalQuestionHistoryKey()].forEach(key => {
+    const previous = readStorageJson(key, []);
+    const next = [...signatures, ...previous].filter(Boolean);
+    writeStorageJson(key, [...new Set(next)].slice(0, QUESTION_HISTORY_LIMIT));
+  });
 }
 
 function alternateTopics(list) {
   const buckets = {};
   list.forEach(question => {
     const topic = question.topic || 'Общее повторение';
-    if (!buckets[topic]) buckets[topic] = [];
-    buckets[topic].push(question);
+    const key = topic + '|' + getQuestionTaskType(question);
+    if (!buckets[key]) {
+      buckets[key] = {
+        topic,
+        pattern: getQuestionPatternKey(question),
+        questions: []
+      };
+    }
+    buckets[key].questions.push(question);
   });
 
-  const orderedTopics = Object.keys(buckets).sort((a, b) => buckets[b].length - buckets[a].length);
+  const bucketList = Object.values(buckets).sort((a, b) => b.questions.length - a.questions.length);
   const result = [];
+  let previousTopic = '';
+  let previousPattern = '';
+
   while (result.length < list.length) {
-    let added = false;
-    orderedTopics.forEach(topic => {
-      const next = buckets[topic].shift();
-      if (next) {
-        result.push(next);
-        added = true;
-      }
-    });
-    if (!added) break;
+    const candidates = bucketList
+      .filter(bucket => bucket.questions.length)
+      .sort((a, b) => {
+        const aPenalty = (a.topic === previousTopic ? 2 : 0) + (a.pattern === previousPattern ? 1 : 0);
+        const bPenalty = (b.topic === previousTopic ? 2 : 0) + (b.pattern === previousPattern ? 1 : 0);
+        return aPenalty - bPenalty || a.questions.length - b.questions.length;
+      });
+
+    const bucket = candidates[0];
+    if (!bucket) break;
+    const next = bucket.questions.shift();
+    result.push(next);
+    previousTopic = bucket.topic;
+    previousPattern = bucket.pattern;
   }
+
   return result;
 }
 
-function finalizeQuestionSet(list, modeId) {
-  const checked = shuffle(qualityCheckQuestionSet(list, modeId));
-  const recent = new Set(readStorageJson(getQuestionHistoryKey(modeId), []));
+function splitByRecentHistory(list, modeId) {
+  const recentHardBlock = getRecentQuestionSignatures(modeId, RECENT_QUESTION_BLOCK);
+  const longHistory = getRecentQuestionSignatures(modeId, QUESTION_HISTORY_LIMIT);
   const fresh = [];
-  const repeated = [];
+  const olderRepeated = [];
+  const recentRepeated = [];
 
-  checked.forEach(question => {
-    (recent.has(getQuestionSignature(question)) ? repeated : fresh).push(question);
+  list.forEach(question => {
+    const signature = getQuestionSignature(question);
+    if (recentHardBlock.has(signature)) {
+      recentRepeated.push(question);
+    } else if (longHistory.has(signature)) {
+      olderRepeated.push(question);
+    } else {
+      fresh.push(question);
+    }
   });
 
-  const arranged = alternateTopics([...fresh, ...repeated]);
-  recordQuestionHistory(modeId, arranged);
-  return arranged;
+  return { fresh, olderRepeated, recentRepeated };
+}
+
+function getUniqueQuestionSet(list) {
+  const used = new Set();
+  return list.filter(question => {
+    const signature = getQuestionSignature(question);
+    if (used.has(signature)) return false;
+    used.add(signature);
+    return true;
+  });
+}
+
+function finalizeQuestionSet(list, modeId, limit = null) {
+  const checked = shuffle(qualityCheckQuestionSet(getUniqueQuestionSet(list), modeId));
+  const { fresh, olderRepeated, recentRepeated } = splitByRecentHistory(checked, modeId);
+  const preferred = alternateTopics([...fresh, ...olderRepeated]);
+  const arranged = Number.isInteger(limit) && preferred.length >= limit
+    ? preferred
+    : [...preferred, ...alternateTopics(recentRepeated)];
+  const finalList = Number.isInteger(limit) && limit > 0 ? arranged.slice(0, limit) : arranged;
+  recordQuestionHistory(modeId, finalList);
+  return finalList;
 }
 
 function runFullQuestionBankQualityCheck() {
@@ -4496,6 +4590,25 @@ function pickQuestionsForVariant(pool, bank, subjectId, count) {
   ]);
 }
 
+function getAdaptiveDifficultyId(subjectId, fallback = selectedDifficulty) {
+  if (!profileData || !subjects[subjectId]) return fallback;
+  const progress = getSubjectProgress(profileData, subjectId);
+  const average = getAveragePercent(progress);
+  const weakTopic = getWeakTopicsFromProgress(progress, 1)[0];
+
+  if (progress.testsCompleted >= 2 && average >= 86 && fallback !== 'basic') return 'general';
+  if ((progress.testsCompleted && average < 58) || (weakTopic && weakTopic.wrong >= 2 && weakTopic.percent >= 45)) return 'basic';
+  return fallback;
+}
+
+function getDifficultyForQuestionBuild(subjectId, options = {}) {
+  const difficultyId = options.difficulty || (options.adaptive ? getAdaptiveDifficultyId(subjectId) : selectedDifficulty);
+  return {
+    id: difficultyId,
+    config: difficultyLevels[difficultyId] || difficultyLevels[selectedDifficulty] || difficultyLevels.middle
+  };
+}
+
 function buildVariant(subjectId) {
   const demoPicked = pickDemoStyleVariant(subjectId);
   if (demoPicked) {
@@ -4522,62 +4635,156 @@ function buildVariant(subjectId) {
   questions = picked.map(item => normalizeQuestion(attachQuestionMeta(item, subjectId)));
 }
 
+function ensureDemoTaskTypeVariety(picked, demoVariants, pickedSignatures, count, subjectId, difficultyId) {
+  const allQuestions = shuffle(pickDemoQuestionsForDifficulty(demoVariants.flat(), subjectId, demoVariants.flat().length, difficultyId));
+  const rules = [
+    {
+      min: count >= 10 ? 2 : 1,
+      has: question => question.type === 'input',
+      replace: question => question.type !== 'input' && question.category !== 'grammar'
+    },
+    {
+      min: count >= 10 ? 1 : 0,
+      has: question => ['text', 'case'].includes(question.category),
+      replace: question => !['text', 'case'].includes(question.category) && question.category !== 'grammar'
+    }
+  ];
+
+  rules.forEach(rule => {
+    while (picked.filter(rule.has).length < rule.min) {
+      const candidate = allQuestions.find(question => rule.has(question) && !pickedSignatures.has(normalizeFreeAnswer(question.q)));
+      if (!candidate) break;
+      if (picked.length >= count) {
+        const replaceIndex = picked.findIndex(rule.replace);
+        if (replaceIndex < 0) break;
+        pickedSignatures.delete(normalizeFreeAnswer(picked[replaceIndex].q));
+        picked.splice(replaceIndex, 1);
+      }
+      pickedSignatures.add(normalizeFreeAnswer(candidate.q));
+      picked.push(candidate);
+    }
+  });
+}
+
 function getRawQuestionsForSubject(subjectId, count, options = {}) {
   const seedText = options.seedText || '';
-  const difficulty = difficultyLevels[selectedDifficulty];
+  const difficultyInfo = getDifficultyForQuestionBuild(subjectId, options);
+  const difficulty = difficultyInfo.config;
   const demoVariants = demoVariantBanksByGrade[selectedGrade] && demoVariantBanksByGrade[selectedGrade][subjectId];
 
   if (demoVariants && demoVariants.length) {
     const indexes = demoVariants.map((_, index) => index);
-    const orderedIndexes = seedText ? seededShuffle(indexes, seedText + '-' + subjectId) : shuffle(indexes);
+    const variantKey = LAST_TEST_PREFIX + selectedGrade + '-' + subjectId + '-' + difficultyInfo.id + '-dynamic-variants';
+    let recentVariants = readStorageJson(variantKey, []).filter(index => Number.isInteger(index) && index >= 0 && index < demoVariants.length);
+    let availableIndexes = indexes.filter(index => !recentVariants.includes(index));
+    if (availableIndexes.length < Math.max(4, Math.ceil(count / MAX_QUESTIONS_FROM_ONE_VARIANT))) {
+      recentVariants = recentVariants.slice(-1);
+      availableIndexes = indexes.filter(index => !recentVariants.includes(index));
+    }
+    const recentIndexList = indexes.filter(index => recentVariants.includes(index));
+    const orderedIndexes = seedText
+      ? [...seededShuffle(availableIndexes, seedText + '-' + subjectId), ...seededShuffle(recentIndexList, seedText + '-' + subjectId + '-recent')]
+      : shuffle([...availableIndexes, ...recentIndexList]);
     const picked = [];
+    const maxFromVariant = options.maxFromVariant || MAX_QUESTIONS_FROM_ONE_VARIANT;
+    const pickedSignatures = new Set();
+    const usedVariantIndexes = [];
+
     orderedIndexes.forEach(index => {
       if (picked.length >= count) return;
-      const variant = pickDemoQuestionsForDifficulty(demoVariants[index], subjectId, Math.min(count, demoVariants[index].length));
-      picked.push(...variant);
+      const beforePick = picked.length;
+      const variant = pickDemoQuestionsForDifficulty(demoVariants[index], subjectId, demoVariants[index].length, difficultyInfo.id);
+      const orderedVariant = seedText ? seededShuffle(variant, seedText + '-' + subjectId + '-' + index) : shuffle(variant);
+      orderedVariant.slice(0, maxFromVariant).forEach(question => {
+        const signature = normalizeFreeAnswer(question.q);
+        if (picked.length < count && !pickedSignatures.has(signature)) {
+          pickedSignatures.add(signature);
+          picked.push(question);
+        }
+      });
+      if (picked.length > beforePick && !usedVariantIndexes.includes(index)) usedVariantIndexes.push(index);
     });
-    return picked.slice(0, count).map(item => attachQuestionMeta(item, subjectId));
+
+    if (languageSubjectIds.includes(subjectId)) {
+      const grammarNeed = Math.min(REQUIRED_GRAMMAR_COUNT, count);
+      const grammarCount = picked.filter(question => question.category === 'grammar').length;
+      if (grammarCount < grammarNeed) {
+        const grammarPool = shuffle(demoVariants.flat().filter(question => question.category === 'grammar'));
+        grammarPool.forEach(question => {
+          const signature = normalizeFreeAnswer(question.q);
+          if (!pickedSignatures.has(signature) && picked.filter(item => item.category === 'grammar').length < grammarNeed) {
+            if (picked.length >= count) {
+              const replaceIndex = picked.findIndex(item => item.category !== 'grammar');
+              if (replaceIndex >= 0) {
+                pickedSignatures.delete(normalizeFreeAnswer(picked[replaceIndex].q));
+                picked.splice(replaceIndex, 1);
+              }
+            }
+            if (picked.length >= count) return;
+            pickedSignatures.add(signature);
+            picked.push(question);
+          }
+        });
+      }
+    }
+
+    ensureDemoTaskTypeVariety(picked, demoVariants, pickedSignatures, count, subjectId, difficultyInfo.id);
+
+    writeStorageJson(variantKey, [...usedVariantIndexes, ...recentVariants].slice(0, VARIANT_HISTORY_LIMIT));
+
+    return picked.slice(0, count).map(item => attachQuestionMeta(item, subjectId, {
+      difficulty: difficultyInfo.id,
+      difficultyName: difficultyLevels[difficultyInfo.id] ? difficultyLevels[difficultyInfo.id].name : difficultyLevels[selectedDifficulty].name
+    }));
   }
 
   const bank = questionBanksByGrade[selectedGrade] && questionBanksByGrade[selectedGrade][subjectId] ? questionBanksByGrade[selectedGrade][subjectId] : [];
   const preferred = bank.filter(question => difficulty.pool.includes(question.level));
   const pool = preferred.length >= count ? preferred : bank;
   const picked = seedText ? seededShuffle(pool, seedText + '-' + subjectId).slice(0, count) : pickQuestionsForVariant(pool, bank, subjectId, count);
-  return picked.map(item => attachQuestionMeta(item, subjectId));
+  return picked.map(item => attachQuestionMeta(item, subjectId, {
+    difficulty: difficultyInfo.id,
+    difficultyName: difficultyLevels[difficultyInfo.id] ? difficultyLevels[difficultyInfo.id].name : difficultyLevels[selectedDifficulty].name
+  }));
 }
 
 function buildSubjectModeVariant(subjectId, modeId) {
   const mode = testModes[modeId];
   if (modeId === 'standard' || modeId === 'exam') {
-    buildVariant(subjectId);
+    const count = difficultyLevels[selectedDifficulty].count;
+    currentQuestionTargetCount = count;
+    questions = getRawQuestionsForSubject(subjectId, Math.max(count * 3, count + RECENT_QUESTION_BLOCK), { adaptive: true, modeId }).map(normalizeQuestion);
     return;
   }
 
   const count = modeId === 'quick'
     ? 5 + Math.floor(Math.random() * 6)
     : (mode.count || difficultyLevels[selectedDifficulty].count);
-  questions = getRawQuestionsForSubject(subjectId, count).map(normalizeQuestion);
+  currentQuestionTargetCount = count;
+  questions = getRawQuestionsForSubject(subjectId, Math.max(count * 3, count + RECENT_QUESTION_BLOCK), { adaptive: true, modeId }).map(normalizeQuestion);
 }
 
 function buildMixedVariant(count, seedText = '') {
+  currentQuestionTargetCount = count;
   const subjectIds = getSubjectIdsForGrade(selectedGrade);
   const orderedSubjects = seedText ? seededShuffle(subjectIds, seedText) : shuffle(subjectIds);
-  const perSubject = Math.max(1, Math.ceil(count / Math.min(orderedSubjects.length, 5)));
+  const poolCount = Math.max(count * 3, count + RECENT_QUESTION_BLOCK);
+  const perSubject = Math.max(2, Math.ceil(poolCount / Math.min(orderedSubjects.length, 5)));
   const picked = [];
 
   orderedSubjects.forEach(subjectId => {
-    if (picked.length >= count) return;
-    picked.push(...getRawQuestionsForSubject(subjectId, perSubject, { seedText }));
+    if (picked.length >= poolCount) return;
+    picked.push(...getRawQuestionsForSubject(subjectId, perSubject, { seedText, adaptive: true }));
   });
 
   questions = (seedText ? seededShuffle(picked, seedText + '-mixed') : shuffle(picked))
-    .slice(0, count)
     .map(normalizeQuestion);
 }
 
 function buildMarathonVariant() {
   const subjectId = selectedSubject;
   const totalCount = testModes.marathon.count;
+  currentQuestionTargetCount = totalCount;
   const savedDifficulty = selectedDifficulty;
   const picked = [];
 
@@ -4587,11 +4794,11 @@ function buildMarathonVariant() {
     ['general', totalCount - 26]
   ].forEach(([difficulty, count]) => {
     selectedDifficulty = difficulty;
-    picked.push(...getRawQuestionsForSubject(subjectId, count, { seedText: 'marathon-' + difficulty + '-' + Date.now() }));
+    picked.push(...getRawQuestionsForSubject(subjectId, Math.max(count * 2, count + 8), { seedText: 'marathon-' + difficulty + '-' + Date.now(), difficulty, maxFromVariant: 5 }));
   });
 
   selectedDifficulty = savedDifficulty;
-  questions = picked.slice(0, totalCount).map(item => normalizeQuestion(attachQuestionMeta(item, subjectId, {
+  questions = picked.map(item => normalizeQuestion(attachQuestionMeta(item, subjectId, {
     difficulty: 'marathon',
     difficultyName: 'Марафон'
   })));
@@ -4603,6 +4810,7 @@ function getDailyChallengeKey() {
 
 function buildDailyChallenge() {
   const mode = testModes.daily;
+  currentQuestionTargetCount = mode.count;
   const seedText = 'daily-' + getDailyChallengeKey();
   buildMixedVariant(mode.count, seedText);
   questions = questions.map(question => ({
@@ -4614,7 +4822,8 @@ function buildDailyChallenge() {
 
 function buildModeVariant(modeId) {
   if (modeId === 'mistakes') {
-    questions = getSavedMistakesForReview().map(mistakeToQuestion);
+    currentQuestionTargetCount = testModes.mistakes.count || difficultyLevels[selectedDifficulty].count;
+    questions = generateWeakTopicTrainingQuestions(Math.max(currentQuestionTargetCount * 2, currentQuestionTargetCount + 8));
     return;
   }
   if (modeId === 'daily') {
@@ -4814,8 +5023,9 @@ function startConfiguredTest(modeId) {
   currentTestAnswered = new Set();
   currentTestSaved = false;
   currentResultProfile = null;
+  currentQuestionTargetCount = null;
   buildModeVariant(modeId);
-  questions = finalizeQuestionSet(questions, modeId);
+  questions = finalizeQuestionSet(questions, modeId, currentQuestionTargetCount || questions.length);
   updateHeader('test');
   document.getElementById('selection').style.display = 'none';
   document.getElementById('scorebox').style.display = 'none';
@@ -4901,7 +5111,8 @@ function answerInput() {
     currentTestMistakes.push(createMistakeRecord(q, value, cur));
     const fb = document.getElementById('feedback');
     fb.className = 'feedback-box err';
-    fb.textContent = 'Пока не засчитываем. Правильный ответ: ' + q.answerText + '. ' + q.exp;
+    const replaced = replacePerfectQuestionAfterMistake(q);
+    fb.textContent = 'Пока не засчитываем. Правильный ответ: ' + q.answerText + '. ' + q.exp + (replaced ? ' Сейчас появится похожее новое задание.' : '');
     fb.style.display = 'block';
     input.select();
     return;
@@ -4951,7 +5162,8 @@ function answer(index) {
     currentTestMistakes.push(createMistakeRecord(q, index, cur));
     const fb = document.getElementById('feedback');
     fb.className = 'feedback-box err';
-    fb.textContent = 'Пока не засчитываем. Попробуй ещё раз: ' + q.exp;
+    const replaced = replacePerfectQuestionAfterMistake(q);
+    fb.textContent = 'Пока не засчитываем. ' + q.exp + (replaced ? ' Сейчас появится похожее новое задание.' : ' Попробуй ещё раз.');
     fb.style.display = 'block';
     return;
   }
@@ -5100,6 +5312,7 @@ function createDefaultProfile() {
       lastActiveDate: null,
       activityDates: [],
       subjectAttempts: {},
+      weakTopicProgress: {},
       dailyChallenge: {
         currentStreak: 0,
         bestStreak: 0,
@@ -5156,6 +5369,9 @@ function mergeProfile(defaultProfile, savedProfile) {
     : {};
   profile.stats.modeRecords = profile.stats.modeRecords && typeof profile.stats.modeRecords === 'object'
     ? profile.stats.modeRecords
+    : {};
+  profile.stats.weakTopicProgress = profile.stats.weakTopicProgress && typeof profile.stats.weakTopicProgress === 'object'
+    ? profile.stats.weakTopicProgress
     : {};
   profile.stats.dailyChallenge = {
     currentStreak: 0,
@@ -5428,8 +5644,13 @@ function createMistakeRecord(question, selectedIndex, questionIndex) {
     selectedAnswer,
     explanation: question.exp || 'Посмотри правильный ответ и повтори тему.',
     topic: question.topic || 'Общее повторение',
+    category: question.category || 'general',
+    inputKind: question.inputKind || 'choice',
+    mistakeType: getQuestionTaskType(question),
     questionIndex,
-    sourceMistakeId: question.sourceMistakeId || null
+    sourceMistakeId: question.sourceMistakeId || null,
+    weakTopicKey: question.weakTopicKey || getWeakTopicKey(subjectId, question.trainingSourceTopic || question.topic || 'Общее повторение'),
+    trainingSourceTopic: question.trainingSourceTopic || null
   };
 }
 
@@ -5559,11 +5780,26 @@ function updateAchievements(profile) {
   return unlockedNow;
 }
 
-function updateMistakeReviewActivity(reviewMistakes) {
-  if (!profileData) return 0;
+function updateMistakeReviewActivity(reviewMistakes, summary = {}) {
+  if (!profileData) {
+    return {
+      fixedMistakes: 0,
+      topicImprovement: 0,
+      improvedTopics: [],
+      xpEarned: 0,
+      unlocked: [],
+      levelBefore: 1,
+      levelAfter: 1,
+      xpToNext: LEVEL_XP
+    };
+  }
+  const beforeXp = profileData.stats.xp || 0;
+  const beforeLevel = getProfileLevel(beforeXp);
   const reviewedIds = new Set(questions.map(question => question.sourceMistakeId).filter(Boolean));
   const wrongIds = new Set(reviewMistakes.map(mistake => mistake.sourceMistakeId).filter(Boolean));
   const fixedIds = new Set([...reviewedIds].filter(id => !wrongIds.has(id)));
+  const wrongIndexes = new Set(reviewMistakes.map(mistake => mistake.questionIndex));
+  const topicResults = {};
 
   if (fixedIds.size) {
     profileData.mistakes = profileData.mistakes.filter(mistake => !fixedIds.has(mistake.id));
@@ -5574,11 +5810,120 @@ function updateMistakeReviewActivity(reviewMistakes) {
     });
   }
 
+  questions.forEach((question, index) => {
+    const subjectId = question.subject || selectedSubject || 'mixed';
+    const topic = question.trainingSourceTopic || question.topic || 'Общее повторение';
+    const key = question.weakTopicKey || getWeakTopicKey(subjectId, topic);
+    if (!topicResults[key]) {
+      topicResults[key] = {
+        key,
+        subject: subjectId,
+        subjectName: question.subjectName || (subjects[subjectId] ? subjects[subjectId].name : 'разные предметы'),
+        topic,
+        total: 0,
+        correct: 0,
+        wrong: 0
+      };
+    }
+    topicResults[key].total += 1;
+    if (wrongIndexes.has(index)) {
+      topicResults[key].wrong += 1;
+    } else {
+      topicResults[key].correct += 1;
+    }
+  });
+
+  const improvedTopics = [];
+  let totalImprovement = 0;
+  Object.values(topicResults).forEach(topicResult => {
+    const entry = ensureWeakTopicProgress(topicResult.key, topicResult);
+    const beforeProgress = entry.progress || 0;
+    const percent = topicResult.total ? Math.round(topicResult.correct / topicResult.total * 100) : 0;
+    const improvement = percent >= 85 ? 18 : percent >= 70 ? 12 : percent >= 50 ? 5 : -4;
+    const problemDelta = percent >= 85 ? -22 : percent >= 70 ? -14 : percent >= 50 ? -4 : 10;
+
+    entry.attempts += 1;
+    entry.totalQuestions += topicResult.total;
+    entry.correct += topicResult.correct;
+    entry.wrong += topicResult.wrong;
+    entry.bestPercent = Math.max(entry.bestPercent || 0, percent);
+    entry.lastPercent = percent;
+    entry.progress = Math.max(0, Math.min(100, beforeProgress + improvement));
+    entry.problemLevel = Math.max(0, Math.min(100, (entry.problemLevel ?? 70) + problemDelta));
+    entry.lastImprovement = entry.progress - beforeProgress;
+    if (entry.lastImprovement > 0) entry.improvedCount = (entry.improvedCount || 0) + 1;
+    entry.history.unshift({
+      date: new Date().toISOString(),
+      percent,
+      total: topicResult.total,
+      correct: topicResult.correct,
+      wrong: topicResult.wrong,
+      improvement: entry.lastImprovement
+    });
+    entry.history = entry.history.slice(0, 12);
+    totalImprovement += Math.max(0, entry.lastImprovement);
+
+    if (percent >= 70) {
+      improvedTopics.push({
+        key: topicResult.key,
+        subjectName: topicResult.subjectName,
+        topic: topicResult.topic,
+        percent,
+        improvement: entry.lastImprovement,
+        progress: entry.progress
+      });
+    }
+  });
+
+  if (improvedTopics.length) {
+    const improvedKeys = new Set(improvedTopics.map(item => item.key));
+    const removalBudget = {};
+    improvedKeys.forEach(key => {
+      removalBudget[key] = 2;
+    });
+    profileData.mistakes = (profileData.mistakes || []).filter(mistake => {
+      const key = mistake.weakTopicKey || getWeakTopicKey(mistake.subject, mistake.topic);
+      if (removalBudget[key] > 0) {
+        removalBudget[key] -= 1;
+        return false;
+      }
+      return true;
+    });
+    Object.values(profileData.subjects || {}).forEach(progress => {
+      if (Array.isArray(progress.mistakes)) {
+        progress.mistakes = progress.mistakes.filter(mistake => {
+          const key = mistake.weakTopicKey || getWeakTopicKey(mistake.subject, mistake.topic);
+          return !improvedKeys.has(key);
+        });
+      }
+    });
+  }
+
+  if (reviewMistakes.length) {
+    profileData.mistakes.unshift(...reviewMistakes);
+    profileData.mistakes = profileData.mistakes.slice(0, MAX_SAVED_MISTAKES);
+  }
+
+  const pct = typeof summary.pct === 'number'
+    ? summary.pct
+    : (summary.total ? Math.round((summary.score || 0) / summary.total * 100) : 0);
+  const xpEarned = Math.max(8, Math.round(MISTAKE_TRAINING_XP * Math.max(35, pct) / 100) + improvedTopics.length * 6);
+  profileData.stats.xp = beforeXp + xpEarned;
   profileData.stats.mistakeReviews = (profileData.stats.mistakeReviews || 0) + 1;
   updateStreak(profileData);
+  const unlocked = updateAchievements(profileData);
   saveProfile();
   renderProfile();
-  return fixedIds.size;
+  return {
+    fixedMistakes: fixedIds.size + improvedTopics.length,
+    topicImprovement: Math.round(totalImprovement),
+    improvedTopics,
+    xpEarned,
+    unlocked,
+    levelBefore: beforeLevel,
+    levelAfter: getProfileLevel(profileData.stats.xp || 0),
+    xpToNext: getXpToNextLevel(profileData.stats.xp || 0)
+  };
 }
 
 function shouldCountUnansweredAsMistakes() {
@@ -5605,6 +5950,8 @@ function finalizeProfileResult() {
     progressDelta: null,
     unlocked: [],
     fixedMistakes: 0,
+    topicImprovement: 0,
+    improvedTopics: [],
     xpEarned: 0,
     levelBefore: profileData ? getProfileLevel(profileData.stats.xp || 0) : 1,
     levelAfter: profileData ? getProfileLevel(profileData.stats.xp || 0) : 1,
@@ -5616,7 +5963,15 @@ function finalizeProfileResult() {
   };
 
   if (isMistakeReview) {
-    result.fixedMistakes = updateMistakeReviewActivity(result.mistakes);
+    const reviewUpdate = updateMistakeReviewActivity(result.mistakes, { score, total, pct });
+    result.fixedMistakes = reviewUpdate.fixedMistakes;
+    result.topicImprovement = reviewUpdate.topicImprovement;
+    result.improvedTopics = reviewUpdate.improvedTopics;
+    result.xpEarned = reviewUpdate.xpEarned;
+    result.unlocked = reviewUpdate.unlocked;
+    result.levelBefore = reviewUpdate.levelBefore;
+    result.levelAfter = reviewUpdate.levelAfter;
+    result.xpToNext = reviewUpdate.xpToNext;
   } else if (currentTestMode.saveResult !== false) {
     const saved = saveTestResultToProfile({ score, total, pct, mistakes: result.mistakes, modeId: selectedMode });
     result.progressDelta = saved.progressDelta;
@@ -5646,6 +6001,13 @@ function suggestPreparationMode(pct, mistakes) {
 }
 
 function buildAIResultAnalysis(result, pct) {
+  if (isMistakeReview) {
+    const improved = result.improvedTopics || [];
+    if (improved.length) {
+      return 'Работа над ошибками прошла полезно: лучше стали темы ' + improved.slice(0, 3).map(item => item.topic).join(', ') + '. Продолжай короткими подходами, пока прогресс темы не дойдёт до 80-100%.';
+    }
+    return 'Тренировка показала, что слабые темы ещё требуют повторения. Лучше выбрать «Быструю тренировку» по этим темам, а затем снова открыть «Работу над ошибками».';
+  }
   const mistakes = result.mistakes || [];
   const weakTopics = summarizeMistakesByTopic(mistakes).slice(0, 3);
   const subjectText = selectedSubject && subjects[selectedSubject] && !['mixed', 'daily'].includes(currentModeId)
@@ -5705,7 +6067,7 @@ function renderResultInsights(result) {
     .map(item => '<li>' + escapeHtml(item) + '</li>')
     .join('');
   const progressText = isMistakeReview
-    ? '<span class="score-pill">Исправлено ошибок: ' + (result.fixedMistakes || 0) + '</span><span class="score-pill">Активность за день обновлена</span>'
+    ? '<span class="score-pill">Тем улучшилось: ' + ((result.improvedTopics || []).length) + '</span><span class="score-pill">Процент улучшения: +' + (result.topicImprovement || 0) + '%</span><span class="score-pill">XP бонус: +' + (result.xpEarned || 0) + '</span>'
     : result.progressDelta
       ? '<span class="score-pill">Прогресс: ' + result.progressDelta.before + '% → ' + result.progressDelta.after + '%</span><span class="score-pill">Изменение: ' + (result.progressDelta.diff >= 0 ? '+' : '') + result.progressDelta.diff + '%</span>'
       : '<span class="score-pill">Прогресс сохранён в общей статистике</span>';
@@ -5714,6 +6076,9 @@ function renderResultInsights(result) {
     : '';
   const weakTopicsText = weakTopics.length
     ? '<div class="score-insight-card"><div class="score-insight-title">Слабые темы</div><ul>' + weakTopics.map(item => '<li>' + escapeHtml(item.topic) + ': ' + item.count + ' ' + pluralizeMistakes(item.count) + ' · ' + item.percent + '% ошибок</li>').join('') + '</ul></div>'
+    : '';
+  const improvedTopicsText = isMistakeReview && result.improvedTopics && result.improvedTopics.length
+    ? '<div class="score-insight-card"><div class="score-insight-title">Темы уже улучшились</div><ul>' + result.improvedTopics.map(item => '<li>' + escapeHtml(item.subjectName) + ' · ' + escapeHtml(item.topic) + ': ' + item.percent + '% верно, прогресс ' + item.progress + '%</li>').join('') + '</ul></div>'
     : '';
 
   return `
@@ -5727,6 +6092,7 @@ function renderResultInsights(result) {
         <ul>${mistakeItems}</ul>
       </div>
       ${weakTopicsText}
+      ${improvedTopicsText}
       <div class="score-insight-card">
         <div class="score-insight-title">Рекомендации</div>
         <ul>${recommendationItems}</ul>
@@ -5921,6 +6287,27 @@ function renderMistakes() {
       <div class="mistake-meta">${escapeHtml(item.subjects.join(', ') || 'разные предметы')}</div>
     </div>
   `).join('');
+  const weakAnalysis = getWeakTopicAnalysis(6);
+  const trainingRows = weakAnalysis.map(item => `
+    <div class="mistake-topic-row">
+      <b>${escapeHtml(item.subjectName)} · ${escapeHtml(item.topic)}</b>
+      <span>${item.errorRate}% ошибок</span>
+      <div class="mistake-topic-bar"><div class="mistake-topic-fill" style="width: ${Math.max(8, item.problemLevel)}%"></div></div>
+      <div class="mistake-meta">
+        Прогресс темы: ${item.progress}% · уровень проблемы: ${item.problemLevel}% ·
+        частые ошибки: ${escapeHtml(item.frequentMistakes.length ? item.frequentMistakes.slice(0, 2).map(error => error.type + ' (' + error.count + ')').join(', ') : 'пока копим данные')}
+      </div>
+    </div>
+  `).join('');
+  const improvedRows = Object.values(getWeakTopicProgressMap())
+    .filter(item => (item.improvedCount || 0) > 0)
+    .sort((a, b) => (b.progress || 0) - (a.progress || 0))
+    .slice(0, 4)
+    .map(item => '<li>' + escapeHtml(item.subjectName) + ' · ' + escapeHtml(item.topic) + ': прогресс ' + (item.progress || 0) + '%, улучшений ' + (item.improvedCount || 0) + '</li>')
+    .join('');
+  const improvementPercent = weakAnalysis.length
+    ? Math.round(weakAnalysis.reduce((sum, item) => sum + (item.progress || 0), 0) / weakAnalysis.length)
+    : 0;
   const items = mistakes.slice(0, 8).map(mistake => `
     <div class="mistake-item">
       <div class="mistake-question">${escapeHtml(mistake.question)}</div>
@@ -5937,13 +6324,19 @@ function renderMistakes() {
       ${renderStatCard(mistakes.length, 'сохранённых ошибок')}
       ${renderStatCard(weakTopics.length, 'слабых тем')}
       ${renderStatCard(weakTopics[0] ? weakTopics[0].percent + '%' : '0%', 'главная зона риска')}
+      ${renderStatCard(improvementPercent + '%', 'процент улучшения')}
     </div>
     <div class="mistake-item">
       <div class="mistake-question"><b>Слабые темы по убыванию ошибок</b></div>
       <div class="mistake-topic-list">${topicRows}</div>
     </div>
     <div class="mistake-item">
-      <div class="mistake-question"><b>Что повторить сейчас</b></div>
+      <div class="mistake-question"><b>Тренировка по слабым темам</b></div>
+      <div class="mistake-topic-list">${trainingRows}</div>
+    </div>
+    ${improvedRows ? '<div class="mistake-item"><div class="mistake-question"><b>Темы уже улучшились</b></div><div class="mistake-meta"><ul>' + improvedRows + '</ul></div></div>' : ''}
+    <div class="mistake-item">
+      <div class="mistake-question"><b>Рекомендуемые темы для повторения</b></div>
       <div class="mistake-meta"><ul>${recommendations}</ul></div>
     </div>
     ${items}
@@ -6015,9 +6408,301 @@ function getSavedMistakesForReview(limit = 16) {
     .slice(0, limit);
 }
 
+function getWeakTopicKey(subjectId, topic) {
+  return (subjectId || 'mixed') + '|' + normalizeFreeAnswer(topic || 'Общее повторение');
+}
+
+function getWeakTopicProgressMap(profile = profileData) {
+  if (!profile) return {};
+  if (!profile.stats.weakTopicProgress || typeof profile.stats.weakTopicProgress !== 'object') {
+    profile.stats.weakTopicProgress = {};
+  }
+  return profile.stats.weakTopicProgress;
+}
+
+function ensureWeakTopicProgress(key, meta = {}) {
+  const map = getWeakTopicProgressMap();
+  if (!map[key]) {
+    map[key] = {
+      key,
+      subject: meta.subject || 'mixed',
+      subjectName: meta.subjectName || 'разные предметы',
+      topic: meta.topic || 'Общее повторение',
+      attempts: 0,
+      totalQuestions: 0,
+      correct: 0,
+      wrong: 0,
+      progress: 0,
+      problemLevel: 70,
+      bestPercent: 0,
+      lastPercent: 0,
+      lastImprovement: 0,
+      improvedCount: 0,
+      history: []
+    };
+  }
+  map[key].subject = meta.subject || map[key].subject;
+  map[key].subjectName = meta.subjectName || map[key].subjectName;
+  map[key].topic = meta.topic || map[key].topic;
+  map[key].history = Array.isArray(map[key].history) ? map[key].history : [];
+  return map[key];
+}
+
+function addWeakTopicGroup(groups, subjectId, topic, data = {}) {
+  if (!subjects[subjectId]) return;
+  const topicName = topic || 'Общее повторение';
+  const key = getWeakTopicKey(subjectId, topicName);
+  if (!groups[key]) {
+    groups[key] = {
+      key,
+      subject: subjectId,
+      subjectName: subjects[subjectId].name,
+      topic: topicName,
+      savedMistakes: 0,
+      wrong: 0,
+      correct: 0,
+      total: 0,
+      categories: {},
+      mistakeTypes: {}
+    };
+  }
+
+  groups[key].savedMistakes += data.savedMistakes || 0;
+  groups[key].wrong += data.wrong || 0;
+  groups[key].correct += data.correct || 0;
+  groups[key].total += data.total || 0;
+  if (data.category) groups[key].categories[data.category] = (groups[key].categories[data.category] || 0) + 1;
+  if (data.mistakeType) groups[key].mistakeTypes[data.mistakeType] = (groups[key].mistakeTypes[data.mistakeType] || 0) + 1;
+}
+
+function getWeakTopicAnalysis(limit = 12) {
+  if (!profileData) return [];
+  const grade = profileData.user.grade || selectedGrade;
+  const groups = {};
+
+  (profileData.mistakes || [])
+    .filter(mistake => !mistake.grade || mistake.grade === grade)
+    .forEach(mistake => {
+      addWeakTopicGroup(groups, mistake.subject, mistake.topic, {
+        savedMistakes: 1,
+        wrong: 1,
+        total: 1,
+        category: mistake.category || 'general',
+        mistakeType: mistake.mistakeType || mistake.type || 'тест'
+      });
+    });
+
+  Object.entries(profileData.subjects || {}).forEach(([subjectId, progress]) => {
+    if (!getSubjectIdsForGrade(grade).includes(subjectId)) return;
+    Object.entries(progress.topicStats || {}).forEach(([topic, stats]) => {
+      if ((stats.wrong || 0) > 0) {
+        addWeakTopicGroup(groups, subjectId, topic, {
+          wrong: stats.wrong || 0,
+          correct: stats.correct || 0,
+          total: stats.total || 0
+        });
+      }
+    });
+  });
+
+  const progressMap = getWeakTopicProgressMap();
+  return Object.values(groups)
+    .map(item => {
+      const progress = progressMap[item.key] || {};
+      const total = item.total || item.savedMistakes || 1;
+      const errorRate = Math.round((item.wrong || item.savedMistakes || 0) / total * 100);
+      const progressPercent = progress.progress || 0;
+      const problemLevel = typeof progress.problemLevel === 'number'
+        ? progress.problemLevel
+        : Math.min(100, errorRate + item.savedMistakes * 8);
+      const frequentMistakes = Object.entries(item.mistakeTypes)
+        .sort((a, b) => b[1] - a[1])
+        .map(([type, count]) => ({ type, count }));
+
+      return {
+        ...item,
+        errorRate,
+        progress: progressPercent,
+        problemLevel,
+        improvement: progress.lastImprovement || 0,
+        improvedCount: progress.improvedCount || 0,
+        frequentMistakes,
+        problemScore: Math.max(0, problemLevel + item.savedMistakes * 10 + errorRate - progressPercent * 0.4)
+      };
+    })
+    .sort((a, b) => b.problemScore - a.problemScore || b.errorRate - a.errorRate || b.savedMistakes - a.savedMistakes)
+    .slice(0, limit);
+}
+
+function questionMatchesWeakTopic(question, weakTopic) {
+  const topic = normalizeFreeAnswer(weakTopic.topic);
+  const questionTopic = normalizeFreeAnswer(question.topic);
+  if (topic && questionTopic === topic) return true;
+
+  const categoryHits = Object.keys(weakTopic.categories || {});
+  if (categoryHits.length && categoryHits.includes(question.category)) return true;
+
+  const keywords = topic.split(' ').filter(word => word.length >= 5);
+  const source = normalizeFreeAnswer([question.q, question.exp, question.topic, question.category].join(' '));
+  return keywords.length ? keywords.some(word => source.includes(word)) : false;
+}
+
+function annotateWeakTrainingQuestion(question, weakTopic) {
+  return {
+    ...question,
+    difficulty: 'mistakes',
+    difficultyName: 'Работа над ошибками',
+    weakTopicKey: weakTopic.key,
+    trainingSourceTopic: weakTopic.topic,
+    subject: weakTopic.subject,
+    subjectName: weakTopic.subjectName,
+    topic: question.topic || weakTopic.topic
+  };
+}
+
+function pickAdaptiveTrainingQuestions(pool, weakTopic, count) {
+  const levelOrder = weakTopic.progress >= 50
+    ? ['middle', 'general', 'basic']
+    : weakTopic.errorRate >= 60
+      ? ['basic', 'middle', 'general']
+      : ['middle', 'basic', 'general'];
+  const byLevel = {
+    basic: shuffle(pool.filter(question => question.level === 'basic')),
+    middle: shuffle(pool.filter(question => question.level === 'middle' || !question.level)),
+    general: shuffle(pool.filter(question => question.level === 'general'))
+  };
+  const picked = [];
+  const used = new Set();
+
+  while (picked.length < count) {
+    let added = false;
+    levelOrder.forEach(level => {
+      if (picked.length >= count) return;
+      const next = byLevel[level].shift();
+      if (next) {
+        const signature = getQuestionSignature(next);
+        if (!used.has(signature)) {
+          used.add(signature);
+          picked.push(next);
+          added = true;
+        }
+      }
+    });
+    if (!added) break;
+  }
+
+  if (picked.length < count) {
+    shuffle(pool).forEach(question => {
+      const signature = getQuestionSignature(question);
+      if (picked.length < count && !used.has(signature)) {
+        used.add(signature);
+        picked.push(question);
+      }
+    });
+  }
+
+  return picked;
+}
+
+function getWeakTopicQuestionPool(weakTopic, poolSize = 80) {
+  const raw = getRawQuestionsForSubject(weakTopic.subject, poolSize, {
+    adaptive: true,
+    maxFromVariant: 3
+  }).map(normalizeQuestion);
+  const matched = raw.filter(question => questionMatchesWeakTopic(question, weakTopic));
+  const source = matched.length >= 6 ? matched : raw;
+  return source.map(question => annotateWeakTrainingQuestion(question, weakTopic));
+}
+
+function generateWeakTopicTrainingQuestions(limit = 16) {
+  const weakTopics = getWeakTopicAnalysis(8);
+  if (!weakTopics.length) return [];
+
+  const recent = getRecentQuestionSignatures('mistakes', RECENT_QUESTION_BLOCK);
+  const oldMistakeSignatures = new Set((profileData.mistakes || []).map(mistake => (
+    normalizeFreeAnswer((mistake.subject || '') + '|' + (mistake.grade || selectedGrade) + '|' + mistake.question)
+  )));
+  const topicQueue = weakTopics.slice(0, Math.min(6, weakTopics.length));
+  const perTopic = Math.max(2, Math.ceil(limit / topicQueue.length));
+  const picked = [];
+  const used = new Set();
+
+  topicQueue.forEach(weakTopic => {
+    if (picked.length >= limit) return;
+    const pool = getWeakTopicQuestionPool(weakTopic, Math.max(70, limit * 5));
+    const freshPool = pool.filter(question => {
+      const signature = getQuestionSignature(question);
+      return !used.has(signature) && !recent.has(signature) && !oldMistakeSignatures.has(signature);
+    });
+    const fallbackPool = pool.filter(question => {
+      const signature = getQuestionSignature(question);
+      return !used.has(signature) && !oldMistakeSignatures.has(signature);
+    });
+    const source = freshPool.length >= Math.min(perTopic, pool.length) ? freshPool : fallbackPool;
+    pickAdaptiveTrainingQuestions(source, weakTopic, perTopic).forEach(question => {
+      const signature = getQuestionSignature(question);
+      if (picked.length < limit && !used.has(signature)) {
+        used.add(signature);
+        picked.push(question);
+      }
+    });
+  });
+
+  if (picked.length < limit) {
+    topicQueue.forEach(weakTopic => {
+      if (picked.length >= limit) return;
+      getWeakTopicQuestionPool(weakTopic, 100).forEach(question => {
+        const signature = getQuestionSignature(question);
+        if (picked.length < limit && !used.has(signature) && !oldMistakeSignatures.has(signature)) {
+          used.add(signature);
+          picked.push(question);
+        }
+      });
+    });
+  }
+
+  return picked.slice(0, limit);
+}
+
+function getSimilarQuestionFor(question) {
+  const subjectId = question.subject || selectedSubject;
+  if (!subjects[subjectId]) return null;
+  const weakTopic = {
+    key: getWeakTopicKey(subjectId, question.trainingSourceTopic || question.topic),
+    subject: subjectId,
+    subjectName: question.subjectName || subjects[subjectId].name,
+    topic: question.trainingSourceTopic || question.topic || 'Общее повторение',
+    categories: question.category ? { [question.category]: 1 } : {},
+    errorRate: 50,
+    progress: 30
+  };
+  const currentSignature = getQuestionSignature(question);
+  const recent = getRecentQuestionSignatures('perfect', RECENT_QUESTION_BLOCK);
+  const pool = getWeakTopicQuestionPool(weakTopic, 70)
+    .filter(candidate => {
+      const signature = getQuestionSignature(candidate);
+      return signature !== currentSignature && !recent.has(signature);
+    });
+  const arranged = alternateTopics(qualityCheckQuestionSet(getUniqueQuestionSet(pool), 'perfect-similar'));
+  const picked = arranged[0] || null;
+  if (picked) recordQuestionHistory('perfect', [picked]);
+  return picked;
+}
+
+function replacePerfectQuestionAfterMistake(question) {
+  const replacement = getSimilarQuestionFor(question);
+  if (!replacement) return false;
+  questions[cur] = replacement;
+  setTimeout(() => {
+    if (!answered && selectedMode === 'perfect') render();
+  }, 900);
+  return true;
+}
+
 function startMistakeReview() {
-  const savedMistakes = getSavedMistakesForReview();
-  if (!savedMistakes.length) {
+  const targetCount = testModes.mistakes.count || 16;
+  const trainingQuestions = generateWeakTopicTrainingQuestions(Math.max(targetCount * 2, targetCount + 8));
+  if (!trainingQuestions.length) {
     alert('Ошибок пока нет 🎉 Пройди обычный тест, и раздел заполнится автоматически.');
     return;
   }
@@ -6034,7 +6719,8 @@ function startMistakeReview() {
   currentTestAnswered = new Set();
   currentTestSaved = false;
   currentResultProfile = null;
-  questions = savedMistakes.map(mistakeToQuestion);
+  currentQuestionTargetCount = targetCount;
+  questions = finalizeQuestionSet(trainingQuestions, 'mistakes', targetCount);
   closeProfile();
   updateHeader('test');
   document.getElementById('selection').style.display = 'none';
