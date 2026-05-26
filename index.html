@@ -105,6 +105,12 @@
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   }
 
+  .mode-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+    gap: 10px;
+  }
+
   .choice {
     min-height: 48px;
     padding: 12px 14px;
@@ -117,6 +123,14 @@
     color: var(--text);
     text-align: left;
     transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .choice small {
+    display: block;
+    margin-top: 5px;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.35;
   }
 
   .choice:hover {
@@ -259,6 +273,8 @@
 
   .opt.correct { background: var(--green-light); border-color: var(--green); }
   .opt.correct .letter { background: var(--green); color: #fff; }
+  .opt.selected { background: #F0EFE9; border-color: var(--green); }
+  .opt.selected .letter { background: var(--green); color: #fff; }
   .opt.wrong { background: var(--red-light); border-color: var(--red-mid); }
   .opt.wrong .letter { background: var(--red-mid); color: #fff; }
   .opt.reveal { background: var(--green-light); border-color: var(--green); }
@@ -380,6 +396,26 @@
     color: var(--green-dark);
     border: 1px solid #CFE9D3;
     font-size: 12px;
+  }
+
+  .score-motivation {
+    display: grid;
+    gap: 8px;
+    max-width: 660px;
+    margin: 0 auto 1.25rem;
+    text-align: left;
+  }
+
+  .score-motivation-main {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 16px;
+    color: var(--green-dark);
+  }
+
+  .score-motivation-text {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
   }
 
   .score-actions {
@@ -662,6 +698,34 @@
     line-height: 1.45;
   }
 
+  .mistake-topic-list {
+    display: grid;
+    gap: 8px;
+  }
+
+  .mistake-topic-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text);
+  }
+
+  .mistake-topic-bar {
+    grid-column: 1 / -1;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--border);
+    overflow: hidden;
+  }
+
+  .mistake-topic-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: var(--green);
+  }
+
   .achievement-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -749,6 +813,7 @@
   body.dark-theme .mistake-item,
   body.dark-theme .achievement-item,
   body.dark-theme .score-insight-card,
+  body.dark-theme .score-motivation,
   body.dark-theme .ai-head,
   body.dark-theme .ai-input-row,
   body.dark-theme .ai-option {
@@ -758,6 +823,10 @@
   body.dark-theme .ai-input {
     background: #101412;
     color: var(--text);
+  }
+
+  body.dark-theme .opt.selected {
+    background: #25372F;
   }
 
   .ai-callout {
@@ -1074,7 +1143,8 @@
     </div>
     <div class="profile-strip-actions">
       <button class="btn-light" onclick="openProfile()">Личный профиль</button>
-      <button class="btn-light" onclick="openMistakeReview()">Повторить ошибки</button>
+      <button class="btn-light" onclick="openMistakeReview()">Работа над ошибками</button>
+      <button class="btn-light" onclick="startDailyChallenge()">Ежедневный челлендж</button>
     </div>
   </section>
 
@@ -1100,6 +1170,11 @@
           <button class="choice" data-difficulty="middle">Средняя подготовка</button>
           <button class="choice" data-difficulty="general">Генеральная подготовка</button>
         </div>
+      </div>
+
+      <div class="select-block">
+        <div class="select-title">Режим теста</div>
+        <div class="mode-grid" id="mode-grid"></div>
       </div>
 
       <div class="start-panel">
@@ -1181,10 +1256,10 @@
 
       <div class="profile-grid-2">
         <div class="profile-card">
-          <div class="profile-card-title">Повторить ошибки</div>
+          <div class="profile-card-title">Работа над ошибками</div>
           <div class="mistake-list" id="mistake-list"></div>
           <div class="profile-strip-actions" style="margin-top: 12px;">
-            <button class="btn-start" onclick="startMistakeReview()">Запустить повторение</button>
+            <button class="btn-start" onclick="startMistakeReview()">Начать работу</button>
             <button class="btn-light" onclick="clearSavedMistakes()">Очистить ошибки</button>
           </div>
         </div>
@@ -1237,6 +1312,87 @@ const difficultyLevels = {
   general: { name: 'Генеральная подготовка', shortName: 'генеральная', count: 24, pool: ['middle', 'general'] }
 };
 
+const testModes = {
+  standard: {
+    name: 'Обычный тест',
+    desc: 'как раньше: ответы и пояснения сразу',
+    requiresSubject: true,
+    timer: true,
+    feedback: true,
+    saveResult: true
+  },
+  exam: {
+    name: 'Реальный экзамен',
+    desc: 'строго: без подсказок до результата',
+    requiresSubject: true,
+    timer: true,
+    feedback: false,
+    saveResult: true
+  },
+  quick: {
+    name: 'Быстрая тренировка',
+    desc: '5-10 случайных вопросов без таймера',
+    requiresSubject: true,
+    timer: false,
+    feedback: true,
+    count: 8,
+    saveResult: true
+  },
+  mistakes: {
+    name: 'Работа над ошибками',
+    desc: 'только вопросы из прошлых ошибок',
+    requiresSubject: false,
+    timer: false,
+    feedback: true,
+    saveResult: false
+  },
+  mixed: {
+    name: 'Смешанный режим',
+    desc: 'разные предметы в одном тесте',
+    requiresSubject: false,
+    timer: true,
+    feedback: true,
+    count: 16,
+    saveResult: true
+  },
+  marathon: {
+    name: 'Марафон',
+    desc: '30-50 вопросов, сложность растёт',
+    requiresSubject: true,
+    timer: true,
+    feedback: true,
+    count: 40,
+    saveResult: true
+  },
+  daily: {
+    name: 'Ежедневный челлендж',
+    desc: 'новый мини-тест из разных предметов',
+    requiresSubject: false,
+    timer: false,
+    feedback: true,
+    count: 8,
+    saveResult: true
+  },
+  survival: {
+    name: 'Выживание',
+    desc: '3 ошибки заканчивают попытку',
+    requiresSubject: true,
+    timer: true,
+    feedback: true,
+    count: 20,
+    lives: 3,
+    saveResult: true
+  },
+  perfect: {
+    name: '100% режим',
+    desc: 'вопрос засчитывается только с верным ответом',
+    requiresSubject: true,
+    timer: false,
+    feedback: true,
+    saveResult: true
+  }
+};
+
 const subjects = {
   geography: { name: 'География' },
   history: { name: 'История' },
@@ -1267,6 +1423,8 @@ function getSubjectEntriesForGrade(grade) {
 const PROFILE_STORAGE_KEY = 'playground-study-profile-v1';
 const PROFILE_AVATARS = ['🧠', '🌿', '🚀', '📚', '⭐', '🎯', '💡', '🏆'];
 const MAX_SAVED_MISTAKES = 90;
+const LEVEL_XP = 100;
+const DAILY_CHALLENGE_XP = 25;
 const PROFILE_ACHIEVEMENTS = [
   {
     id: 'first_test',
@@ -1306,6 +1464,18 @@ const PROFILE_ACHIEVEMENTS = [
     name: 'Без ошибок',
     desc: 'Пройти тест на 100%',
     check: profile => profile.stats.perfectTests >= 1
+  },
+  {
+    id: 'daily_three',
+    name: '3 челленджа',
+    desc: 'Закрыть ежедневный челлендж 3 раза',
+    check: profile => (profile.stats.dailyChallenge.completedDates || []).length >= 3
+  },
+  {
+    id: 'level_five',
+    name: 'Уровень 5',
+    desc: 'Набрать 400 XP',
+    check: profile => getProfileLevel(profile.stats.xp || 0) >= 5
   }
 ];
 
@@ -3735,6 +3905,7 @@ const studyTopics = {
 let selectedGrade = '5';
 let selectedSubject = null;
 let selectedDifficulty = 'middle';
+let selectedMode = 'standard';
 let questions = [];
 let cur = 0;
 let score = 0;
@@ -3742,6 +3913,10 @@ let answered = false;
 let secondsLeft = TEST_SECONDS;
 let timerId = null;
 let finishedByTimer = false;
+let currentTestMode = testModes.standard;
+let currentModeId = 'standard';
+let currentLives = 0;
+let currentTestEndedEarly = false;
 let aiStarted = false;
 let aiMode = 'welcome';
 let aiPlan = { grade: null, subject: null, goal: null, examTime: null, customExamTime: null };
@@ -3760,6 +3935,48 @@ function shuffle(items) {
     [mixed[i], mixed[j]] = [mixed[j], mixed[i]];
   }
   return mixed;
+}
+
+function hashString(value) {
+  let hash = 2166136261;
+  for (let i = 0; i < value.length; i++) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function seededRandom(seed) {
+  let value = seed >>> 0;
+  return () => {
+    value += 0x6D2B79F5;
+    let t = value;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function seededShuffle(items, seedText) {
+  const mixed = [...items];
+  const random = seededRandom(hashString(seedText));
+  for (let i = mixed.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [mixed[i], mixed[j]] = [mixed[j], mixed[i]];
+  }
+  return mixed;
+}
+
+function attachQuestionMeta(item, subjectId, extra = {}) {
+  return {
+    ...item,
+    subject: item.subject || subjectId,
+    subjectName: item.subjectName || (subjects[subjectId] ? subjects[subjectId].name : 'Смешанный режим'),
+    grade: item.grade || selectedGrade,
+    difficulty: item.difficulty || selectedDifficulty,
+    difficultyName: item.difficultyName || (difficultyLevels[selectedDifficulty] ? difficultyLevels[selectedDifficulty].name : 'Свободный режим'),
+    ...extra
+  };
 }
 
 function inferQuestionTopic(item) {
@@ -3794,7 +4011,13 @@ function normalizeQuestion(item) {
     ans: shuffledOptions.findIndex(option => option.correct),
     exp: item.exp,
     topic: inferQuestionTopic(item),
-    category: item.category || 'general'
+    category: item.category || 'general',
+    subject: item.subject || selectedSubject,
+    subjectName: item.subjectName || (item.subject && subjects[item.subject] ? subjects[item.subject].name : (selectedSubject && subjects[selectedSubject] ? subjects[selectedSubject].name : 'Смешанный режим')),
+    grade: item.grade || selectedGrade,
+    difficulty: item.difficulty || selectedDifficulty,
+    difficultyName: item.difficultyName || (difficultyLevels[selectedDifficulty] ? difficultyLevels[selectedDifficulty].name : 'Свободный режим'),
+    sourceMistakeId: item.sourceMistakeId || null
   };
 }
 
@@ -3822,7 +4045,7 @@ function pickQuestionsForVariant(pool, bank, subjectId, count) {
 function buildVariant(subjectId) {
   const demoPicked = pickDemoStyleVariant(subjectId);
   if (demoPicked) {
-    questions = demoPicked.map(normalizeQuestion);
+    questions = demoPicked.map(item => normalizeQuestion(attachQuestionMeta(item, subjectId)));
     return;
   }
 
@@ -3842,7 +4065,117 @@ function buildVariant(subjectId) {
   }
 
   sessionStorage.setItem(storageKey, signature);
-  questions = picked.map(normalizeQuestion);
+  questions = picked.map(item => normalizeQuestion(attachQuestionMeta(item, subjectId)));
+}
+
+function getRawQuestionsForSubject(subjectId, count, options = {}) {
+  const seedText = options.seedText || '';
+  const difficulty = difficultyLevels[selectedDifficulty];
+  const demoVariants = demoVariantBanksByGrade[selectedGrade] && demoVariantBanksByGrade[selectedGrade][subjectId];
+
+  if (demoVariants && demoVariants.length) {
+    const indexes = demoVariants.map((_, index) => index);
+    const orderedIndexes = seedText ? seededShuffle(indexes, seedText + '-' + subjectId) : shuffle(indexes);
+    const picked = [];
+    orderedIndexes.forEach(index => {
+      if (picked.length >= count) return;
+      const variant = pickDemoQuestionsForDifficulty(demoVariants[index], subjectId, Math.min(count, demoVariants[index].length));
+      picked.push(...variant);
+    });
+    return picked.slice(0, count).map(item => attachQuestionMeta(item, subjectId));
+  }
+
+  const bank = questionBanksByGrade[selectedGrade] && questionBanksByGrade[selectedGrade][subjectId] ? questionBanksByGrade[selectedGrade][subjectId] : [];
+  const preferred = bank.filter(question => difficulty.pool.includes(question.level));
+  const pool = preferred.length >= count ? preferred : bank;
+  const picked = seedText ? seededShuffle(pool, seedText + '-' + subjectId).slice(0, count) : pickQuestionsForVariant(pool, bank, subjectId, count);
+  return picked.map(item => attachQuestionMeta(item, subjectId));
+}
+
+function buildSubjectModeVariant(subjectId, modeId) {
+  const mode = testModes[modeId];
+  if (modeId === 'standard' || modeId === 'exam') {
+    buildVariant(subjectId);
+    return;
+  }
+
+  const count = modeId === 'quick'
+    ? 5 + Math.floor(Math.random() * 6)
+    : (mode.count || difficultyLevels[selectedDifficulty].count);
+  questions = getRawQuestionsForSubject(subjectId, count).map(normalizeQuestion);
+}
+
+function buildMixedVariant(count, seedText = '') {
+  const subjectIds = getSubjectIdsForGrade(selectedGrade);
+  const orderedSubjects = seedText ? seededShuffle(subjectIds, seedText) : shuffle(subjectIds);
+  const perSubject = Math.max(1, Math.ceil(count / Math.min(orderedSubjects.length, 5)));
+  const picked = [];
+
+  orderedSubjects.forEach(subjectId => {
+    if (picked.length >= count) return;
+    picked.push(...getRawQuestionsForSubject(subjectId, perSubject, { seedText }));
+  });
+
+  questions = (seedText ? seededShuffle(picked, seedText + '-mixed') : shuffle(picked))
+    .slice(0, count)
+    .map(normalizeQuestion);
+}
+
+function buildMarathonVariant() {
+  const subjectId = selectedSubject;
+  const totalCount = testModes.marathon.count;
+  const savedDifficulty = selectedDifficulty;
+  const picked = [];
+
+  [
+    ['basic', 12],
+    ['middle', 14],
+    ['general', totalCount - 26]
+  ].forEach(([difficulty, count]) => {
+    selectedDifficulty = difficulty;
+    picked.push(...getRawQuestionsForSubject(subjectId, count, { seedText: 'marathon-' + difficulty + '-' + Date.now() }));
+  });
+
+  selectedDifficulty = savedDifficulty;
+  questions = picked.slice(0, totalCount).map(item => normalizeQuestion(attachQuestionMeta(item, subjectId, {
+    difficulty: 'marathon',
+    difficultyName: 'Марафон'
+  })));
+}
+
+function getDailyChallengeKey() {
+  return selectedGrade + '-' + toDateKey();
+}
+
+function buildDailyChallenge() {
+  const mode = testModes.daily;
+  const seedText = 'daily-' + getDailyChallengeKey();
+  buildMixedVariant(mode.count, seedText);
+  questions = questions.map(question => ({
+    ...question,
+    difficulty: 'daily',
+    difficultyName: 'Ежедневный челлендж'
+  }));
+}
+
+function buildModeVariant(modeId) {
+  if (modeId === 'mistakes') {
+    questions = getSavedMistakesForReview().map(mistakeToQuestion);
+    return;
+  }
+  if (modeId === 'daily') {
+    buildDailyChallenge();
+    return;
+  }
+  if (modeId === 'mixed') {
+    buildMixedVariant(testModes.mixed.count);
+    return;
+  }
+  if (modeId === 'marathon') {
+    buildMarathonVariant();
+    return;
+  }
+  buildSubjectModeVariant(selectedSubject, modeId);
 }
 
 function selectGrade(grade) {
@@ -3860,6 +4193,7 @@ function selectGrade(grade) {
     button.classList.toggle('active', button.dataset.grade === grade);
   });
   renderSubjectChoices();
+  renderModeChoices();
   updateHeader('selection');
   updateSelectedNote();
 }
@@ -3875,11 +4209,16 @@ function selectDifficulty(difficulty) {
 
 function updateSelectedNote() {
   const note = document.getElementById('selected-note');
-  if (!selectedSubject) {
-    note.textContent = 'Сначала выбери предмет.';
+  const mode = testModes[selectedMode];
+  updateStartButtonState();
+
+  if (!selectedSubject && mode.requiresSubject) {
+    note.textContent = 'Сначала выбери предмет. Режим: ' + mode.name + '.';
     return;
   }
-  note.textContent = 'Выбрано: ' + selectedGrade + ' класс · ' + subjects[selectedSubject].name + ' · ' + difficultyLevels[selectedDifficulty].name + '.';
+
+  const subjectText = selectedSubject ? subjects[selectedSubject].name : 'разные предметы';
+  note.textContent = 'Выбрано: ' + selectedGrade + ' класс · ' + subjectText + ' · ' + difficultyLevels[selectedDifficulty].name + ' · ' + mode.name + '.';
 }
 
 function renderSubjectChoices() {
@@ -3896,32 +4235,68 @@ function renderSubjectChoices() {
   });
 }
 
+function renderModeChoices() {
+  const grid = document.getElementById('mode-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  Object.entries(testModes).forEach(([id, mode]) => {
+    const button = document.createElement('button');
+    button.className = 'choice';
+    button.dataset.mode = id;
+    button.innerHTML = escapeHtml(mode.name) + '<small>' + escapeHtml(mode.desc) + '</small>';
+    button.classList.toggle('active', id === selectedMode);
+    button.onclick = () => selectMode(id);
+    grid.appendChild(button);
+  });
+}
+
+function selectMode(modeId) {
+  selectedMode = modeId;
+  document.querySelectorAll('[data-mode]').forEach(button => {
+    button.classList.toggle('active', button.dataset.mode === modeId);
+  });
+  updateHeader('selection');
+  updateSelectedNote();
+}
+
+function updateStartButtonState() {
+  const startButton = document.getElementById('startbtn');
+  if (!startButton) return;
+  const mode = testModes[selectedMode];
+  startButton.disabled = !!(mode && mode.requiresSubject && !selectedSubject);
+}
+
 function selectSubject(subjectId) {
   selectedSubject = subjectId;
   document.querySelectorAll('[data-subject]').forEach(button => {
     button.classList.toggle('active', button.dataset.subject === subjectId);
   });
   updateSelectedNote();
-  document.getElementById('startbtn').disabled = false;
+  updateStartButtonState();
 }
 
 function updateHeader(mode) {
   if ((mode === 'test' || mode === 'score') && isMistakeReview) {
     document.getElementById('page-tag').textContent = 'Работа над ошибками';
-    document.getElementById('page-title').textContent = 'Повторить ошибки';
-    document.getElementById('page-subtitle').textContent = questions.length + ' вопросов · сохранённые ошибки · 45 минут';
+    document.getElementById('page-title').textContent = 'Работа над ошибками';
+    document.getElementById('page-subtitle').textContent = questions.length + ' вопросов · слабые темы · без таймера';
     return;
   }
   if (mode === 'test' || mode === 'score') {
-    const subject = subjects[selectedSubject];
-    document.getElementById('page-tag').textContent = subject.name + ' · ' + selectedGrade + ' класс';
-    document.getElementById('page-title').textContent = 'Итоговый тест';
-    document.getElementById('page-subtitle').textContent = questions.length + ' вопросов · ' + difficultyLevels[selectedDifficulty].name + ' · 45 минут';
+    const subject = ['mixed', 'daily'].includes(currentModeId)
+      ? 'разные предметы'
+      : (selectedSubject && subjects[selectedSubject] ? subjects[selectedSubject].name : 'разные предметы');
+    const modeName = currentTestMode && currentTestMode.name ? currentTestMode.name : testModes[selectedMode].name;
+    const timerText = currentTestMode && currentTestMode.timer ? '45 минут' : 'без таймера';
+    const livesText = currentTestMode && currentTestMode.lives ? ' · жизни: ' + currentLives + '/' + currentTestMode.lives : '';
+    document.getElementById('page-tag').textContent = modeName + ' · ' + selectedGrade + ' класс';
+    document.getElementById('page-title').textContent = modeName;
+    document.getElementById('page-subtitle').textContent = questions.length + ' вопросов · ' + subject + ' · ' + timerText + livesText;
     return;
   }
   document.getElementById('page-tag').textContent = selectedGrade + ' класс · тренажёр';
   document.getElementById('page-title').textContent = 'Итоговые тесты';
-  document.getElementById('page-subtitle').textContent = 'Выбери класс, предмет и уровень · 10/16/24 вопроса · 45 минут';
+  document.getElementById('page-subtitle').textContent = 'Выбери класс, предмет, уровень и режим · всё сохраняется локально';
 }
 
 function formatTime(totalSeconds) {
@@ -3957,24 +4332,49 @@ function stopTimer() {
 }
 
 function startTest() {
-  if (!selectedSubject) return;
-  isMistakeReview = false;
+  if (selectedMode === 'mistakes') {
+    startMistakeReview();
+    return;
+  }
+  if (selectedMode === 'daily') {
+    startDailyChallenge();
+    return;
+  }
+  startConfiguredTest(selectedMode);
+}
+
+function startConfiguredTest(modeId) {
+  const mode = testModes[modeId] || testModes.standard;
+  if (mode.requiresSubject && !selectedSubject) return;
+
+  currentTestMode = mode;
+  currentModeId = modeId;
+  isMistakeReview = modeId === 'mistakes';
   cur = 0;
   score = 0;
   answered = false;
   finishedByTimer = false;
+  currentLives = mode.lives || 0;
+  currentTestEndedEarly = false;
   currentTestMistakes = [];
   currentTestAnswered = new Set();
   currentTestSaved = false;
   currentResultProfile = null;
-  buildVariant(selectedSubject);
+  buildModeVariant(modeId);
   updateHeader('test');
   document.getElementById('selection').style.display = 'none';
   document.getElementById('scorebox').style.display = 'none';
   document.getElementById('progress-row').style.display = 'flex';
   document.getElementById('qcard').style.display = 'block';
   document.getElementById('actions').style.display = 'flex';
-  startTimer();
+  if (mode.timer) {
+    startTimer();
+  } else {
+    stopTimer();
+    secondsLeft = 0;
+    document.getElementById('timer').textContent = 'без таймера';
+    document.getElementById('timer').classList.remove('warn');
+  }
   render();
 }
 
@@ -3984,7 +4384,10 @@ function render() {
   const pct = cur / questions.length * 100;
   document.getElementById('prog').style.width = pct + '%';
   document.getElementById('prog-label').textContent = cur + ' / ' + questions.length;
-  document.getElementById('qnum').textContent = 'Вопрос ' + (cur + 1);
+  const qMeta = ['Вопрос ' + (cur + 1)];
+  if ((selectedMode === 'mixed' || selectedMode === 'daily') && q.subjectName) qMeta.push(q.subjectName);
+  if (currentTestMode.lives) qMeta.push('жизни: ' + currentLives + '/' + currentTestMode.lives);
+  document.getElementById('qnum').textContent = qMeta.join(' · ');
   document.getElementById('qtext').textContent = q.q;
 
   const opts = document.getElementById('opts');
@@ -4006,30 +4409,65 @@ function render() {
 
 function answer(index) {
   if (answered || finishedByTimer) return;
-  answered = true;
   const q = questions[cur];
-  currentTestAnswered.add(cur);
   const buttons = document.querySelectorAll('.opt');
+  const isCorrect = index === q.ans;
+
+  if (selectedMode === 'perfect' && !isCorrect) {
+    buttons[index].disabled = true;
+    buttons[index].classList.add('wrong');
+    currentTestMistakes.push(createMistakeRecord(q, index, cur));
+    const fb = document.getElementById('feedback');
+    fb.className = 'feedback-box err';
+    fb.textContent = 'Пока не засчитываем. Попробуй ещё раз: ' + q.exp;
+    fb.style.display = 'block';
+    return;
+  }
+
+  answered = true;
+  currentTestAnswered.add(cur);
   buttons.forEach(button => button.disabled = true);
-  buttons[index].classList.add(index === q.ans ? 'correct' : 'wrong');
-  if (index !== q.ans) buttons[q.ans].classList.add('reveal');
+
+  if (currentTestMode.feedback) {
+    buttons[index].classList.add(isCorrect ? 'correct' : 'wrong');
+    if (!isCorrect) buttons[q.ans].classList.add('reveal');
+  } else {
+    buttons[index].classList.add('selected');
+  }
+
   if (index === q.ans) {
     score++;
   } else {
     currentTestMistakes.push(createMistakeRecord(q, index, cur));
+    if (currentTestMode.lives) {
+      currentLives--;
+      updateHeader('test');
+      if (currentLives <= 0) {
+        currentTestEndedEarly = true;
+      }
+    }
   }
 
   const fb = document.getElementById('feedback');
-  fb.className = 'feedback-box ' + (index === q.ans ? 'ok' : 'err');
-  fb.textContent = (index === q.ans ? '✓ Верно! ' : '✗ Неверно. ') + q.exp;
-  fb.style.display = 'block';
+  if (currentTestMode.feedback) {
+    fb.className = 'feedback-box ' + (index === q.ans ? 'ok' : 'err');
+    fb.textContent = (index === q.ans ? '✓ Верно! ' : '✗ Неверно. ') + q.exp;
+    fb.style.display = 'block';
+  } else {
+    fb.style.display = 'none';
+  }
 
   const nextButton = document.getElementById('nextbtn');
   nextButton.style.display = 'inline-block';
-  nextButton.textContent = cur < questions.length - 1 ? 'Следующий →' : 'Результат →';
+  nextButton.textContent = currentTestEndedEarly || cur >= questions.length - 1 ? 'Результат →' : 'Следующий →';
+  if (currentTestEndedEarly) setTimeout(showScore, 550);
 }
 
 function nextQ() {
+  if (currentTestEndedEarly) {
+    showScore();
+    return;
+  }
   cur++;
   render();
 }
@@ -4044,15 +4482,18 @@ function showScore() {
   document.getElementById('selection').style.display = 'none';
   document.getElementById('progress-row').style.display = 'none';
 
-  const pct = Math.round(score / questions.length * 100);
+  const pct = questions.length ? Math.round(score / questions.length * 100) : 0;
   const profileResult = finalizeProfileResult();
   const grade = pct >= 85 ? '5' : pct >= 65 ? '4' : pct >= 45 ? '3' : '2';
   const emoji = pct >= 85 ? '🌿' : pct >= 65 ? '🌱' : pct >= 45 ? '🍂' : '🌾';
   const timeText = finishedByTimer
     ? 'Время вышло. Засчитаны ответы, которые были даны до конца таймера.'
     : 'Осталось времени: ' + formatTime(secondsLeft) + '.';
-  const subjectTitle = isMistakeReview ? 'Повторение ошибок' : subjects[selectedSubject].name;
+  const subjectTitle = isMistakeReview
+    ? 'Работа над ошибками'
+    : (['mixed', 'daily'].includes(currentModeId) ? 'разные предметы' : (selectedSubject && subjects[selectedSubject] ? subjects[selectedSubject].name : 'разные предметы'));
   const difficultyTitle = isMistakeReview ? 'работа над ошибками' : difficultyLevels[selectedDifficulty].name;
+  const modeTitle = currentTestMode && currentTestMode.name ? currentTestMode.name : testModes[selectedMode].name;
   const scorebox = document.getElementById('scorebox');
   scorebox.style.display = 'block';
   scorebox.innerHTML = `
@@ -4060,7 +4501,8 @@ function showScore() {
     <div class="score-fraction">${score}/${questions.length}</div>
     <div class="score-desc">правильных ответов</div>
     <div class="score-grade">Оценка: ${grade}</div>
-    <div class="score-extra">${selectedGrade} класс · ${subjectTitle} · ${difficultyTitle} · ${timeText}</div>
+    <div class="score-extra">${selectedGrade} класс · ${subjectTitle} · ${difficultyTitle} · ${modeTitle} · ${timeText}</div>
+    ${renderMotivation(profileResult, pct)}
     ${renderResultInsights(profileResult)}
     <div class="score-actions">
       <button class="btn-restart" onclick="restartSameSubject()">Попробовать ещё раз</button>
@@ -4075,12 +4517,19 @@ function restartSameSubject() {
     startMistakeReview();
     return;
   }
-  startTest();
+  if (selectedMode === 'daily') {
+    startDailyChallenge();
+    return;
+  }
+  startConfiguredTest(selectedMode);
 }
 
 function backToSelection() {
   stopTimer();
   isMistakeReview = false;
+  currentTestMode = testModes[selectedMode] || testModes.standard;
+  currentModeId = selectedMode;
+  currentLives = 0;
   updateHeader('selection');
   document.getElementById('selection').style.display = 'block';
   document.getElementById('scorebox').style.display = 'none';
@@ -4112,11 +4561,20 @@ function createDefaultProfile() {
       totalWrong: 0,
       perfectTests: 0,
       mistakeReviews: 0,
+      xp: 0,
+      modeRecords: {},
       currentStreak: 0,
       bestStreak: 0,
       lastActiveDate: null,
       activityDates: [],
-      subjectAttempts: {}
+      subjectAttempts: {},
+      dailyChallenge: {
+        currentStreak: 0,
+        bestStreak: 0,
+        lastCompletedDate: null,
+        completedDates: [],
+        xp: 0
+      }
     },
     subjects: {},
     mistakes: [],
@@ -4164,6 +4622,20 @@ function mergeProfile(defaultProfile, savedProfile) {
   profile.stats.subjectAttempts = profile.stats.subjectAttempts && typeof profile.stats.subjectAttempts === 'object'
     ? profile.stats.subjectAttempts
     : {};
+  profile.stats.modeRecords = profile.stats.modeRecords && typeof profile.stats.modeRecords === 'object'
+    ? profile.stats.modeRecords
+    : {};
+  profile.stats.dailyChallenge = {
+    currentStreak: 0,
+    bestStreak: 0,
+    lastCompletedDate: null,
+    completedDates: [],
+    xp: 0,
+    ...(profile.stats.dailyChallenge || {})
+  };
+  profile.stats.dailyChallenge.completedDates = Array.isArray(profile.stats.dailyChallenge.completedDates)
+    ? profile.stats.dailyChallenge.completedDates
+    : [];
   Object.keys(profile.subjects).forEach(subjectId => {
     profile.subjects[subjectId] = mergeSubjectProgress(profile.subjects[subjectId]);
   });
@@ -4244,6 +4716,15 @@ function daysBetweenKeys(fromKey, toKey) {
   return Math.round((to - from) / 86400000);
 }
 
+function getProfileLevel(xp) {
+  return Math.floor((xp || 0) / LEVEL_XP) + 1;
+}
+
+function getXpToNextLevel(xp) {
+  const remainder = (xp || 0) % LEVEL_XP;
+  return remainder === 0 && xp > 0 ? LEVEL_XP : LEVEL_XP - remainder;
+}
+
 function updateStreak(profile) {
   const today = toDateKey();
   const lastActive = profile.stats.lastActiveDate;
@@ -4261,6 +4742,20 @@ function updateStreak(profile) {
   }
   profile.stats.activityDates = profile.stats.activityDates.slice(-60);
   profile.stats.bestStreak = Math.max(profile.stats.bestStreak || 0, profile.stats.currentStreak || 0);
+}
+
+function updateDailyChallengeStreak(profile) {
+  const today = toDateKey();
+  const daily = profile.stats.dailyChallenge;
+  if (daily.lastCompletedDate === today) return false;
+
+  const gap = daily.lastCompletedDate ? daysBetweenKeys(daily.lastCompletedDate, today) : 0;
+  daily.currentStreak = gap === 1 ? (daily.currentStreak || 0) + 1 : 1;
+  daily.lastCompletedDate = today;
+  daily.bestStreak = Math.max(daily.bestStreak || 0, daily.currentStreak || 0);
+  if (!daily.completedDates.includes(today)) daily.completedDates.push(today);
+  daily.completedDates = daily.completedDates.slice(-90);
+  return true;
 }
 
 function getSubjectProgress(profile, subjectId) {
@@ -4309,7 +4804,38 @@ function getWeakTopicsFromProgress(progress, limit = 3) {
     .filter(([, data]) => (data.wrong || 0) > 0)
     .sort(([, a], [, b]) => (b.wrong || 0) - (a.wrong || 0) || (a.correct || 0) - (b.correct || 0))
     .slice(0, limit)
-    .map(([topic, data]) => ({ topic, wrong: data.wrong || 0, total: data.total || 0 }));
+    .map(([topic, data]) => ({
+      topic,
+      wrong: data.wrong || 0,
+      total: data.total || 0,
+      percent: data.total ? Math.round((data.wrong || 0) / data.total * 100) : 0
+    }));
+}
+
+function summarizeMistakesByTopic(mistakes) {
+  const total = mistakes.length || 0;
+  const grouped = {};
+
+  mistakes.forEach(mistake => {
+    const topic = mistake.topic || 'Общее повторение';
+    if (!grouped[topic]) {
+      grouped[topic] = {
+        topic,
+        count: 0,
+        subjects: new Set()
+      };
+    }
+    grouped[topic].count++;
+    if (mistake.subjectName) grouped[topic].subjects.add(mistake.subjectName);
+  });
+
+  return Object.values(grouped)
+    .map(item => ({
+      ...item,
+      subjects: [...item.subjects],
+      percent: total ? Math.round(item.count / total * 100) : 0
+    }))
+    .sort((a, b) => b.count - a.count || b.percent - a.percent || a.topic.localeCompare(b.topic, 'ru'));
 }
 
 function getFavoriteSubject(profile) {
@@ -4353,7 +4879,7 @@ function createMistakeRecord(question, selectedIndex, questionIndex) {
     date: new Date().toISOString(),
     grade: question.grade || selectedGrade,
     subject: subjectId,
-    subjectName: question.subjectName || (subjects[subjectId] ? subjects[subjectId].name : 'Повторение ошибок'),
+    subjectName: question.subjectName || (subjects[subjectId] ? subjects[subjectId].name : 'Работа над ошибками'),
     difficulty: question.difficulty || selectedDifficulty,
     difficultyName: question.difficultyName || (difficultyLevels[selectedDifficulty] ? difficultyLevels[selectedDifficulty].name : 'Повторение'),
     question: question.q,
@@ -4368,14 +4894,38 @@ function createMistakeRecord(question, selectedIndex, questionIndex) {
   };
 }
 
+function calculateXpGain(pct, total, modeId, dailyCompletedNow) {
+  const modeBonus = {
+    standard: 8,
+    exam: 18,
+    quick: 6,
+    mixed: 12,
+    marathon: 28,
+    daily: dailyCompletedNow ? DAILY_CHALLENGE_XP : 4,
+    survival: 16,
+    perfect: 14
+  };
+  const accuracyXp = Math.round((pct / 100) * Math.min(total, 30));
+  return 10 + accuracyXp + (modeBonus[modeId] || 8);
+}
+
 function saveTestResultToProfile(result) {
-  if (!profileData || !selectedSubject) return { progressDelta: null, unlocked: [] };
+  if (!profileData) return { progressDelta: null, unlocked: [], xpEarned: 0, newRecord: false };
 
   const profile = profileData;
-  const progress = ensureSubjectProgress(profile, selectedSubject);
-  const beforeProgress = calculateSubjectProgress(progress);
-  const wrongCount = Math.max(0, result.total - result.score);
+  const modeId = result.modeId || selectedMode;
+  const beforeBest = profile.stats.bestPercent || 0;
+  const beforeXp = profile.stats.xp || 0;
+  const beforeLevel = getProfileLevel(beforeXp);
+  const previousModeRecord = profile.stats.modeRecords[modeId] || 0;
+  const wrongCount = result.mistakes.length;
   const wrongIndexes = new Set(result.mistakes.map(mistake => mistake.questionIndex));
+  const subjectIdsInTest = [...new Set(questions.map(question => question.subject || selectedSubject).filter(subjectId => subjects[subjectId]))];
+  const primarySubject = selectedSubject || (subjectIdsInTest.length === 1 ? subjectIdsInTest[0] : null);
+  const primaryProgress = primarySubject ? ensureSubjectProgress(profile, primarySubject) : null;
+  const beforeProgress = primaryProgress ? calculateSubjectProgress(primaryProgress) : null;
+  const dailyCompletedNow = modeId === 'daily' ? updateDailyChallengeStreak(profile) : false;
+  const xpEarned = calculateXpGain(result.pct, result.total, modeId, dailyCompletedNow);
 
   profile.user.grade = selectedGrade;
   profile.stats.testsCompleted += 1;
@@ -4383,51 +4933,76 @@ function saveTestResultToProfile(result) {
   profile.stats.bestPercent = Math.max(profile.stats.bestPercent || 0, result.pct);
   profile.stats.totalCorrect += result.score;
   profile.stats.totalWrong += wrongCount;
+  profile.stats.xp = beforeXp + xpEarned;
   if (result.pct === 100) profile.stats.perfectTests += 1;
-  profile.stats.subjectAttempts[selectedSubject] = (profile.stats.subjectAttempts[selectedSubject] || 0) + 1;
+  profile.stats.modeRecords[modeId] = Math.max(previousModeRecord, result.pct);
+  if (modeId === 'daily') {
+    profile.stats.dailyChallenge.xp = (profile.stats.dailyChallenge.xp || 0) + xpEarned;
+  }
 
-  progress.testsCompleted += 1;
-  progress.totalPercent += result.pct;
-  progress.bestPercent = Math.max(progress.bestPercent || 0, result.pct);
-  progress.correct += result.score;
-  progress.wrong += wrongCount;
+  subjectIdsInTest.forEach(subjectId => {
+    const progress = ensureSubjectProgress(profile, subjectId);
+    const subjectIndexes = questions
+      .map((question, index) => ({ question, index }))
+      .filter(item => (item.question.subject || selectedSubject) === subjectId);
+    const subjectMistakes = result.mistakes.filter(mistake => mistake.subject === subjectId || (!mistake.subject && subjectId === selectedSubject));
+    const subjectScore = Math.max(0, subjectIndexes.length - subjectMistakes.length);
+    const subjectPercent = subjectIndexes.length ? Math.round(subjectScore / subjectIndexes.length * 100) : result.pct;
 
-  const difficultyStats = progress.difficultyStats[selectedDifficulty] || { testsCompleted: 0, totalPercent: 0, bestPercent: 0 };
-  difficultyStats.testsCompleted += 1;
-  difficultyStats.totalPercent += result.pct;
-  difficultyStats.bestPercent = Math.max(difficultyStats.bestPercent || 0, result.pct);
-  progress.difficultyStats[selectedDifficulty] = difficultyStats;
+    profile.stats.subjectAttempts[subjectId] = (profile.stats.subjectAttempts[subjectId] || 0) + 1;
+    progress.testsCompleted += 1;
+    progress.totalPercent += subjectPercent;
+    progress.bestPercent = Math.max(progress.bestPercent || 0, subjectPercent);
+    progress.correct += subjectScore;
+    progress.wrong += subjectMistakes.length;
 
-  questions.forEach((question, index) => {
-    const topicStats = ensureTopicStats(progress, question.topic);
-    topicStats.total += 1;
-    if (wrongIndexes.has(index)) {
-      topicStats.wrong += 1;
-    } else {
-      topicStats.correct += 1;
+    const difficultyStats = progress.difficultyStats[selectedDifficulty] || { testsCompleted: 0, totalPercent: 0, bestPercent: 0 };
+    difficultyStats.testsCompleted += 1;
+    difficultyStats.totalPercent += subjectPercent;
+    difficultyStats.bestPercent = Math.max(difficultyStats.bestPercent || 0, subjectPercent);
+    progress.difficultyStats[selectedDifficulty] = difficultyStats;
+
+    subjectIndexes.forEach(({ question, index }) => {
+      const topicStats = ensureTopicStats(progress, question.topic);
+      topicStats.total += 1;
+      if (wrongIndexes.has(index)) {
+        topicStats.wrong += 1;
+      } else {
+        topicStats.correct += 1;
+      }
+    });
+
+    if (subjectMistakes.length) {
+      progress.mistakes.unshift(...subjectMistakes);
+      progress.mistakes = progress.mistakes.slice(0, 35);
     }
   });
 
   if (result.mistakes.length) {
-    progress.mistakes.unshift(...result.mistakes);
-    progress.mistakes = progress.mistakes.slice(0, 35);
     profile.mistakes.unshift(...result.mistakes);
     profile.mistakes = profile.mistakes.slice(0, MAX_SAVED_MISTAKES);
   }
 
   updateStreak(profile);
   const unlocked = updateAchievements(profile);
-  const afterProgress = calculateSubjectProgress(progress);
+  const afterProgress = primarySubject ? calculateSubjectProgress(ensureSubjectProgress(profile, primarySubject)) : null;
   saveProfile();
   renderProfile();
 
   return {
-    progressDelta: {
+    progressDelta: beforeProgress === null ? null : {
       before: beforeProgress,
       after: afterProgress,
       diff: afterProgress - beforeProgress
     },
-    unlocked
+    unlocked,
+    xpEarned,
+    levelBefore: beforeLevel,
+    levelAfter: getProfileLevel(profile.stats.xp),
+    xpToNext: getXpToNextLevel(profile.stats.xp),
+    newRecord: result.pct > beforeBest,
+    newModeRecord: result.pct > previousModeRecord,
+    dailyCompletedNow
   };
 }
 
@@ -4467,15 +5042,21 @@ function updateMistakeReviewActivity(reviewMistakes) {
   return fixedIds.size;
 }
 
+function shouldCountUnansweredAsMistakes() {
+  return finishedByTimer || selectedMode === 'exam';
+}
+
 function finalizeProfileResult() {
   if (currentTestSaved && currentResultProfile) return currentResultProfile;
 
-  questions.forEach((question, index) => {
-    if (!currentTestAnswered.has(index)) {
-      currentTestMistakes.push(createMistakeRecord(question, -1, index));
-      currentTestAnswered.add(index);
-    }
-  });
+  if (shouldCountUnansweredAsMistakes()) {
+    questions.forEach((question, index) => {
+      if (!currentTestAnswered.has(index)) {
+        currentTestMistakes.push(createMistakeRecord(question, -1, index));
+        currentTestAnswered.add(index);
+      }
+    });
+  }
 
   const total = questions.length || 1;
   const pct = Math.round(score / total * 100);
@@ -4484,24 +5065,96 @@ function finalizeProfileResult() {
     recommendations: buildRecommendationsFromMistakes(currentTestMistakes),
     progressDelta: null,
     unlocked: [],
-    fixedMistakes: 0
+    fixedMistakes: 0,
+    xpEarned: 0,
+    levelBefore: profileData ? getProfileLevel(profileData.stats.xp || 0) : 1,
+    levelAfter: profileData ? getProfileLevel(profileData.stats.xp || 0) : 1,
+    xpToNext: profileData ? getXpToNextLevel(profileData.stats.xp || 0) : LEVEL_XP,
+    newRecord: false,
+    newModeRecord: false,
+    dailyCompletedNow: false,
+    aiAnalysis: ''
   };
 
   if (isMistakeReview) {
     result.fixedMistakes = updateMistakeReviewActivity(result.mistakes);
-  } else {
-    const saved = saveTestResultToProfile({ score, total, pct, mistakes: result.mistakes });
+  } else if (currentTestMode.saveResult !== false) {
+    const saved = saveTestResultToProfile({ score, total, pct, mistakes: result.mistakes, modeId: selectedMode });
     result.progressDelta = saved.progressDelta;
     result.unlocked = saved.unlocked;
+    result.xpEarned = saved.xpEarned;
+    result.levelBefore = saved.levelBefore;
+    result.levelAfter = saved.levelAfter;
+    result.xpToNext = saved.xpToNext;
+    result.newRecord = saved.newRecord;
+    result.newModeRecord = saved.newModeRecord;
+    result.dailyCompletedNow = saved.dailyCompletedNow;
   }
 
+  result.aiAnalysis = buildAIResultAnalysis(result, pct);
   currentTestSaved = true;
   currentResultProfile = result;
   return result;
 }
 
+function suggestPreparationMode(pct, mistakes) {
+  if (selectedMode === 'daily') return 'завтра снова открыть «Ежедневный челлендж»';
+  if (mistakes.length >= 4) return 'перейти в режим «Работа над ошибками»';
+  if (pct >= 90) return 'попробовать «Марафон» или «100% режим»';
+  if (pct < 55) return 'начать с «Быстрой тренировки»';
+  if (selectedMode !== 'exam') return 'закрепить результат в режиме «Реальный экзамен»';
+  return 'сделать смешанный вариант для проверки разных тем';
+}
+
+function buildAIResultAnalysis(result, pct) {
+  const mistakes = result.mistakes || [];
+  const weakTopics = summarizeMistakesByTopic(mistakes).slice(0, 3);
+  const subjectText = selectedSubject && subjects[selectedSubject] && !['mixed', 'daily'].includes(currentModeId)
+    ? 'по предмету «' + subjects[selectedSubject].name + '»'
+    : 'в смешанном тесте';
+  const strengthText = pct >= 85
+    ? 'У тебя хороший результат ' + subjectText + '.'
+    : pct >= 65
+      ? 'База уже есть ' + subjectText + ', но есть темы, которые лучше закрепить.'
+      : 'Сейчас главное спокойно добрать базу ' + subjectText + '.';
+  const weakText = weakTopics.length
+    ? ' Стоит повторить: ' + weakTopics.map(item => item.topic).join(', ') + '.'
+    : ' Явных слабых тем в этой попытке не видно.';
+  const modeText = ' Следующий шаг: ' + suggestPreparationMode(pct, mistakes) + '.';
+  return strengthText + weakText + modeText;
+}
+
+function renderMotivation(result, pct) {
+  const main = pct >= 90
+    ? 'Отличный результат!'
+    : pct >= 70
+      ? 'Хорошая попытка, уже уверенно.'
+      : pct >= 45
+        ? 'Нормальный старт, теперь добьём слабые места.'
+        : 'Не страшно: ошибки уже превратились в план.';
+  const recordText = result.newRecord
+    ? 'Новый рекорд!'
+    : result.newModeRecord
+      ? 'Новый рекорд в этом режиме!'
+      : 'Рекорд пока впереди.';
+  const xpText = result.xpEarned
+    ? 'Получено +' + result.xpEarned + ' XP. До следующего уровня осталось ' + result.xpToNext + ' XP.'
+    : 'Работа над ошибками засчитана в активность.';
+  const levelText = result.levelAfter > result.levelBefore
+    ? 'Новый уровень: ' + result.levelAfter + '.'
+    : 'Текущий уровень: ' + result.levelAfter + '.';
+
+  return `
+    <div class="score-motivation score-insight-card">
+      <div class="score-motivation-main">${escapeHtml(main)}</div>
+      <div class="score-motivation-text">${escapeHtml(recordText)} ${escapeHtml(xpText)} ${escapeHtml(levelText)}</div>
+    </div>
+  `;
+}
+
 function renderResultInsights(result) {
   const mistakes = result.mistakes || [];
+  const weakTopics = summarizeMistakesByTopic(mistakes).slice(0, 5);
   const mistakeItems = mistakes.length
     ? mistakes.slice(0, 5).map(mistake => (
       '<li><b>' + escapeHtml(mistake.topic) + '.</b> ' +
@@ -4516,17 +5169,25 @@ function renderResultInsights(result) {
     ? '<span class="score-pill">Исправлено ошибок: ' + (result.fixedMistakes || 0) + '</span><span class="score-pill">Активность за день обновлена</span>'
     : result.progressDelta
       ? '<span class="score-pill">Прогресс: ' + result.progressDelta.before + '% → ' + result.progressDelta.after + '%</span><span class="score-pill">Изменение: ' + (result.progressDelta.diff >= 0 ? '+' : '') + result.progressDelta.diff + '%</span>'
-      : '<span class="score-pill">Прогресс сохранится после обычного теста</span>';
+      : '<span class="score-pill">Прогресс сохранён в общей статистике</span>';
   const achievementText = result.unlocked && result.unlocked.length
     ? '<div class="score-insight-card"><div class="score-insight-title">Новые достижения</div><ul>' + result.unlocked.map(item => '<li>' + escapeHtml(item.name) + '</li>').join('') + '</ul></div>'
+    : '';
+  const weakTopicsText = weakTopics.length
+    ? '<div class="score-insight-card"><div class="score-insight-title">Слабые темы</div><ul>' + weakTopics.map(item => '<li>' + escapeHtml(item.topic) + ': ' + item.count + ' ' + pluralizeMistakes(item.count) + ' · ' + item.percent + '% ошибок</li>').join('') + '</ul></div>'
     : '';
 
   return `
     <div class="score-insights">
       <div class="score-insight-card">
+        <div class="score-insight-title">AI-анализ Playground</div>
+        <div class="score-motivation-text">${escapeHtml(result.aiAnalysis)}</div>
+      </div>
+      <div class="score-insight-card">
         <div class="score-insight-title">Ошибки</div>
         <ul>${mistakeItems}</ul>
       </div>
+      ${weakTopicsText}
       <div class="score-insight-card">
         <div class="score-insight-title">Рекомендации</div>
         <ul>${recommendationItems}</ul>
@@ -4558,6 +5219,7 @@ function renderProfileStrip() {
   document.getElementById('profile-strip-meta').textContent =
     'Первый вход: ' + formatProfileDate(profileData.user.firstVisit) +
     ' · ' + profileData.user.grade + ' класс · тестов: ' + profileData.stats.testsCompleted +
+    ' · XP: ' + (profileData.stats.xp || 0) +
     ' · streak: ' + (profileData.stats.currentStreak || 0);
 }
 
@@ -4638,7 +5300,10 @@ function renderStatsGrid() {
     renderStatCard(getOverallAverage(profileData) + '%', 'средний результат'),
     renderStatCard(getFavoriteSubject(profileData), 'любимый предмет'),
     renderStatCard(stats.totalCorrect || 0, 'правильных ответов'),
-    renderStatCard(stats.totalWrong || 0, 'ошибок всего')
+    renderStatCard(stats.totalWrong || 0, 'ошибок всего'),
+    renderStatCard(getProfileLevel(stats.xp || 0), 'уровень профиля'),
+    renderStatCard(stats.xp || 0, 'XP всего'),
+    renderStatCard(stats.dailyChallenge.currentStreak || 0, 'daily streak')
   ].join('');
 }
 
@@ -4685,7 +5350,10 @@ function renderStreak() {
   document.getElementById('streak-grid').innerHTML = [
     renderStatCard(stats.currentStreak || 0, 'дней подряд'),
     renderStatCard(stats.bestStreak || 0, 'лучший streak'),
-    renderStatCard((stats.activityDates || []).length, 'дней активности')
+    renderStatCard((stats.activityDates || []).length, 'дней активности'),
+    renderStatCard(stats.dailyChallenge.currentStreak || 0, 'daily streak'),
+    renderStatCard(stats.dailyChallenge.bestStreak || 0, 'лучший daily'),
+    renderStatCard(stats.dailyChallenge.xp || 0, 'daily XP')
   ].join('');
 
   const activeDates = new Set(stats.activityDates || []);
@@ -4698,13 +5366,22 @@ function renderMistakes() {
   const mistakes = profileData.mistakes || [];
   const list = document.getElementById('mistake-list');
   if (!mistakes.length) {
-    list.innerHTML = '<div class="profile-empty">Ошибок пока нет. Пройди тест, и сюда попадут вопросы, где нужен разбор.</div>';
+    list.innerHTML = '<div class="profile-empty">Ошибок пока нет 🎉 Пройди тест, и сюда попадут вопросы, где нужен разбор.</div>';
     return;
   }
 
+  const weakTopics = summarizeMistakesByTopic(mistakes);
   const recommendations = buildRecommendationsFromMistakes(mistakes).slice(0, 3)
     .map(item => '<li>' + escapeHtml(item) + '</li>')
     .join('');
+  const topicRows = weakTopics.slice(0, 6).map(item => `
+    <div class="mistake-topic-row">
+      <b>${escapeHtml(item.topic)}</b>
+      <span>${item.count} · ${item.percent}%</span>
+      <div class="mistake-topic-bar"><div class="mistake-topic-fill" style="width: ${item.percent}%"></div></div>
+      <div class="mistake-meta">${escapeHtml(item.subjects.join(', ') || 'разные предметы')}</div>
+    </div>
+  `).join('');
   const items = mistakes.slice(0, 8).map(mistake => `
     <div class="mistake-item">
       <div class="mistake-question">${escapeHtml(mistake.question)}</div>
@@ -4717,6 +5394,15 @@ function renderMistakes() {
   `).join('');
 
   list.innerHTML = `
+    <div class="stats-grid">
+      ${renderStatCard(mistakes.length, 'сохранённых ошибок')}
+      ${renderStatCard(weakTopics.length, 'слабых тем')}
+      ${renderStatCard(weakTopics[0] ? weakTopics[0].percent + '%' : '0%', 'главная зона риска')}
+    </div>
+    <div class="mistake-item">
+      <div class="mistake-question"><b>Слабые темы по убыванию ошибок</b></div>
+      <div class="mistake-topic-list">${topicRows}</div>
+    </div>
     <div class="mistake-item">
       <div class="mistake-question"><b>Что повторить сейчас</b></div>
       <div class="mistake-meta"><ul>${recommendations}</ul></div>
@@ -4759,13 +5445,27 @@ function mistakeToQuestion(mistake) {
   };
 }
 
+function getSavedMistakesForReview(limit = 16) {
+  const mistakes = profileData && Array.isArray(profileData.mistakes) ? profileData.mistakes : [];
+  const topicRank = {};
+  summarizeMistakesByTopic(mistakes).forEach((item, index) => {
+    topicRank[item.topic] = index;
+  });
+  return [...mistakes]
+    .sort((a, b) => (topicRank[a.topic || 'Общее повторение'] ?? 999) - (topicRank[b.topic || 'Общее повторение'] ?? 999))
+    .slice(0, limit);
+}
+
 function startMistakeReview() {
-  const savedMistakes = profileData && profileData.mistakes ? profileData.mistakes.slice(0, 16) : [];
+  const savedMistakes = getSavedMistakesForReview();
   if (!savedMistakes.length) {
-    alert('Ошибок пока нет. Пройди обычный тест, и раздел заполнится автоматически.');
+    alert('Ошибок пока нет 🎉 Пройди обычный тест, и раздел заполнится автоматически.');
     return;
   }
 
+  selectedMode = 'mistakes';
+  currentTestMode = testModes.mistakes;
+  currentModeId = 'mistakes';
   isMistakeReview = true;
   cur = 0;
   score = 0;
@@ -4783,8 +5483,17 @@ function startMistakeReview() {
   document.getElementById('progress-row').style.display = 'flex';
   document.getElementById('qcard').style.display = 'block';
   document.getElementById('actions').style.display = 'flex';
-  startTimer();
+  stopTimer();
+  secondsLeft = 0;
+  document.getElementById('timer').textContent = 'без таймера';
+  document.getElementById('timer').classList.remove('warn');
   render();
+}
+
+function startDailyChallenge() {
+  selectedMode = 'daily';
+  renderModeChoices();
+  startConfiguredTest('daily');
 }
 
 function clearSavedMistakes() {
@@ -5095,6 +5804,7 @@ document.getElementById('ai-input').addEventListener('keydown', event => {
 });
 initProfileSystem();
 renderSubjectChoices();
+renderModeChoices();
 updateHeader('selection');
 updateSelectedNote();
 updateTimer();
