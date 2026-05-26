@@ -903,6 +903,168 @@
     line-height: 1.4;
   }
 
+  .achievement-launcher {
+    position: fixed;
+    right: 24px;
+    bottom: 98px;
+    z-index: 28;
+    border: 1px solid rgba(29,158,117,0.28);
+    border-radius: 999px;
+    background: var(--green-light);
+    color: var(--green-dark);
+    padding: 12px 16px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 16px 34px rgba(0,0,0,0.16);
+    transition: transform 0.15s, opacity 0.15s;
+  }
+
+  .achievement-launcher:hover {
+    transform: translateY(-2px);
+    opacity: 0.94;
+  }
+
+  .summary-panel {
+    max-width: 1060px;
+  }
+
+  .summary-hero {
+    display: grid;
+    grid-template-columns: minmax(170px, 0.85fr) minmax(0, 2fr);
+    gap: 14px;
+    align-items: stretch;
+  }
+
+  .summary-level-card {
+    background: var(--text);
+    color: #fff;
+    border-radius: 14px;
+    padding: 18px;
+    display: grid;
+    align-content: center;
+    gap: 8px;
+  }
+
+  .summary-level-number {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 42px;
+    line-height: 1;
+  }
+
+  .summary-level-label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.76);
+  }
+
+  .summary-section-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 14px;
+    color: var(--green-dark);
+    margin-bottom: 12px;
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .summary-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+  }
+
+  .summary-timeline {
+    display: grid;
+    gap: 10px;
+  }
+
+  .month-card {
+    background: #FAFAF8;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+  }
+
+  .month-card-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .month-title {
+    font-weight: 800;
+    color: var(--text);
+  }
+
+  .month-rank {
+    border-radius: 999px;
+    padding: 4px 9px;
+    background: var(--green-light);
+    color: var(--green-dark);
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  .summary-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .summary-badge {
+    border: 1px solid rgba(29,158,117,0.24);
+    border-radius: 999px;
+    background: var(--green-light);
+    color: var(--green-dark);
+    padding: 7px 10px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .summary-chart {
+    display: grid;
+    gap: 10px;
+  }
+
+  .chart-row {
+    display: grid;
+    grid-template-columns: minmax(110px, 1fr) minmax(90px, 2fr) auto;
+    gap: 10px;
+    align-items: center;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .chart-track {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--border);
+    overflow: hidden;
+  }
+
+  .chart-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: var(--green);
+  }
+
+  .summary-placeholder {
+    border: 1px dashed var(--border);
+    border-radius: 14px;
+    color: var(--muted);
+    padding: 16px;
+    font-size: 13px;
+    line-height: 1.5;
+    background: rgba(255,255,255,0.34);
+  }
+
   body.dark-theme {
     --green: #38D39F;
     --green-light: #14352C;
@@ -934,6 +1096,8 @@
   body.dark-theme .admin-input,
   body.dark-theme .admin-select,
   body.dark-theme .admin-badge,
+  body.dark-theme .month-card,
+  body.dark-theme .summary-card,
   body.dark-theme .ai-head,
   body.dark-theme .ai-input-row,
   body.dark-theme .ai-option {
@@ -1236,6 +1400,13 @@
       padding: 14px;
     }
     .ai-callout { display: none; }
+    .achievement-launcher {
+      right: 86px;
+      bottom: 18px;
+      max-width: calc(100vw - 170px);
+      padding: 10px 12px;
+      font-size: 12px;
+    }
     .ai-panel {
       right: 12px;
       bottom: 86px;
@@ -1247,6 +1418,14 @@
       bottom: 16px;
       width: 56px;
       height: 56px;
+    }
+    .summary-hero,
+    .summary-grid {
+      grid-template-columns: 1fr;
+    }
+    .chart-row {
+      grid-template-columns: 1fr;
+      gap: 6px;
     }
   }
 </style>
@@ -1490,6 +1669,7 @@
               <button class="btn-light" onclick="adminCheckStreak()">Проверить работу streak</button>
               <button class="btn-light" onclick="adminCheckAchievement()">Проверить достижение</button>
               <button class="btn-light" onclick="adminGenerateTestProgress()">Сгенерировать тестовый прогресс</button>
+              <button class="btn-light" onclick="adminOpenAchievementSummary()">Вызвать итоги достижений</button>
             </div>
           </div>
         </div>
@@ -1499,11 +1679,26 @@
   </div>
 </section>
 
+<section class="profile-overlay" id="summary-overlay" aria-label="Итоги подготовки">
+  <div class="profile-panel summary-panel">
+    <div class="profile-head">
+      <div>
+        <div class="profile-title">Твои итоги подготовки</div>
+        <div class="profile-subtitle">Месяцы, учебный год, достижения и рост сохраняются в localStorage</div>
+      </div>
+      <button class="profile-close" onclick="closeAchievementSummary()" aria-label="Закрыть итоги">×</button>
+    </div>
+    <div class="profile-body" id="summary-content"></div>
+  </div>
+</section>
+
 <aside class="ai-callout" aria-hidden="true">
   <div class="ai-callout-title">ИИ Playground</div>
   <div class="ai-callout-text">Поможет собрать план подготовки под класс, предмет и цель.</div>
   <div class="ai-arrow"></div>
 </aside>
+
+<button class="achievement-launcher" id="achievement-launcher" onclick="openAchievementSummary()">Узнать свои достижения!</button>
 
 <button class="ai-launcher" id="ai-launcher" onclick="toggleAI()" aria-label="Открыть чат Playground AI">
   <span class="chat-icon" aria-hidden="true"></span>
@@ -1707,6 +1902,44 @@ const PROFILE_ACHIEVEMENTS = [
     name: 'Уровень 5',
     desc: 'Набрать 400 XP',
     check: profile => getProfileLevel(profile.stats.xp || 0) >= 5
+  }
+];
+
+const MONTHLY_ACHIEVEMENTS = [
+  {
+    id: 'ten_tests',
+    name: '10 тестов за месяц',
+    desc: 'Пройти 10 тестов за учебный месяц',
+    xp: 25,
+    check: month => (month.testsCompleted || 0) >= 10
+  },
+  {
+    id: 'no_mistakes',
+    name: 'Без ошибок',
+    desc: 'Закрыть месяц без сохранённых ошибок',
+    xp: 20,
+    check: month => (month.testsCompleted || 0) >= 3 && (month.totalWrong || 0) === 0
+  },
+  {
+    id: 'stability',
+    name: 'Стабильность',
+    desc: '5 активных дней за месяц',
+    xp: 18,
+    check: month => (month.activityDates || []).length >= 5
+  },
+  {
+    id: 'math_master',
+    name: 'Мастер математики',
+    desc: 'Средний результат по математике 85%+',
+    xp: 22,
+    check: month => getMonthSubjectAverage(month, 'math') >= 85 && ((month.subjectAttempts || {}).math || 0) >= 2
+  },
+  {
+    id: 'ideal_streak',
+    name: 'Идеальный streak',
+    desc: '7 дней подготовки подряд',
+    xp: 30,
+    check: month => getLongestStreakFromDates(month.activityDates || []) >= 7
   }
 ];
 
@@ -5513,6 +5746,7 @@ function createDefaultProfile() {
       mistakeReviews: 0,
       xp: 0,
       modeRecords: {},
+      modeAttempts: {},
       currentStreak: 0,
       bestStreak: 0,
       lastActiveDate: null,
@@ -5529,7 +5763,11 @@ function createDefaultProfile() {
     },
     subjects: {},
     mistakes: [],
-    achievements: []
+    achievements: [],
+    history: {
+      months: {},
+      years: {}
+    }
   };
 }
 
@@ -5566,7 +5804,8 @@ function mergeProfile(defaultProfile, savedProfile) {
     stats: { ...defaultProfile.stats, ...(saved.stats || {}) },
     subjects: saved.subjects && typeof saved.subjects === 'object' ? saved.subjects : {},
     mistakes: Array.isArray(saved.mistakes) ? saved.mistakes : [],
-    achievements: Array.isArray(saved.achievements) ? saved.achievements : []
+    achievements: Array.isArray(saved.achievements) ? saved.achievements : [],
+    history: saved.history && typeof saved.history === 'object' ? saved.history : { months: {}, years: {} }
   };
 
   profile.stats.activityDates = Array.isArray(profile.stats.activityDates) ? profile.stats.activityDates : [];
@@ -5576,9 +5815,15 @@ function mergeProfile(defaultProfile, savedProfile) {
   profile.stats.modeRecords = profile.stats.modeRecords && typeof profile.stats.modeRecords === 'object'
     ? profile.stats.modeRecords
     : {};
+  profile.stats.modeAttempts = profile.stats.modeAttempts && typeof profile.stats.modeAttempts === 'object'
+    ? profile.stats.modeAttempts
+    : {};
   profile.stats.weakTopicProgress = profile.stats.weakTopicProgress && typeof profile.stats.weakTopicProgress === 'object'
     ? profile.stats.weakTopicProgress
     : {};
+  profile.history = profile.history && typeof profile.history === 'object' ? profile.history : { months: {}, years: {} };
+  profile.history.months = profile.history.months && typeof profile.history.months === 'object' ? profile.history.months : {};
+  profile.history.years = profile.history.years && typeof profile.history.years === 'object' ? profile.history.years : {};
   profile.stats.dailyChallenge = {
     currentStreak: 0,
     bestStreak: 0,
@@ -5626,6 +5871,7 @@ function initProfileSystem() {
     button.classList.toggle('active', button.dataset.grade === selectedGrade);
   });
   applyProfileTheme();
+  finalizeClosedLearningSummaries(profileData);
   saveProfile();
   renderProfile();
 }
@@ -5668,6 +5914,389 @@ function daysBetweenKeys(fromKey, toKey) {
   const to = parseDateKey(toKey);
   if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) return 0;
   return Math.round((to - from) / 86400000);
+}
+
+function getMonthKey(date = new Date()) {
+  return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+}
+
+function parseMonthKey(key) {
+  const [year, month] = String(key).split('-').map(Number);
+  return new Date(year, month - 1, 1);
+}
+
+function formatMonthLabel(key) {
+  const date = parseMonthKey(key);
+  if (Number.isNaN(date.getTime())) return key || 'Учебный месяц';
+  const label = new Intl.DateTimeFormat('ru-RU', { month: 'long', year: 'numeric' }).format(date);
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+function getStudyYearKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const start = month >= 8 ? year : year - 1;
+  return start + '-' + (start + 1);
+}
+
+function getStudyYearLabel(key) {
+  return String(key || getStudyYearKey()).replace('-', '–');
+}
+
+function ensureHistoryShape(profile) {
+  if (!profile.history || typeof profile.history !== 'object') profile.history = {};
+  if (!profile.history.months || typeof profile.history.months !== 'object') profile.history.months = {};
+  if (!profile.history.years || typeof profile.history.years !== 'object') profile.history.years = {};
+  return profile.history;
+}
+
+function emptyLearningPeriodRecord(key, label, type = 'month') {
+  return {
+    key,
+    label,
+    type,
+    testsCompleted: 0,
+    totalPercent: 0,
+    bestPercent: 0,
+    xp: 0,
+    totalCorrect: 0,
+    totalWrong: 0,
+    bestStreak: 0,
+    activityDates: [],
+    subjectAttempts: {},
+    subjectPercentTotals: {},
+    subjectCorrect: {},
+    subjectWrong: {},
+    topicMistakes: {},
+    modeAttempts: {},
+    achievements: [],
+    rewards: [],
+    specialBadges: [],
+    rank: 'Новичок',
+    summary: null,
+    updatedAt: new Date().toISOString()
+  };
+}
+
+function normalizeLearningPeriodRecord(record) {
+  record.subjectAttempts = record.subjectAttempts && typeof record.subjectAttempts === 'object' ? record.subjectAttempts : {};
+  record.subjectPercentTotals = record.subjectPercentTotals && typeof record.subjectPercentTotals === 'object' ? record.subjectPercentTotals : {};
+  record.subjectCorrect = record.subjectCorrect && typeof record.subjectCorrect === 'object' ? record.subjectCorrect : {};
+  record.subjectWrong = record.subjectWrong && typeof record.subjectWrong === 'object' ? record.subjectWrong : {};
+  record.topicMistakes = record.topicMistakes && typeof record.topicMistakes === 'object' ? record.topicMistakes : {};
+  record.modeAttempts = record.modeAttempts && typeof record.modeAttempts === 'object' ? record.modeAttempts : {};
+  record.activityDates = Array.isArray(record.activityDates) ? record.activityDates : [];
+  record.achievements = Array.isArray(record.achievements) ? record.achievements : [];
+  record.rewards = Array.isArray(record.rewards) ? record.rewards : [];
+  record.specialBadges = Array.isArray(record.specialBadges) ? record.specialBadges : [];
+  return record;
+}
+
+function ensureMonthRecord(profile, date = new Date()) {
+  const history = ensureHistoryShape(profile);
+  const key = getMonthKey(date);
+  if (!history.months[key]) {
+    history.months[key] = {
+      ...emptyLearningPeriodRecord(key, formatMonthLabel(key), 'month'),
+      studyYear: getStudyYearKey(date)
+    };
+  }
+  normalizeLearningPeriodRecord(history.months[key]);
+  return history.months[key];
+}
+
+function ensureYearRecord(profile, date = new Date()) {
+  const history = ensureHistoryShape(profile);
+  const key = getStudyYearKey(date);
+  if (!history.years[key]) {
+    history.years[key] = {
+      ...emptyLearningPeriodRecord(key, getStudyYearLabel(key), 'year'),
+      months: []
+    };
+  }
+  normalizeLearningPeriodRecord(history.years[key]);
+  history.years[key].months = Array.isArray(history.years[key].months) ? history.years[key].months : [];
+  return history.years[key];
+}
+
+function addUniqueValue(list, value, limit = 400) {
+  if (!value) return list;
+  if (!list.includes(value)) list.push(value);
+  return list.slice(-limit);
+}
+
+function getLongestStreakFromDates(dateKeys) {
+  const sorted = [...new Set(dateKeys || [])].sort();
+  let best = 0;
+  let current = 0;
+  let previous = null;
+  sorted.forEach(key => {
+    if (!previous) {
+      current = 1;
+    } else {
+      const gap = daysBetweenKeys(previous, key);
+      current = gap === 1 ? current + 1 : 1;
+    }
+    best = Math.max(best, current);
+    previous = key;
+  });
+  return best;
+}
+
+function getMonthSubjectAverage(period, subjectId) {
+  const attempts = (period.subjectAttempts || {})[subjectId] || 0;
+  return attempts ? Math.round(((period.subjectPercentTotals || {})[subjectId] || 0) / attempts) : 0;
+}
+
+function getBestSubjectFromPeriod(period) {
+  const entries = Object.keys(period.subjectAttempts || {})
+    .filter(subjectId => subjects[subjectId])
+    .map(subjectId => ({
+      subjectId,
+      name: subjects[subjectId].name,
+      attempts: period.subjectAttempts[subjectId] || 0,
+      average: getMonthSubjectAverage(period, subjectId)
+    }))
+    .sort((a, b) => b.average - a.average || b.attempts - a.attempts);
+  return entries[0] || null;
+}
+
+function getHardestSubjectFromPeriod(period) {
+  const entries = Object.keys(period.subjectAttempts || {})
+    .filter(subjectId => subjects[subjectId])
+    .map(subjectId => ({
+      subjectId,
+      name: subjects[subjectId].name,
+      wrong: (period.subjectWrong || {})[subjectId] || 0,
+      attempts: period.subjectAttempts[subjectId] || 0,
+      average: getMonthSubjectAverage(period, subjectId)
+    }))
+    .sort((a, b) => b.wrong - a.wrong || a.average - b.average);
+  return entries[0] || null;
+}
+
+function getImprovedSubjectForMonth(profile, month) {
+  const history = ensureHistoryShape(profile);
+  const monthKeys = Object.keys(history.months).sort();
+  const previousKey = monthKeys.filter(key => key < month.key).pop();
+  const previous = previousKey ? history.months[previousKey] : null;
+  if (!previous) return getBestSubjectFromPeriod(month);
+
+  return Object.keys(month.subjectAttempts || {})
+    .filter(subjectId => subjects[subjectId])
+    .map(subjectId => ({
+      subjectId,
+      name: subjects[subjectId].name,
+      diff: getMonthSubjectAverage(month, subjectId) - getMonthSubjectAverage(previous, subjectId),
+      average: getMonthSubjectAverage(month, subjectId)
+    }))
+    .sort((a, b) => b.diff - a.diff || b.average - a.average)[0] || null;
+}
+
+function getWeakTopicsFromPeriod(period, limit = 4) {
+  return Object.entries(period.topicMistakes || {})
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'ru'))
+    .slice(0, limit)
+    .map(([topic, count]) => ({ topic, count }));
+}
+
+function getModeDisplayName(modeId) {
+  return testModes[modeId] ? testModes[modeId].name : (modeId || 'Обычный тест');
+}
+
+function getFavoriteMode(profile) {
+  const attempts = Object.entries(profile.stats.modeAttempts || {})
+    .sort((a, b) => b[1] - a[1]);
+  return attempts.length ? getModeDisplayName(attempts[0][0]) : 'пока нет';
+}
+
+function getPeriodAverage(period) {
+  return period.testsCompleted ? Math.round((period.totalPercent || 0) / period.testsCompleted) : 0;
+}
+
+function getMonthlyRank(month) {
+  const avg = getPeriodAverage(month);
+  if ((month.testsCompleted || 0) >= 20 && avg >= 90) return 'Легенда месяца';
+  if ((month.testsCompleted || 0) >= 12 && avg >= 80) return 'Gold';
+  if ((month.testsCompleted || 0) >= 6 && avg >= 65) return 'Silver';
+  if ((month.testsCompleted || 0) >= 2) return 'Bronze';
+  return 'Новичок';
+}
+
+function buildMonthSummary(profile, month) {
+  const bestSubject = getBestSubjectFromPeriod(month);
+  const hardestSubject = getHardestSubjectFromPeriod(month);
+  const improvedSubject = getImprovedSubjectForMonth(profile, month);
+  const weakTopics = getWeakTopicsFromPeriod(month);
+  const achievements = (month.achievements || [])
+    .map(id => MONTHLY_ACHIEVEMENTS.find(item => item.id === id))
+    .filter(Boolean);
+
+  return {
+    label: month.label,
+    createdAt: new Date().toISOString(),
+    testsCompleted: month.testsCompleted || 0,
+    average: getPeriodAverage(month),
+    bestPercent: month.bestPercent || 0,
+    xp: month.xp || 0,
+    bestSubject: bestSubject ? bestSubject.name : 'пока нет',
+    hardestSubject: hardestSubject ? hardestSubject.name : 'пока нет',
+    improvedSubject: improvedSubject ? improvedSubject.name : 'пока нет',
+    weakTopics,
+    achievements: achievements.map(item => item.name),
+    rank: getMonthlyRank(month),
+    recommendations: weakTopics.length
+      ? weakTopics.map(item => 'Повтори тему «' + item.topic + '» в следующем месяце.')
+      : ['Сохрани темп: сделай один смешанный тест и один реальный экзамен.']
+  };
+}
+
+function buildYearSummary(profile, year) {
+  const bestSubject = getBestSubjectFromPeriod(year);
+  const hardestSubject = getHardestSubjectFromPeriod(year);
+  const weakTopics = getWeakTopicsFromPeriod(year, 6);
+  const avg = getPeriodAverage(year);
+  const levelText = avg >= 85 ? 'уверенная подготовка' : avg >= 65 ? 'средняя подготовка' : year.testsCompleted ? 'нужно укрепить базу' : 'данных пока мало';
+
+  return {
+    label: getStudyYearLabel(year.key),
+    createdAt: new Date().toISOString(),
+    testsCompleted: year.testsCompleted || 0,
+    average: avg,
+    xp: year.xp || 0,
+    bestPercent: year.bestPercent || 0,
+    bestSubject: bestSubject ? bestSubject.name : 'пока нет',
+    hardestSubject: hardestSubject ? hardestSubject.name : 'пока нет',
+    weakTopics,
+    bestStreak: year.bestStreak || 0,
+    levelText,
+    aiAnalysis: year.testsCompleted
+      ? 'За учебный год сильнее всего выделяется «' + (bestSubject ? bestSubject.name : 'пока нет') + '». ' + (weakTopics.length ? 'Главные темы для следующего шага: ' + weakTopics.map(item => item.topic).join(', ') + '.' : 'Явных слабых тем мало, можно переходить к более строгим режимам.')
+      : 'Пройди несколько тестов, чтобы появился годовой AI-анализ.'
+  };
+}
+
+function updateMonthlyAchievementsAndRewards(profile, month, year) {
+  const unlocked = [];
+  month.achievements = Array.isArray(month.achievements) ? month.achievements : [];
+  month.rewards = Array.isArray(month.rewards) ? month.rewards : [];
+  year.rewards = Array.isArray(year.rewards) ? year.rewards : [];
+
+  MONTHLY_ACHIEVEMENTS.forEach(achievement => {
+    if (!month.achievements.includes(achievement.id) && achievement.check(month)) {
+      month.achievements.push(achievement.id);
+      unlocked.push(achievement);
+      const rewardKey = month.key + '-' + achievement.id;
+      if (!month.rewards.includes(rewardKey)) {
+        month.rewards.push(rewardKey);
+        year.rewards.push(rewardKey);
+        profile.stats.xp = (profile.stats.xp || 0) + achievement.xp;
+        month.xp += achievement.xp;
+        year.xp += achievement.xp;
+      }
+    }
+  });
+
+  month.rank = getMonthlyRank(month);
+  if (!month.specialBadges.includes(month.rank) && month.rank !== 'Новичок') {
+    month.specialBadges.push(month.rank);
+  }
+  return unlocked;
+}
+
+function addLearningDataToPeriod(period, data) {
+  period.testsCompleted += 1;
+  period.totalPercent += data.pct;
+  period.bestPercent = Math.max(period.bestPercent || 0, data.pct);
+  period.xp += data.xpEarned || 0;
+  period.totalCorrect += data.score || 0;
+  period.totalWrong += (data.mistakes || []).length;
+  period.activityDates = addUniqueValue(period.activityDates || [], data.dateKey, 370);
+  period.bestStreak = Math.max(period.bestStreak || 0, getLongestStreakFromDates(period.activityDates));
+  period.modeAttempts[data.modeId] = (period.modeAttempts[data.modeId] || 0) + 1;
+
+  data.subjectStats.forEach(item => {
+    period.subjectAttempts[item.subjectId] = (period.subjectAttempts[item.subjectId] || 0) + 1;
+    period.subjectPercentTotals[item.subjectId] = (period.subjectPercentTotals[item.subjectId] || 0) + item.percent;
+    period.subjectCorrect[item.subjectId] = (period.subjectCorrect[item.subjectId] || 0) + item.correct;
+    period.subjectWrong[item.subjectId] = (period.subjectWrong[item.subjectId] || 0) + item.wrong;
+  });
+
+  (data.mistakes || []).forEach(mistake => {
+    const topic = mistake.topic || 'Общее повторение';
+    period.topicMistakes[topic] = (period.topicMistakes[topic] || 0) + 1;
+  });
+  period.updatedAt = new Date().toISOString();
+}
+
+function getSubjectStatsForCurrentQuestions(mistakes, fallbackPct, fallbackScore) {
+  const wrongIndexes = new Set((mistakes || []).map(mistake => mistake.questionIndex));
+  const subjectIds = [...new Set(questions.map(question => question.subject || selectedSubject).filter(subjectId => subjects[subjectId]))];
+  if (!subjectIds.length && selectedSubject && subjects[selectedSubject]) {
+    return [{ subjectId: selectedSubject, percent: fallbackPct, correct: fallbackScore, wrong: (mistakes || []).length }];
+  }
+
+  return subjectIds.map(subjectId => {
+    const subjectIndexes = questions
+      .map((question, index) => ({ question, index }))
+      .filter(item => (item.question.subject || selectedSubject) === subjectId);
+    const wrong = subjectIndexes.filter(item => wrongIndexes.has(item.index)).length;
+    const correct = Math.max(0, subjectIndexes.length - wrong);
+    return {
+      subjectId,
+      percent: subjectIndexes.length ? Math.round(correct / subjectIndexes.length * 100) : fallbackPct,
+      correct,
+      wrong
+    };
+  });
+}
+
+function recordLearningHistory(profile, result) {
+  if (!profile) return { monthlyUnlocked: [] };
+  const now = new Date();
+  const month = ensureMonthRecord(profile, now);
+  const year = ensureYearRecord(profile, now);
+  const monthKey = month.key;
+  const dateKey = toDateKey(now);
+  if (!year.months.includes(monthKey)) year.months.push(monthKey);
+
+  const data = {
+    modeId: result.modeId || selectedMode,
+    score: result.score || 0,
+    total: result.total || 0,
+    pct: typeof result.pct === 'number' ? result.pct : 0,
+    xpEarned: result.xpEarned || 0,
+    mistakes: result.mistakes || [],
+    dateKey,
+    subjectStats: getSubjectStatsForCurrentQuestions(result.mistakes || [], result.pct || 0, result.score || 0)
+  };
+
+  addLearningDataToPeriod(month, data);
+  addLearningDataToPeriod(year, data);
+  const monthlyUnlocked = updateMonthlyAchievementsAndRewards(profile, month, year);
+  month.summary = buildMonthSummary(profile, month);
+  year.summary = buildYearSummary(profile, year);
+  finalizeClosedLearningSummaries(profile);
+  return { month, year, monthlyUnlocked };
+}
+
+function finalizeClosedLearningSummaries(profile) {
+  const history = ensureHistoryShape(profile);
+  const currentMonth = getMonthKey();
+  Object.values(history.months).forEach(month => {
+    if (month.key !== currentMonth && !month.closedAt) {
+      month.summary = buildMonthSummary(profile, month);
+      month.closedAt = new Date().toISOString();
+    }
+  });
+
+  const currentYear = getStudyYearKey();
+  Object.values(history.years).forEach(year => {
+    if (year.key !== currentYear && !year.closedAt) {
+      year.summary = buildYearSummary(profile, year);
+      year.closedAt = new Date().toISOString();
+    }
+  });
 }
 
 function getProfileLevel(xp) {
@@ -5902,6 +6531,7 @@ function saveTestResultToProfile(result) {
   profile.stats.xp = beforeXp + xpEarned;
   if (result.pct === 100) profile.stats.perfectTests += 1;
   profile.stats.modeRecords[modeId] = Math.max(previousModeRecord, result.pct);
+  profile.stats.modeAttempts[modeId] = (profile.stats.modeAttempts[modeId] || 0) + 1;
   if (modeId === 'daily') {
     profile.stats.dailyChallenge.xp = (profile.stats.dailyChallenge.xp || 0) + xpEarned;
   }
@@ -5950,6 +6580,14 @@ function saveTestResultToProfile(result) {
   }
 
   updateStreak(profile);
+  const historyUpdate = recordLearningHistory(profile, {
+    score: result.score,
+    total: result.total,
+    pct: result.pct,
+    mistakes: result.mistakes,
+    modeId,
+    xpEarned
+  });
   const unlocked = updateAchievements(profile);
   const afterProgress = primarySubject ? calculateSubjectProgress(ensureSubjectProgress(profile, primarySubject)) : null;
   saveProfile();
@@ -5968,7 +6606,8 @@ function saveTestResultToProfile(result) {
     xpToNext: getXpToNextLevel(profile.stats.xp),
     newRecord: result.pct > beforeBest,
     newModeRecord: result.pct > previousModeRecord,
-    dailyCompletedNow
+    dailyCompletedNow,
+    monthlyUnlocked: historyUpdate.monthlyUnlocked || []
   };
 }
 
@@ -6116,7 +6755,16 @@ function updateMistakeReviewActivity(reviewMistakes, summary = {}) {
   const xpEarned = Math.max(8, Math.round(MISTAKE_TRAINING_XP * Math.max(35, pct) / 100) + improvedTopics.length * 6);
   profileData.stats.xp = beforeXp + xpEarned;
   profileData.stats.mistakeReviews = (profileData.stats.mistakeReviews || 0) + 1;
+  profileData.stats.modeAttempts.mistakes = (profileData.stats.modeAttempts.mistakes || 0) + 1;
   updateStreak(profileData);
+  const historyUpdate = recordLearningHistory(profileData, {
+    score: summary.score || 0,
+    total: summary.total || questions.length,
+    pct,
+    mistakes: reviewMistakes,
+    modeId: 'mistakes',
+    xpEarned
+  });
   const unlocked = updateAchievements(profileData);
   saveProfile();
   renderProfile();
@@ -6128,7 +6776,8 @@ function updateMistakeReviewActivity(reviewMistakes, summary = {}) {
     unlocked,
     levelBefore: beforeLevel,
     levelAfter: getProfileLevel(profileData.stats.xp || 0),
-    xpToNext: getXpToNextLevel(profileData.stats.xp || 0)
+    xpToNext: getXpToNextLevel(profileData.stats.xp || 0),
+    monthlyUnlocked: historyUpdate.monthlyUnlocked || []
   };
 }
 
@@ -6165,6 +6814,7 @@ function finalizeProfileResult() {
     newRecord: false,
     newModeRecord: false,
     dailyCompletedNow: false,
+    monthlyUnlocked: [],
     aiAnalysis: ''
   };
 
@@ -6178,6 +6828,7 @@ function finalizeProfileResult() {
     result.levelBefore = reviewUpdate.levelBefore;
     result.levelAfter = reviewUpdate.levelAfter;
     result.xpToNext = reviewUpdate.xpToNext;
+    result.monthlyUnlocked = reviewUpdate.monthlyUnlocked || [];
   } else if (currentTestMode.saveResult !== false) {
     const saved = saveTestResultToProfile({ score, total, pct, mistakes: result.mistakes, modeId: selectedMode });
     result.progressDelta = saved.progressDelta;
@@ -6189,6 +6840,7 @@ function finalizeProfileResult() {
     result.newRecord = saved.newRecord;
     result.newModeRecord = saved.newModeRecord;
     result.dailyCompletedNow = saved.dailyCompletedNow;
+    result.monthlyUnlocked = saved.monthlyUnlocked || [];
   }
 
   result.aiAnalysis = buildAIResultAnalysis(result, pct);
@@ -6325,6 +6977,9 @@ function renderProfile() {
   if (isAdmin() && document.getElementById('admin-overlay') && document.getElementById('admin-overlay').classList.contains('open')) {
     renderAdminPanel();
   }
+  if (document.getElementById('summary-overlay') && document.getElementById('summary-overlay').classList.contains('open')) {
+    renderAchievementSummary();
+  }
 }
 
 function renderProfileStrip() {
@@ -6401,6 +7056,226 @@ function openMistakeReview() {
   setTimeout(() => {
     document.getElementById('mistake-list').scrollIntoView({ block: 'center', behavior: 'smooth' });
   }, 80);
+}
+
+function getSortedMonthRecords(profile, limit = 8) {
+  const history = ensureHistoryShape(profile);
+  return Object.values(history.months || {})
+    .sort((a, b) => String(b.key).localeCompare(String(a.key)))
+    .slice(0, limit);
+}
+
+function getCurrentMonthRecord(profile) {
+  return ensureMonthRecord(profile, new Date());
+}
+
+function getCurrentYearRecord(profile) {
+  return ensureYearRecord(profile, new Date());
+}
+
+function renderSummaryBadges(items, emptyText) {
+  if (!items.length) return '<div class="profile-empty">' + escapeHtml(emptyText) + '</div>';
+  return '<div class="summary-badges">' + items.map(item => '<span class="summary-badge">' + escapeHtml(item) + '</span>').join('') + '</div>';
+}
+
+function renderSubjectProgressChart() {
+  const grade = profileData.user.grade || selectedGrade;
+  const rows = getSubjectIdsForGrade(grade)
+    .map(subjectId => {
+      const progress = getSubjectProgress(profileData, subjectId);
+      return {
+        subjectId,
+        name: subjects[subjectId].name,
+        percent: calculateSubjectProgress(progress),
+        average: getAveragePercent(progress),
+        tests: progress.testsCompleted || 0
+      };
+    })
+    .sort((a, b) => b.percent - a.percent || b.tests - a.tests)
+    .slice(0, 8);
+
+  if (!rows.some(item => item.tests > 0)) {
+    return '<div class="summary-placeholder">Пройди несколько тестов, чтобы появились подробные итоги по предметам.</div>';
+  }
+
+  return '<div class="summary-chart">' + rows.map(item => `
+    <div class="chart-row">
+      <b>${escapeHtml(item.name)}</b>
+      <div class="chart-track"><div class="chart-fill" style="width: ${item.percent}%"></div></div>
+      <span>${item.percent}% · ср. ${item.average}%</span>
+    </div>
+  `).join('') + '</div>';
+}
+
+function renderModeChart() {
+  const rows = Object.entries(profileData.stats.modeAttempts || {})
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6);
+  const max = rows.length ? Math.max(...rows.map(([, count]) => count)) : 0;
+  if (!rows.length) return '<div class="summary-placeholder">Любимый режим появится после нескольких завершённых тестов.</div>';
+
+  return '<div class="summary-chart">' + rows.map(([modeId, count]) => `
+    <div class="chart-row">
+      <b>${escapeHtml(getModeDisplayName(modeId))}</b>
+      <div class="chart-track"><div class="chart-fill" style="width: ${max ? Math.round(count / max * 100) : 0}%"></div></div>
+      <span>${count}</span>
+    </div>
+  `).join('') + '</div>';
+}
+
+function renderMonthTimeline() {
+  const months = getSortedMonthRecords(profileData, 6);
+  if (!months.length || !months.some(month => month.testsCompleted)) {
+    return '<div class="summary-placeholder">Пройди несколько тестов, чтобы появилась timeline по учебным месяцам.</div>';
+  }
+
+  return '<div class="summary-timeline">' + months.map(month => {
+    const summary = month.summary || buildMonthSummary(profileData, month);
+    const weakText = (summary.weakTopics || []).length
+      ? summary.weakTopics.map(item => item.topic + ' (' + item.count + ')').join(', ')
+      : 'слабых тем мало';
+    return `
+      <div class="month-card">
+        <div class="month-card-head">
+          <div class="month-title">${escapeHtml(month.label || formatMonthLabel(month.key))}</div>
+          <div class="month-rank">${escapeHtml(summary.rank || getMonthlyRank(month))}</div>
+        </div>
+        <div class="summary-grid">
+          ${renderStatCard(month.testsCompleted || 0, 'тестов')}
+          ${renderStatCard(getPeriodAverage(month) + '%', 'средний результат')}
+          ${renderStatCard(month.xp || 0, 'XP месяца')}
+        </div>
+        <div class="weak-topics">Лучший предмет: ${escapeHtml(summary.bestSubject)} · Сложнее всего: ${escapeHtml(summary.hardestSubject)}<br>Слабые темы: ${escapeHtml(weakText)}</div>
+      </div>
+    `;
+  }).join('') + '</div>';
+}
+
+function renderMonthlyAchievements(month) {
+  const names = (month.achievements || [])
+    .map(id => MONTHLY_ACHIEVEMENTS.find(item => item.id === id))
+    .filter(Boolean)
+    .map(item => item.name);
+  const rewards = (month.rewards || []).length ? ['Бонус XP: ' + (month.rewards || []).length + ' наград', 'Special badge: ' + (month.rank || getMonthlyRank(month))] : [];
+  return `
+    <div class="summary-card">
+      <div class="summary-section-title">Monthly Achievements</div>
+      ${renderSummaryBadges(names, 'Monthly achievements появятся после активности в этом месяце.')}
+    </div>
+    <div class="summary-card">
+      <div class="summary-section-title">Monthly Rewards</div>
+      ${renderSummaryBadges(rewards, 'Monthly rewards появятся вместе с месячными достижениями.')}
+    </div>
+  `;
+}
+
+function renderYearSummary(year) {
+  const summary = year.summary || buildYearSummary(profileData, year);
+  const weakText = (summary.weakTopics || []).length
+    ? summary.weakTopics.map(item => item.topic + ' (' + item.count + ')').join(', ')
+    : 'слабые темы пока не накопились';
+
+  return `
+    <div class="summary-card">
+      <div class="summary-section-title">Твой учебный год · ${escapeHtml(summary.label)}</div>
+      <div class="summary-grid">
+        ${renderStatCard(summary.testsCompleted, 'тестов за год')}
+        ${renderStatCard(summary.xp, 'XP за год')}
+        ${renderStatCard(summary.bestStreak, 'streak record')}
+      </div>
+      <div class="weak-topics">
+        Уровень подготовки: ${escapeHtml(summary.levelText)}<br>
+        Лучший предмет: ${escapeHtml(summary.bestSubject)} · Самый сложный: ${escapeHtml(summary.hardestSubject)}<br>
+        Сложные темы: ${escapeHtml(weakText)}<br>
+        AI-анализ: ${escapeHtml(summary.aiAnalysis)}
+      </div>
+    </div>
+  `;
+}
+
+function renderAchievementSummary() {
+  if (!profileData) return;
+  finalizeClosedLearningSummaries(profileData);
+  const content = document.getElementById('summary-content');
+  if (!content) return;
+
+  const month = getCurrentMonthRecord(profileData);
+  const year = getCurrentYearRecord(profileData);
+  month.summary = month.summary || buildMonthSummary(profileData, month);
+  year.summary = year.summary || buildYearSummary(profileData, year);
+  const stats = profileData.stats;
+  const weakTopics = getWeakTopicAnalysis(5).map(item => item.subjectName + ' · ' + item.topic);
+  const profileAchievementNames = (profileData.achievements || [])
+    .map(id => PROFILE_ACHIEVEMENTS.find(item => item.id === id))
+    .filter(Boolean)
+    .map(item => item.name);
+  const lowData = (stats.testsCompleted || 0) < 2;
+
+  content.innerHTML = `
+    ${lowData ? '<div class="summary-placeholder">Пройди несколько тестов, чтобы появились подробные итоги</div>' : ''}
+    <div class="summary-hero">
+      <div class="summary-level-card">
+        <div class="summary-level-number">${getProfileLevel(stats.xp || 0)}</div>
+        <div class="summary-level-label">уровень профиля</div>
+        <div class="summary-level-label">${stats.xp || 0} XP · до следующего уровня ${getXpToNextLevel(stats.xp || 0)} XP</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-section-title">Актуальная статистика профиля</div>
+        <div class="summary-grid">
+          ${renderStatCard(stats.testsCompleted || 0, 'пройденных тестов')}
+          ${renderStatCard((stats.bestPercent || 0) + '%', 'лучший результат')}
+          ${renderStatCard(getOverallAverage(profileData) + '%', 'средний результат')}
+          ${renderStatCard(stats.currentStreak || 0, 'streak')}
+          ${renderStatCard(stats.bestStreak || 0, 'лучший streak')}
+          ${renderStatCard(getFavoriteSubject(profileData), 'любимый предмет')}
+          ${renderStatCard(getFavoriteMode(profileData), 'любимый режим')}
+          ${renderStatCard((profileData.achievements || []).length, 'достижений')}
+          ${renderStatCard((profileData.mistakes || []).length, 'ошибок в истории')}
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-grid-2">
+      <div class="summary-card">
+        <div class="summary-section-title">Слабые темы</div>
+        ${renderSummaryBadges(weakTopics, 'Слабые темы появятся после ошибок в тестах.')}
+      </div>
+      <div class="summary-card">
+        <div class="summary-section-title">Достижения пользователя</div>
+        ${renderSummaryBadges(profileAchievementNames, 'Достижения появятся после первых результатов.')}
+      </div>
+    </div>
+
+    <div class="profile-grid-2">
+      ${renderMonthlyAchievements(month)}
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-section-title">Прогресс по предметам</div>
+      ${renderSubjectProgressChart()}
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-section-title">Любимые режимы тестов</div>
+      ${renderModeChart()}
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-section-title">Timeline учебных месяцев</div>
+      ${renderMonthTimeline()}
+    </div>
+
+    ${renderYearSummary(year)}
+  `;
+}
+
+function openAchievementSummary() {
+  renderAchievementSummary();
+  document.getElementById('summary-overlay').classList.add('open');
+}
+
+function closeAchievementSummary() {
+  document.getElementById('summary-overlay').classList.remove('open');
 }
 
 function isAdmin() {
@@ -6754,6 +7629,39 @@ function adminCheckAchievement() {
   adminRefresh('Проверка достижений завершена. Новых: ' + unlocked.length + '.');
 }
 
+function adminSyncCurrentHistoryFromProfile() {
+  const month = ensureMonthRecord(profileData);
+  const year = ensureYearRecord(profileData);
+  const monthKey = month.key;
+  if (!year.months.includes(monthKey)) year.months.push(monthKey);
+
+  [month, year].forEach(period => {
+    period.testsCompleted = Math.max(period.testsCompleted || 0, profileData.stats.testsCompleted || 0);
+    period.totalPercent = Math.max(period.totalPercent || 0, profileData.stats.totalPercent || 0);
+    period.bestPercent = Math.max(period.bestPercent || 0, profileData.stats.bestPercent || 0);
+    period.xp = Math.max(period.xp || 0, profileData.stats.xp || 0);
+    period.totalCorrect = Math.max(period.totalCorrect || 0, profileData.stats.totalCorrect || 0);
+    period.totalWrong = Math.max(period.totalWrong || 0, profileData.stats.totalWrong || 0);
+    period.activityDates = [...new Set([...(period.activityDates || []), ...(profileData.stats.activityDates || [])])].sort().slice(-370);
+    period.bestStreak = Math.max(period.bestStreak || 0, getLongestStreakFromDates(period.activityDates), profileData.stats.bestStreak || 0);
+    period.modeAttempts = { ...(period.modeAttempts || {}), ...(profileData.stats.modeAttempts || {}) };
+    Object.entries(profileData.subjects || {}).forEach(([subjectId, progress]) => {
+      if (!subjects[subjectId]) return;
+      period.subjectAttempts[subjectId] = Math.max(period.subjectAttempts[subjectId] || 0, progress.testsCompleted || 0);
+      period.subjectPercentTotals[subjectId] = Math.max(period.subjectPercentTotals[subjectId] || 0, progress.totalPercent || 0);
+      period.subjectCorrect[subjectId] = Math.max(period.subjectCorrect[subjectId] || 0, progress.correct || 0);
+      period.subjectWrong[subjectId] = Math.max(period.subjectWrong[subjectId] || 0, progress.wrong || 0);
+      Object.entries(progress.topicStats || {}).forEach(([topic, data]) => {
+        if ((data.wrong || 0) > 0) period.topicMistakes[topic] = Math.max(period.topicMistakes[topic] || 0, data.wrong || 0);
+      });
+    });
+  });
+
+  updateMonthlyAchievementsAndRewards(profileData, month, year);
+  month.summary = buildMonthSummary(profileData, month);
+  year.summary = buildYearSummary(profileData, year);
+}
+
 function adminGenerateTestProgress() {
   const grade = profileData.user.grade || selectedGrade;
   let totalTests = 0;
@@ -6794,8 +7702,20 @@ function adminGenerateTestProgress() {
   profileData.stats.bestPercent = Math.max(profileData.stats.bestPercent || 0, 96);
   profileData.stats.totalCorrect = Math.max(profileData.stats.totalCorrect || 0, totalCorrect);
   profileData.stats.totalWrong = Math.max(profileData.stats.totalWrong || 0, totalWrong);
+  profileData.stats.modeAttempts = {
+    standard: Math.max(profileData.stats.modeAttempts.standard || 0, 8),
+    quick: Math.max(profileData.stats.modeAttempts.quick || 0, 6),
+    exam: Math.max(profileData.stats.modeAttempts.exam || 0, 3),
+    daily: Math.max(profileData.stats.modeAttempts.daily || 0, 4)
+  };
   updateAchievements(profileData);
+  adminSyncCurrentHistoryFromProfile();
   adminRefresh('Тестовый прогресс сгенерирован.');
+}
+
+function adminOpenAchievementSummary() {
+  openAchievementSummary();
+  setAdminStatus('Итоги достижений открыты вручную.');
 }
 
 function renderStatCard(value, label) {
