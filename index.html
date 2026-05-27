@@ -227,6 +227,59 @@
     margin-bottom: 1.5rem;
   }
 
+  .question-media {
+    display: none;
+    margin: -0.35rem 0 1.25rem;
+  }
+
+  .question-image-button {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: #FAFAF8;
+    color: var(--text);
+    padding: 12px;
+    text-align: left;
+    cursor: zoom-in;
+    font: inherit;
+    transition: border-color 0.15s, background 0.15s, transform 0.15s;
+  }
+
+  .question-image-button:hover {
+    background: #F0EFE9;
+    border-color: rgba(29,158,117,0.34);
+  }
+
+  .question-image-frame {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #EEF1EA;
+  }
+
+  .question-image-frame svg,
+  .image-fullscreen-frame svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .question-image-caption {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 8px;
+    line-height: 1.4;
+  }
+
+  .question-image-caption b {
+    color: var(--green-dark);
+    font-weight: 800;
+  }
+
   .options {
     display: flex;
     flex-direction: column;
@@ -525,6 +578,73 @@
 
   .profile-overlay.open {
     display: block;
+  }
+
+  .image-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: none;
+    padding: 18px;
+    background: rgba(0,0,0,0.72);
+  }
+
+  .image-overlay.open {
+    display: grid;
+    place-items: center;
+  }
+
+  .image-panel {
+    width: min(1120px, 100%);
+    max-height: calc(100vh - 36px);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 24px 90px rgba(0,0,0,0.34);
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .image-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--card);
+  }
+
+  .image-title {
+    font-family: 'Unbounded', sans-serif;
+    color: var(--text);
+    font-size: 15px;
+  }
+
+  .image-caption {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+
+  .image-close {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 24px;
+    line-height: 1;
+  }
+
+  .image-fullscreen-frame {
+    width: 100%;
+    height: min(72vh, 720px);
+    background: #EEF1EA;
   }
 
   .profile-panel {
@@ -1081,6 +1201,7 @@
 
   body.dark-theme .choice,
   body.dark-theme .opt,
+  body.dark-theme .question-image-button,
   body.dark-theme .input-answer,
   body.dark-theme .btn-light,
   body.dark-theme .achievement-launcher,
@@ -1109,9 +1230,11 @@
 
   body.dark-theme .choice,
   body.dark-theme .opt,
+  body.dark-theme .question-image-button,
   body.dark-theme .btn-light,
   body.dark-theme .achievement-launcher,
   body.dark-theme .profile-close,
+  body.dark-theme .image-close,
   body.dark-theme .ai-close,
   body.dark-theme .ai-option {
     color: var(--text);
@@ -1137,6 +1260,7 @@
 
   body.dark-theme .choice:hover,
   body.dark-theme .opt:hover:not(:disabled),
+  body.dark-theme .question-image-button:hover,
   body.dark-theme .btn-light:hover,
   body.dark-theme .ai-option:hover {
     background: #29312B;
@@ -1152,6 +1276,11 @@
   body.dark-theme .ai-input {
     background: #101412;
     color: var(--text);
+  }
+
+  body.dark-theme .question-image-frame,
+  body.dark-theme .image-fullscreen-frame {
+    background: #111713;
   }
 
   body.dark-theme .ai-msg.user,
@@ -1595,6 +1724,7 @@
   <div class="card" id="qcard" style="display: none;">
     <div class="q-number" id="qnum"></div>
     <div class="q-text" id="qtext"></div>
+    <div class="question-media" id="qmedia"></div>
     <div class="options" id="opts"></div>
     <div class="feedback-box" id="feedback"></div>
   </div>
@@ -1787,6 +1917,19 @@
   </div>
 </section>
 
+<section class="image-overlay" id="image-overlay" aria-label="Изображение задания">
+  <div class="image-panel">
+    <div class="image-head">
+      <div>
+        <div class="image-title" id="image-title">Изображение задания</div>
+        <div class="image-caption" id="image-caption"></div>
+      </div>
+      <button class="image-close" onclick="closeQuestionImage()" aria-label="Закрыть изображение">×</button>
+    </div>
+    <div class="image-fullscreen-frame" id="image-fullscreen-frame"></div>
+  </div>
+</section>
+
 <aside class="ai-callout" aria-hidden="true">
   <div class="ai-callout-title">ИИ Playground</div>
   <div class="ai-callout-text">Поможет собрать план подготовки под класс, предмет и цель.</div>
@@ -1889,6 +2032,15 @@ const testModes = {
     count: 8,
     saveResult: true
   },
+  extraPrep: {
+    name: 'Дополнительная подготовка (БЕТА)',
+    desc: 'частые вопросы экзаменов: все предметы 5–6 классов',
+    requiresSubject: false,
+    timer: true,
+    feedback: true,
+    count: 40,
+    saveResult: true
+  },
   survival: {
     name: 'Выживание',
     desc: '3 ошибки заканчивают попытку',
@@ -1939,6 +2091,24 @@ function getSubjectName(subjectId, grade = selectedGrade) {
 
 function isDecimalMath5(subjectId = selectedSubject, grade = selectedGrade) {
   return subjectId === 'math' && String(grade) === '5';
+}
+
+function isCrossSubjectMode(modeId) {
+  return ['mixed', 'daily', 'extraPrep'].includes(modeId);
+}
+
+function getTestGradeLabel(modeId = currentModeId) {
+  return modeId === 'extraPrep' ? '5–6 классы' : selectedGrade + ' класс';
+}
+
+function getTestSubjectLabel(modeId = currentModeId) {
+  if (modeId === 'extraPrep') return 'все предметы 5–6 классов';
+  if (isCrossSubjectMode(modeId)) return 'разные предметы';
+  return selectedSubject && subjects[selectedSubject] ? getSubjectName(selectedSubject) : 'разные предметы';
+}
+
+function isGeographyDemo5(subjectId = selectedSubject, grade = selectedGrade) {
+  return subjectId === 'geography' && String(grade) === '5';
 }
 
 function getSubjectEntriesForGrade(grade) {
@@ -3456,13 +3626,21 @@ const MAX_QUESTIONS_FROM_ONE_VARIANT = 4;
 const demoVariantSubjectIds5 = ['geography', 'history', 'biology', 'informatics', 'math', 'english', 'german', 'french', 'russian', 'literature'];
 const demoVariantSubjectIds6 = ['geography', 'history', 'biology', 'informatics', 'math', 'english', 'german', 'chinese', 'russian', 'literature'];
 
-function demoQuestion(q, correct, wrongs, exp, category) {
+function demoQuestion(q, correct, wrongs, exp, category, options = {}) {
   const opts = [String(correct)];
   wrongs.map(String).forEach(option => {
     if (option !== opts[0] && !opts.includes(option) && opts.length < 4) opts.push(option);
   });
   while (opts.length < 4) opts.push('нет верного ответа ' + opts.length);
-  return { q: String(q), opts, ans: 0, exp: String(exp), category: category || 'demo', level: 'middle' };
+  return {
+    q: String(q),
+    opts,
+    ans: 0,
+    exp: String(exp),
+    category: category || 'demo',
+    level: options.level || 'middle',
+    image: options.image || null
+  };
 }
 
 function openQuestion(q, answers, exp, category, options = {}) {
@@ -3478,7 +3656,8 @@ function openQuestion(q, answers, exp, category, options = {}) {
     category: category || 'open',
     level: options.level || 'middle',
     inputKind: options.inputKind || 'text',
-    tolerance: options.tolerance || 'soft'
+    tolerance: options.tolerance || 'soft',
+    image: options.image || null
   };
 }
 
@@ -3492,6 +3671,11 @@ function demoWrongOptions(correct, options) {
 
 function demoOrderAnswer(items, sortedItems) {
   return sortedItems.map(item => String(items.indexOf(item) + 1)).join('');
+}
+
+function sequenceAnswerVariants(answer) {
+  const compact = String(answer);
+  return [compact, compact.split('').join(' '), compact.split('').join('-')];
 }
 
 function makeOpenAnswerPack(subject, index, grade) {
@@ -3616,71 +3800,253 @@ function makeOpenAnswerPack(subject, index, grade) {
   ];
 }
 
+function geoFormatScale(value) {
+  return '1:' + value.toLocaleString('ru-RU').replace(/\s/g, ' ');
+}
+
+function geoImage(title, caption, svg) {
+  return { title, caption, svg };
+}
+
+const GEO_WORLD_MAP_URL = 'https://upload.wikimedia.org/wikipedia/commons/f/fc/Blank_world_map_Robinson_projection.svg';
+
+function makeGeoWorldMapBase(extraContent = '') {
+  return `
+<svg viewBox="0 0 640 360" role="img" aria-label="Мировая карта" xmlns="http://www.w3.org/2000/svg">
+  <rect width="640" height="360" fill="#eef4f7"/>
+  <image href="${GEO_WORLD_MAP_URL}" x="20" y="18" width="600" height="304" preserveAspectRatio="xMidYMid meet"/>
+  ${extraContent}
+</svg>`;
+}
+
+function geoDirectionCase(index) {
+  const cases = [
+    { name: 'северо-восточном', short: 'с-в', dx: 185, dy: -95 },
+    { name: 'юго-восточном', short: 'ю-в', dx: 170, dy: 105 },
+    { name: 'юго-западном', short: 'ю-з', dx: -170, dy: 100 },
+    { name: 'северо-западном', short: 'с-з', dx: -180, dy: -90 },
+    { name: 'восточном', short: 'в', dx: 205, dy: 0 },
+    { name: 'западном', short: 'з', dx: -205, dy: 0 },
+    { name: 'северном', short: 'с', dx: 0, dy: -135 },
+    { name: 'южном', short: 'ю', dx: 0, dy: 135 }
+  ];
+  return demoPick(cases, index);
+}
+
+function geoDirectionAnswers(direction) {
+  const adjective = direction.name.replace(/ом$/, 'ое');
+  const nominative = {
+    'северо-восточном': 'северо-восток',
+    'юго-восточном': 'юго-восток',
+    'юго-западном': 'юго-запад',
+    'северо-западном': 'северо-запад',
+    'восточном': 'восток',
+    'западном': 'запад',
+    'северном': 'север',
+    'южном': 'юг'
+  }[direction.name];
+  return [direction.name, adjective, nominative, direction.short, direction.short.replace('-', '')].filter(Boolean);
+}
+
+function makeGeoDirectionMapSvg(index, direction) {
+  const ax = 320 - Math.round(direction.dx / 2);
+  const ay = 185 - Math.round(direction.dy / 2);
+  const bx = ax + direction.dx;
+  const by = ay + direction.dy;
+  return makeGeoWorldMapBase(`
+  <rect x="34" y="28" width="572" height="292" rx="18" fill="none" stroke="#ffffff" stroke-width="3" opacity=".72"/>
+  <g transform="translate(548 242)">
+    <circle cx="0" cy="0" r="42" fill="#ffffff" stroke="#315a4c" stroke-width="2"/>
+    <path d="M0 -32 L8 -6 L0 -12 L-8 -6 Z M0 32 L8 6 L0 12 L-8 6 Z" fill="#1D9E75"/>
+    <text x="0" y="-47" text-anchor="middle" font-size="16" font-weight="700" fill="#315a4c">С</text>
+    <text x="0" y="59" text-anchor="middle" font-size="16" fill="#315a4c">Ю</text>
+  </g>
+  <line x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}" stroke="#1a1a18" stroke-width="3" stroke-dasharray="8 8"/>
+  <g>
+    <circle cx="${ax}" cy="${ay}" r="15" fill="#1D9E75" stroke="#fff" stroke-width="4"/>
+    <text x="${ax}" y="${ay - 24}" text-anchor="middle" font-size="24" font-weight="800" fill="#085041">А</text>
+    <circle cx="${bx}" cy="${by}" r="15" fill="#e16d4f" stroke="#fff" stroke-width="4"/>
+    <text x="${bx}" y="${by - 24}" text-anchor="middle" font-size="24" font-weight="800" fill="#7a1c11">Б</text>
+  </g>
+  `);
+}
+
+function makeGeoLatitudeMapSvg(points, index) {
+  const lineY = {
+    northPolar: 78,
+    northTropic: 137,
+    southTropic: 223,
+    southPolar: 282
+  };
+  const pointSvg = points.map((point, i) => {
+    const x = 185 + i * 138 + (index % 3) * 7;
+    const y = lineY[point.key];
+    return '<g><circle cx="' + x + '" cy="' + y + '" r="13" fill="#1D9E75" stroke="#fff" stroke-width="4"/><text x="' + x + '" y="' + (y - 22) + '" text-anchor="middle" font-size="24" font-weight="800" fill="#085041">' + point.letter + '</text></g>';
+  }).join('');
+  return makeGeoWorldMapBase(`
+  <path d="M74 180 H566" stroke="#315a4c" stroke-width="2" opacity=".62"/>
+  <path d="M98 78 H542 M92 137 H548 M92 223 H548 M98 282 H542" stroke="#1D9E75" stroke-width="2" stroke-dasharray="8 8" opacity=".58"/>
+  ${pointSvg}
+  `);
+}
+
+function makeGeoPlateMapSvg(caseData, index) {
+  const positions = {
+    'Новая Зеландия': [520, 260],
+    'Япония': [498, 145],
+    'Индонезия': [448, 225],
+    'Исландия': [298, 96]
+  };
+  const [starX, starY] = positions[caseData.place] || [420, 190];
+  return makeGeoWorldMapBase(`
+  <path d="M${starX - 38} ${starY - 52} C${starX - 12} ${starY - 20} ${starX + 12} ${starY + 18} ${starX + 42} ${starY + 58}" fill="none" stroke="#d14337" stroke-width="7" stroke-linecap="round" opacity=".88"/>
+  <path d="M${starX - 38} ${starY - 52} C${starX - 12} ${starY - 20} ${starX + 12} ${starY + 18} ${starX + 42} ${starY + 58}" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="9 8"/>
+  <g transform="translate(${starX} ${starY})">
+    <path d="M0 -18 L5 -5 L19 -5 L8 3 L12 17 L0 9 L-12 17 L-8 3 L-19 -5 L-5 -5 Z" fill="#e16d4f" stroke="#7a1c11" stroke-width="2"/>
+  </g>
+  `);
+}
+
 function makeDemoGeographyVariant(index) {
-  const scaleSets = [
-    [90000000, 200000, 2500000], [40000000, 100000, 5000000], [12000000, 250000, 70000000],
-    [35000000, 500000, 10000000], [80000000, 1000000, 15000000], [25000000, 300000, 6000000]
+  const n = index + 1;
+  const permutations = [
+    [0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]
   ];
-  const parallels = [[50, 80, 10], [66, 30, 5], [75, 45, 15], [60, 20, 70], [23.5, 80, 40], [10, 55, 70]];
-  const directionTasks = [
-    ['северо-восточном', 'юго-западном', 'северо-западном', 'юго-восточном'],
-    ['юго-восточном', 'северо-восточном', 'западном', 'северном'],
-    ['западном', 'восточном', 'северном', 'южном'],
-    ['северо-западном', 'юго-восточном', 'южном', 'восточном']
+  const scaleBase = [
+    { value: 180000 + index * 1300 },
+    { value: 1800000 + index * 17000 },
+    { value: 24000000 + index * 230000 }
   ];
+  const scale = demoPick(permutations, index).map(position => scaleBase[position]);
+  scale.forEach(item => { item.label = geoFormatScale(item.value); });
+  const scaleAnswer = demoOrderAnswer(scale, [...scale].sort((a, b) => a.value - b.value));
+
+  const latitudes = [
+    { value: 78 - (index % 7), hemi: index % 2 ? 'ю.ш.' : 'с.ш.' },
+    { value: 42 + (index % 11), hemi: index % 3 ? 'с.ш.' : 'ю.ш.' },
+    { value: 8 + (index % 18), hemi: index % 4 ? 'с.ш.' : 'ю.ш.' }
+  ];
+  const parallels = demoPick(permutations, index + 2).map(position => latitudes[position]);
+  const parallelAnswer = demoOrderAnswer(parallels, [...parallels].sort((a, b) => Math.abs(b.value) - Math.abs(a.value)));
+
+  const direction = geoDirectionCase(index);
+  const directionImage = geoImage(
+    'Карта-схема местности',
+    'Определи направление от точки А к точке Б. Картинку можно увеличить.',
+    makeGeoDirectionMapSvg(index, direction)
+  );
+
+  const latOptions = {
+    southPolar: '1',
+    southTropic: '2',
+    northPolar: '3',
+    northTropic: '4'
+  };
+  const latitudeKeys = ['northTropic', 'southTropic', 'northPolar', 'southPolar'];
+  const selectedLatitudeKeys = demoPick([
+    ['northTropic', 'southTropic', 'northPolar'],
+    ['southPolar', 'northTropic', 'southTropic'],
+    ['northPolar', 'southPolar', 'northTropic'],
+    ['southTropic', 'northPolar', 'southPolar']
+  ], index);
+  const latitudePoints = demoPick(permutations, index + 3).map((position, pointIndex) => ({
+    letter: ['А', 'Б', 'В'][pointIndex],
+    key: selectedLatitudeKeys[position]
+  }));
+  const latitudeAnswer = latitudePoints.map(point => latOptions[point.key]).join('');
+  const latitudeImage = geoImage(
+    'Карта полушарий',
+    'Соотнеси точки А, Б и В с линиями градусной сети.',
+    makeGeoLatitudeMapSvg(latitudePoints, index)
+  );
+
+  const solsticeQuestions = [
+    'В какую дату в Северном полушарии продолжительность светового дня наибольшая?',
+    'В какую дату наступает летнее солнцестояние в Северном полушарии?',
+    'В какую дату Солнце в полдень выше всего над горизонтом в средних широтах Северного полушария?',
+    'В какую дату в районе Северного полярного круга наблюдается полярный день?'
+  ];
+
+  const cities = [
+    { name: 'Санкт-Петербург', lat: 60 },
+    { name: 'Москва', lat: 56 },
+    { name: 'Каир', lat: 30 },
+    { name: 'Дели', lat: 29 },
+    { name: 'Сингапур', lat: 1 },
+    { name: 'Бразилиа', lat: -16 },
+    { name: 'Кейптаун', lat: -34 },
+    { name: 'Буэнос-Айрес', lat: -35 }
+  ];
+  const citySet = [
+    cities[(index + 0) % cities.length],
+    cities[(index + 3) % cities.length],
+    cities[(index + 5) % cities.length]
+  ];
+  const uniqueCitySet = citySet[0].name === citySet[1].name || citySet[1].name === citySet[2].name || citySet[0].name === citySet[2].name
+    ? [cities[index % 2], cities[2 + index % 2], cities[5 + index % 2]]
+    : citySet;
+  const displayedCities = demoPick(permutations, index + 4).map(position => uniqueCitySet[position]);
+  const dayAnswer = demoOrderAnswer(displayedCities, [...displayedCities].sort((a, b) => b.lat - a.lat));
+
+  const timeSets = [
+    [{ city: 'Пекин', value: '2' }, { city: 'Сингапур', value: '2' }, { city: 'Нью-Йорк', value: '1' }],
+    [{ city: 'Токио', value: '2' }, { city: 'Манила', value: '2' }, { city: 'Мехико', value: '1' }],
+    [{ city: 'Владивосток', value: '2' }, { city: 'Бангкок', value: '2' }, { city: 'Лима', value: '1' }],
+    [{ city: 'Сидней', value: '2' }, { city: 'Шанхай', value: '2' }, { city: 'Чикаго', value: '1' }]
+  ];
+  const timeSet = demoPick(timeSets, index);
+  const timeAnswer = timeSet.map(item => item.value).join('');
+
+  const orbitComparison = demoPick([
+    { planet: 'Меркурия', answer: '346', word: 'больше' },
+    { planet: 'Венеры', answer: '346', word: 'больше' },
+    { planet: 'Марса', answer: '345', word: 'меньше' },
+    { planet: 'Юпитера', answer: '345', word: 'меньше' }
+  ], index);
+
   const rockTasks = [
-    ['гранит', 'горная порода, образующаяся при медленном застывании магмы на глубине', ['уголь', 'песок', 'базальт']],
-    ['каменный уголь', 'горная порода, образованная из древних растений и обладающая горючими свойствами', ['гранит', 'мрамор', 'глина']],
-    ['базальт', 'горная порода, образующаяся при быстром застывании лавы на поверхности', ['известняк', 'гранит', 'песчаник']],
-    ['известняк', 'осадочная горная порода, часто состоящая из остатков морских организмов', ['базальт', 'торф', 'гранит']]
+    ['граните', 'Горная порода образуется в результате медленного застывания магмы на глубине, состоит из нескольких минералов и используется в строительстве.', ['Порода образовалась из перегнивших древних растений и обладает горючими свойствами.', 'Порода возникла при быстром застывании лавы на поверхности и часто имеет тёмный цвет.', 'Рыхлая осадочная порода состоит из мелких обломков разрушенных горных пород.']],
+    ['каменном угле', 'Горная порода образовалась преимущественно из остатков древних растений, имеет цвет от бурого до чёрного и горит.', ['Порода медленно застыла из магмы на глубине и состоит из нескольких минералов.', 'Порода образовалась из раковин морских организмов и часто светлая.', 'Порода быстро застыла из лавы на поверхности Земли.']],
+    ['базальте', 'Горная порода образуется при быстром застывании лавы на поверхности Земли и обычно имеет тёмный цвет.', ['Порода образовалась из древних растений и обладает горючими свойствами.', 'Порода состоит из сцементированных песчинок.', 'Порода медленно застыла из магмы на глубине.']],
+    ['песке', 'Рыхлая осадочная горная порода образовалась в результате разрушения твёрдых горных пород и состоит из мелких зёрен.', ['Порода образовалась при медленном застывании магмы на глубине.', 'Порода имеет горючие свойства и образовалась из древних растений.', 'Порода быстро застыла из лавы на поверхности.']]
   ];
-  const cityDayTasks = [
-    ['22 декабря', ['Санкт-Петербург', 'Каир', 'Бразилиа'], '123', '22 декабря в Северном полушарии день короче, а в Южном длиннее.'],
-    ['22 июня', ['Бразилиа', 'Каир', 'Санкт-Петербург'], '123', '22 июня в Северном полушарии день длиннее, поэтому южный город будет первым.'],
-    ['22 декабря', ['Москва', 'Афины', 'Кейптаун'], '123', 'Зимой Северного полушария продолжительность дня возрастает к югу.'],
-    ['22 июня', ['Буэнос-Айрес', 'Рим', 'Мурманск'], '123', 'Летом Северного полушария продолжительность дня возрастает к северу.']
-  ];
-  const plateTasks = [
-    ['Новая Зеландия', 'Тихоокеанская плита', ['Африканская плита', 'Евразийская плита', 'Антарктическая плита']],
-    ['Япония', 'Тихоокеанская плита', ['Южно-Американская плита', 'Африканская плита', 'Северо-Американская плита']],
-    ['Анды', 'плита Наска', ['Индостанская плита', 'Аравийская плита', 'Антарктическая плита']],
-    ['Исландия', 'Евразийская плита', ['Африканская плита', 'плита Наска', 'Австралийская плита']]
-  ];
-  const scale = demoPick(scaleSets, index).map(value => ({ value, label: '1:' + value.toLocaleString('ru-RU').replace(/\s/g, ' ') }));
-  const scaleSorted = [...scale].sort((a, b) => a.value - b.value);
-  const par = demoPick(parallels, index).map(value => ({ value, label: value + '°' }));
-  const parSorted = [...par].sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
-  const dir = demoPick(directionTasks, index);
   const rock = demoPick(rockTasks, index);
-  const day = demoPick(cityDayTasks, index);
-  const plate = demoPick(plateTasks, index);
-  const q = [
-    demoQuestion('Расположи карты в порядке увеличения площади изображённой территории: 1) ' + scale[0].label + ' 2) ' + scale[1].label + ' 3) ' + scale[2].label + '.', demoOrderAnswer(scale, scaleSorted), ['123', '132', '321'], 'Чем больше знаменатель масштаба, тем большую территорию показывает карта того же размера.'),
-    demoQuestion('Верны ли утверждения? А) На плане местности нет градусной сети. Б) Карта обычно показывает большую территорию, чем план.', 'верно только А', ['верно только Б', 'оба верны', 'оба неверны'], 'План местности подробнее, но без градусной сети; карта обычно охватывает большую территорию.'),
-    demoQuestion('Расположи параллели в порядке увеличения длины окружности: 1) ' + par[0].label + ' 2) ' + par[1].label + ' 3) ' + par[2].label + '.', demoOrderAnswer(par, parSorted), ['123', '132', '321'], 'Чем ближе параллель к экватору, тем она длиннее.'),
-    demoQuestion('По описанию карты точка Б находится от точки А в каком направлении?', dir[0], dir.slice(1), 'Направление определяется по сторонам горизонта от точки А к точке Б.'),
-    demoQuestion('Установи соответствие: А) Северный тропик Б) Южный тропик В) Северный полярный круг.', '4-2-3', ['1-2-3', '2-4-1', '3-1-4'], 'Северный тропик расположен в Северном полушарии, Южный тропик — в Южном, Северный полярный круг — у Арктики.'),
-    demoQuestion('Ответом на какой вопрос является дата 22 июня?', 'когда в Северном полушарии самый длинный световой день', ['когда день и ночь равны', 'когда в Южном полушарии летнее солнцестояние', 'когда Солнце в зените над Южным тропиком'], '22 июня — летнее солнцестояние в Северном полушарии.'),
-    demoQuestion('Расположи города в порядке увеличения продолжительности светового дня ' + day[0] + ': 1) ' + day[1][0] + ' 2) ' + day[1][1] + ' 3) ' + day[1][2] + '.', day[2], ['132', '213', '321'], day[3]),
-    demoQuestion('Заполни пропуски в тексте: Земля движется вокруг ___ по ___; год у Земли ___, чем у Меркурия.', 'Солнца, орбите, больше', ['Луны, оси, меньше', 'Солнца, оси, меньше', 'Луны, орбите, больше'], 'Земля обращается вокруг Солнца по орбите, а год на Меркурии короче земного.'),
-    demoQuestion('В 17:00 по солнечному времени Гринвича где уже ночь?', 'в Пекине', ['в Нью-Йорке', 'в Лондоне', 'на Азорских островах'], 'К востоку от Гринвича местное солнечное время больше, поэтому вечер наступает раньше.'),
-    demoQuestion('В каком описании говорится о породе «' + rock[0] + '»?', rock[1], rock[2].map(item => 'описание породы: ' + item), 'Описание указывает происхождение и свойства этой горной породы.'),
-    demoQuestion('Новость сообщает о сильном землетрясении в районе «' + plate[0] + '». Укажи одну литосферную плиту, связанную с этой зоной.', plate[1], plate[2], 'Сильные землетрясения чаще происходят на границах литосферных плит.'),
-    demoQuestion('На каком острове наиболее вероятны сильные землетрясения?', 'Новая Гвинея', ['Гренландия', 'Мадагаскар', 'Великобритания'], 'Новая Гвинея расположена в зоне активного взаимодействия литосферных плит.'),
-    demoQuestion('Как называется линия, соединяющая Северный и Южный полюсы?', 'меридиан', ['параллель', 'экватор', 'тропик'], 'Меридианы проходят через оба географических полюса.'),
-    demoQuestion('Что показывает масштаб карты?', 'во сколько раз расстояния на карте уменьшены', ['высоту гор', 'направление ветра', 'количество осадков'], 'Масштаб связывает расстояния на карте с расстояниями на местности.'),
-    demoQuestion('Какая оболочка Земли включает океаны, реки, озёра и ледники?', 'гидросфера', ['литосфера', 'атмосфера', 'биосфера'], 'Гидросфера — водная оболочка Земли.'),
-    demoQuestion('Какой прибор помогает определить стороны горизонта?', 'компас', ['барометр', 'термометр', 'нивелир'], 'Стрелка компаса указывает направление на север.'),
-    demoQuestion('Что объясняет легенда карты?', 'условные знаки', ['дату издания', 'имена авторов', 'толщину учебника'], 'Легенда показывает, что означают цвета, линии и значки на карте.'),
-    demoQuestion('Как называется твёрдая оболочка Земли?', 'литосфера', ['атмосфера', 'гидросфера', 'стратосфера'], 'Литосфера включает земную кору и верхнюю часть мантии.'),
-    demoQuestion('Как называется воздушная оболочка Земли?', 'атмосфера', ['гидросфера', 'мантия', 'ядро'], 'Атмосфера окружает Землю и содержит воздух.'),
-    demoQuestion('Как называется многолетний режим погоды территории?', 'климат', ['погода', 'рельеф', 'масштаб'], 'Климат описывает обычную погоду за многие годы.'),
-    demoQuestion('Что называют рельефом?', 'неровности земной поверхности', ['движение воздуха', 'линию горизонта', 'масштаб карты'], 'Горы, равнины, холмы и впадины — формы рельефа.'),
-    demoQuestion('Какая дата связана с равноденствием?', '21 марта', ['22 июня', '22 декабря', '1 января'], 'В дни равноденствия день и ночь примерно равны.'),
-    demoQuestion('Какая пара объектов относится к водам суши?', 'река и озеро', ['гора и равнина', 'ветер и облако', 'план и карта'], 'Реки и озёра являются частью гидросферы на суше.'),
-    demoQuestion('Почему в горах температура обычно ниже, чем у подножия?', 'с высотой воздух охлаждается', ['с высотой исчезает ветер', 'в горах нет осадков', 'там всегда ночь'], 'В тропосфере температура в среднем понижается с высотой.')
+
+  const plateCases = [
+    { place: 'Новая Зеландия', date: '13 ноября', magnitude: '7,9', plates: ['Индо-Австралийская плита', 'Тихоокеанская плита'], island: 'Новая Гвинея', wrongIslands: ['Гренландия', 'Мадагаскар', 'Тасмания'] },
+    { place: 'Япония', date: '11 марта', magnitude: '8,8', plates: ['Евразийская плита', 'Тихоокеанская плита'], island: 'Хонсю', wrongIslands: ['Исландия', 'Мадагаскар', 'Шри-Ланка'] },
+    { place: 'Индонезия', date: '26 декабря', magnitude: '8,6', plates: ['Индо-Австралийская плита', 'Евразийская плита'], island: 'Суматра', wrongIslands: ['Гренландия', 'Великобритания', 'Куба'] },
+    { place: 'Исландия', date: '18 сентября', magnitude: '6,4', plates: ['Северо-Американская плита', 'Евразийская плита'], island: 'Исландия', wrongIslands: ['Мадагаскар', 'Тасмания', 'Шри-Ланка'] }
   ];
-  return q;
+  const plate = demoPick(plateCases, index);
+  const plateImage = geoImage(
+    'Схема литосферных плит',
+    'Красная линия показывает границу плит около района землетрясения.',
+    makeGeoPlateMapSvg(plate, index)
+  );
+
+  const variant = [
+    openQuestion('Географические карты имеют одинаковый размер, но разные масштабы. Расположите карты в порядке увеличения площади изображённой территории: 1) ' + scale[0].label + ' 2) ' + scale[1].label + ' 3) ' + scale[2].label + '. Запишите последовательность цифр.', sequenceAnswerVariants(scaleAnswer), 'Чем меньше знаменатель масштаба, тем подробнее карта и тем меньшая территория на ней показана. Поэтому идём от меньшего знаменателя к большему.', 'scale', { inputKind: 'text', level: 'middle' }),
+    demoQuestion('Верны ли следующие утверждения о планах местности и географических картах в задании №' + n + '? А) Градусная сеть отсутствует на планах местности. Б) На географических картах все объекты изображены более подробно, чем на планах местности.', 'верно только А', ['верно только Б', 'оба утверждения верны', 'оба утверждения неверны'], 'План местности показывает небольшую территорию подробнее, а градусная сеть используется на географических картах.', 'map-theory', { level: 'basic' }),
+    openQuestion('Расположите параллели в порядке увеличения длины их окружности, начиная с параллели с наименьшей длиной: 1) ' + parallels[0].value + '° ' + parallels[0].hemi + ' 2) ' + parallels[1].value + '° ' + parallels[1].hemi + ' 3) ' + parallels[2].value + '° ' + parallels[2].hemi + '. Запишите последовательность цифр.', sequenceAnswerVariants(parallelAnswer), 'Параллели становятся длиннее по мере приближения к экватору; у больших широт окружность меньше.', 'degree-grid', { inputKind: 'text', level: 'middle' }),
+    openQuestion('Используя карту-схему №' + n + ', определите, в каком направлении от точки, обозначенной на карте буквой А, расположена точка, обозначенная буквой Б.', geoDirectionAnswers(direction), 'Смотрим от точки А к точке Б и сравниваем направление со сторонами горизонта на схеме.', 'map-direction', { level: 'basic', image: directionImage }),
+    openQuestion('Используя карту полушарий №' + n + ', установите соответствие между точками, обозначенными буквами А, Б и В, и их расположением на градусной сети. 1) Южный полярный круг 2) Южный тропик 3) Северный полярный круг 4) Северный тропик. Запишите выбранные цифры под соответствующими буквами АБВ.', sequenceAnswerVariants(latitudeAnswer), 'По положению точки относительно экватора определяем тропики и полярные круги Северного или Южного полушария.', 'degree-grid', { level: 'general', image: latitudeImage }),
+    demoQuestion('Ответом на один из вопросов календаря наблюдений №' + n + ' является дата 22 июня. Укажите этот вопрос.', demoPick(solsticeQuestions, index), ['В какую дату продолжительность светового дня и ночи одинакова на всех широтах?', 'В какую дату в Северном полушарии самый короткий световой день?', 'В какую дату Солнце бывает в зените над Южным тропиком?'], '22 июня связано с летним солнцестоянием в Северном полушарии: день там самый длинный.', 'earth-motion', { level: 'middle' }),
+    openQuestion('По таблице городов №' + n + ' расположите города в порядке увеличения продолжительности светового дня 22 декабря, начиная с города с наименьшей продолжительностью светового дня: 1) ' + displayedCities[0].name + ' 2) ' + displayedCities[1].name + ' 3) ' + displayedCities[2].name + '. Запишите последовательность цифр.', sequenceAnswerVariants(dayAnswer), '22 декабря в Северном полушарии день короче, поэтому чем севернее город, тем меньше продолжительность светового дня.', 'earth-motion', { inputKind: 'text', level: 'middle' }),
+    openQuestion('Прочитайте текст «Движение Земли» №' + n + '. Земля постоянно перемещается вокруг ______(А) по определённой траектории — ______(Б). Продолжительность года у Земли ______(В), чем у ' + orbitComparison.planet + '. Список слов: 1) Луна 2) ось 3) Солнце 4) орбита 5) меньше 6) больше. Запишите цифры под буквами АБВ.', sequenceAnswerVariants(orbitComparison.answer), 'Земля обращается вокруг Солнца по орбите, а год у Земли ' + orbitComparison.word + ', чем у ' + orbitComparison.planet + '.', 'earth-motion', { inputKind: 'text', level: 'basic' }),
+    openQuestion('По таблице времени №' + n + ' установите соответствие между городом и временем суток в нём в 17:00 по солнечному времени Гринвичского меридиана. 1) день 2) ночь. А) ' + timeSet[0].city + ' Б) ' + timeSet[1].city + ' В) ' + timeSet[2].city + '. Запишите цифры под буквами АБВ.', sequenceAnswerVariants(timeAnswer), 'К востоку от Гринвича местное время больше, поэтому в Восточной Азии уже поздний вечер или ночь; к западу день наступает позже.', 'earth-motion', { inputKind: 'text', level: 'general' }),
+    demoQuestion('В одном из кратких описаний коллекции горных пород №' + n + ' говорится о ' + rock[0] + '. Укажите это описание.', rock[1], rock[2], 'Описание нужно соотнести с происхождением горной породы: магматическим, осадочным или органическим.', 'rocks', { level: 'middle' }),
+    openQuestion('Задания 11–12 выполняются по новостному сообщению №' + n + '. Землетрясение магнитудой ' + plate.magnitude + ' произошло в районе «' + plate.place + '» ' + plate.date + '. Используя рисунок, определите, на границе каких литосферных плит произошло землетрясение. Запишите название одной любой плиты.', plate.plates, 'Землетрясения чаще всего происходят на границах литосферных плит; на схеме подписаны плиты по обе стороны границы.', 'lithosphere-plates', { level: 'general', image: plateImage }),
+    demoQuestion('На каком из перечисленных островов из списка №' + n + ' наиболее вероятны сильные землетрясения?', plate.island, plate.wrongIslands, 'Сильные землетрясения наиболее вероятны в районах границ литосферных плит.', 'lithosphere-plates', { level: 'middle' })
+  ];
+
+  return variant.map((question, order) => ({
+    ...question,
+    topic: ['Масштаб карты', 'План и карта', 'Градусная сеть', 'Стороны горизонта', 'Градусная сеть', 'Движение Земли', 'Световой день', 'Движение Земли', 'Часовые различия', 'Горные породы', 'Литосферные плиты', 'Литосферные плиты'][order],
+    order: order + 1,
+    fixedOrder: true,
+    variantId: 'geo5-demo-' + n
+  }));
 }
 
 function makeDemoHistoryVariant(index) {
@@ -4061,12 +4427,13 @@ function makeDemoVariantUniqueQuestions(subject, index) {
 }
 
 function finalizeDemoVariant(subject, variant, index) {
-  if (subject === 'math') {
+  if (subject === 'math' || subject === 'geography') {
+    const variantPrefix = subject === 'math' ? 'math5-decimal-' : 'geo5-demo-';
     return variant.map((question, questionIndex) => ({
       ...question,
       fixedOrder: true,
       order: question.order || questionIndex + 1,
-      variantId: 'math5-decimal-' + (index + 1)
+      variantId: question.variantId || variantPrefix + (index + 1)
     }));
   }
 
@@ -4685,7 +5052,7 @@ function pickDemoStyleVariant(subjectId) {
   const difficulty = difficultyLevels[selectedDifficulty];
   const storageKey = LAST_TEST_PREFIX + selectedGrade + '-' + subjectId + '-' + selectedDifficulty;
   const variantIndex = chooseDemoVariantIndex(storageKey, variants);
-  if (isDecimalMath5(subjectId)) {
+  if (isDecimalMath5(subjectId) || isGeographyDemo5(subjectId)) {
     return variants[variantIndex].slice();
   }
   return pickDemoQuestionsForDifficulty(variants[variantIndex], subjectId, difficulty.count);
@@ -4709,11 +5076,29 @@ function pickDecimalMathDemoVariant(modeId = 'standard') {
   }));
 }
 
+function pickGeography5DemoVariant(modeId = 'standard') {
+  const variants = demoVariantBanksByGrade['5'] && demoVariantBanksByGrade['5'].geography;
+  if (!variants || !variants.length) return [];
+  const storageKey = LAST_TEST_PREFIX + '5-geography-demo-' + modeId;
+  const variantIndex = chooseDemoVariantIndex(storageKey, variants);
+  return variants[variantIndex].map((item, index) => attachQuestionMeta({
+    ...item,
+    fixedOrder: true,
+    order: item.order || index + 1,
+    variantId: 'geo5-demo-' + (variantIndex + 1)
+  }, 'geography', {
+    grade: '5',
+    subjectName: getSubjectName('geography', '5'),
+    difficulty: 'demo',
+    difficultyName: 'Демоверсия'
+  }));
+}
+
 const studyTopics = {
   '5': {
     geography: {
-      exam: ['карта, глобус, масштаб и условные знаки', 'стороны горизонта и работа с компасом', 'материки, океаны и оболочки Земли', 'погода, климат и простые наблюдения', 'рельеф: горы, равнины, формы поверхности'],
-      check: ['что такое карта и глобус', 'как читать масштаб и легенду', 'названия материков и океанов', 'отличие погоды от климата', 'основные оболочки Земли']
+      exam: ['масштаб карты и площадь изображённой территории', 'планы местности и географические карты', 'параллели, тропики и полярные круги', 'движение Земли, световой день и время суток', 'горные породы, литосферные плиты и землетрясения'],
+      check: ['как читать масштаб', 'чем план отличается от карты', 'как определить направление по карте', 'линии градусной сети', 'причины землетрясений на границах плит']
     },
     history: {
       exam: ['исторические источники и работа с лентой времени', 'первобытное общество, охота, собирательство и неолитическая революция', 'Древний Египет: фараоны, пирамиды, иероглифы', 'Древняя Греция: полис, демократия, Олимпийские игры', 'Древний Рим: республика, сенат, легионы и империя'],
@@ -4978,7 +5363,8 @@ function normalizeQuestion(item) {
       trainingSourceTopic: item.trainingSourceTopic || null,
       fixedOrder: !!item.fixedOrder,
       order: item.order || null,
-      variantId: item.variantId || null
+      variantId: item.variantId || null,
+      image: item.image || null
     };
   }
 
@@ -5005,7 +5391,8 @@ function normalizeQuestion(item) {
     trainingSourceTopic: item.trainingSourceTopic || null,
     fixedOrder: !!item.fixedOrder,
     order: item.order || null,
-    variantId: item.variantId || null
+    variantId: item.variantId || null,
+    image: item.image || null
   };
 }
 
@@ -5450,6 +5837,11 @@ function buildSubjectModeVariant(subjectId, modeId) {
     questions = pickDecimalMathDemoVariant(modeId).map(normalizeQuestion);
     return;
   }
+  if (isGeographyDemo5(subjectId)) {
+    currentQuestionTargetCount = 12;
+    questions = pickGeography5DemoVariant(modeId).map(normalizeQuestion);
+    return;
+  }
 
   if (modeId === 'standard' || modeId === 'exam') {
     const count = difficultyLevels[selectedDifficulty].count;
@@ -5521,6 +5913,48 @@ function buildDailyChallenge() {
   }));
 }
 
+function buildExtraPrepVariant() {
+  const mode = testModes.extraPrep;
+  const targetCount = mode.count || 40;
+  const gradeSubjectPairs = ['5', '6'].flatMap(grade =>
+    getSubjectIdsForGrade(grade).map(subjectId => ({ grade, subjectId }))
+  );
+  const basePerSubject = Math.max(1, Math.floor(targetCount / gradeSubjectPairs.length));
+  let extraSlots = Math.max(0, targetCount - basePerSubject * gradeSubjectPairs.length);
+  const seedText = 'extra-prep-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+  const savedGrade = selectedGrade;
+  const savedDifficulty = selectedDifficulty;
+  const picked = [];
+
+  try {
+    gradeSubjectPairs.forEach(({ grade, subjectId }, pairIndex) => {
+      selectedGrade = grade;
+      const need = basePerSubject + (extraSlots > 0 ? 1 : 0);
+      if (extraSlots > 0) extraSlots--;
+      const subjectPool = getRawQuestionsForSubject(subjectId, Math.max(need * 4, need + 8), {
+        difficulty: 'general',
+        seedText: seedText + '-' + grade + '-' + subjectId + '-' + pairIndex,
+        maxFromVariant: 4
+      });
+
+      subjectPool.slice(0, need).forEach(question => {
+        picked.push(attachQuestionMeta(question, subjectId, {
+          grade,
+          subjectName: getSubjectName(subjectId, grade),
+          difficulty: 'extra-prep',
+          difficultyName: 'Дополнительная подготовка (БЕТА)'
+        }));
+      });
+    });
+  } finally {
+    selectedGrade = savedGrade;
+    selectedDifficulty = savedDifficulty;
+  }
+
+  currentQuestionTargetCount = Math.min(targetCount, picked.length);
+  questions = shuffle(picked).map(normalizeQuestion);
+}
+
 function buildModeVariant(modeId) {
   if (modeId === 'mistakes') {
     currentQuestionTargetCount = testModes.mistakes.count || difficultyLevels[selectedDifficulty].count;
@@ -5537,6 +5971,10 @@ function buildModeVariant(modeId) {
   }
   if (modeId === 'marathon') {
     buildMarathonVariant();
+    return;
+  }
+  if (modeId === 'extraPrep') {
+    buildExtraPrepVariant();
     return;
   }
   buildSubjectModeVariant(selectedSubject, modeId);
@@ -5575,6 +6013,11 @@ function updateSelectedNote() {
   const note = document.getElementById('selected-note');
   const mode = testModes[selectedMode];
   updateStartButtonState();
+
+  if (selectedMode === 'extraPrep') {
+    note.textContent = 'Выбрано: Дополнительная подготовка (БЕТА) · все предметы · 5 и 6 классы.';
+    return;
+  }
 
   if (!selectedSubject && mode.requiresSubject) {
     note.textContent = 'Сначала выбери предмет. Режим: ' + mode.name + '.';
@@ -5647,13 +6090,12 @@ function updateHeader(mode) {
     return;
   }
   if (mode === 'test' || mode === 'score') {
-    const subject = ['mixed', 'daily'].includes(currentModeId)
-      ? 'разные предметы'
-      : (selectedSubject && subjects[selectedSubject] ? getSubjectName(selectedSubject) : 'разные предметы');
+    const subject = getTestSubjectLabel(currentModeId);
+    const gradeLabel = getTestGradeLabel(currentModeId);
     const modeName = currentTestMode && currentTestMode.name ? currentTestMode.name : testModes[selectedMode].name;
     const timerText = currentTestMode && currentTestMode.timer ? '45 минут' : 'без таймера';
     const livesText = currentTestMode && currentTestMode.lives ? ' · жизни: ' + currentLives + '/' + currentTestMode.lives : '';
-    document.getElementById('page-tag').textContent = modeName + ' · ' + selectedGrade + ' класс';
+    document.getElementById('page-tag').textContent = modeName + ' · ' + gradeLabel;
     document.getElementById('page-title').textContent = modeName;
     document.getElementById('page-subtitle').textContent = questions.length + ' вопросов · ' + subject + ' · ' + timerText + livesText;
     return;
@@ -5744,6 +6186,53 @@ function startConfiguredTest(modeId) {
   render();
 }
 
+function renderQuestionMedia(question) {
+  const media = document.getElementById('qmedia');
+  if (!media) return;
+  media.innerHTML = '';
+  media.style.display = 'none';
+  if (!question || !question.image || !question.image.svg) return;
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'question-image-button';
+  button.setAttribute('aria-label', 'Увеличить изображение задания');
+  button.onclick = () => openQuestionImage(question.image);
+
+  const frame = document.createElement('div');
+  frame.className = 'question-image-frame';
+  frame.innerHTML = question.image.svg;
+  button.appendChild(frame);
+
+  const caption = document.createElement('div');
+  caption.className = 'question-image-caption';
+  caption.innerHTML = '<span>' + escapeHtml(question.image.caption || 'Изображение к заданию') + '</span><b>Нажми, чтобы увеличить</b>';
+  button.appendChild(caption);
+
+  media.appendChild(button);
+  media.style.display = 'block';
+}
+
+function openQuestionImage(image) {
+  if (!image || !image.svg) return;
+  const overlay = document.getElementById('image-overlay');
+  const frame = document.getElementById('image-fullscreen-frame');
+  const title = document.getElementById('image-title');
+  const caption = document.getElementById('image-caption');
+  if (!overlay || !frame) return;
+  frame.innerHTML = image.svg;
+  if (title) title.textContent = image.title || 'Изображение задания';
+  if (caption) caption.textContent = image.caption || 'Нажми × или Esc, чтобы закрыть';
+  overlay.classList.add('open');
+}
+
+function closeQuestionImage() {
+  const overlay = document.getElementById('image-overlay');
+  const frame = document.getElementById('image-fullscreen-frame');
+  if (overlay) overlay.classList.remove('open');
+  if (frame) frame.innerHTML = '';
+}
+
 function render() {
   if (cur >= questions.length) { showScore(); return; }
   const q = questions[cur];
@@ -5751,10 +6240,13 @@ function render() {
   document.getElementById('prog').style.width = pct + '%';
   document.getElementById('prog-label').textContent = cur + ' / ' + questions.length;
   const qMeta = ['Вопрос ' + (cur + 1)];
-  if ((selectedMode === 'mixed' || selectedMode === 'daily') && q.subjectName) qMeta.push(q.subjectName);
+  if (isCrossSubjectMode(currentModeId) && q.subjectName) {
+    qMeta.push((q.grade ? q.grade + ' класс · ' : '') + q.subjectName);
+  }
   if (currentTestMode.lives) qMeta.push('жизни: ' + currentLives + '/' + currentTestMode.lives);
   document.getElementById('qnum').textContent = qMeta.join(' · ');
   document.getElementById('qtext').textContent = q.q;
+  renderQuestionMedia(q);
 
   const opts = document.getElementById('opts');
   opts.innerHTML = '';
@@ -5936,8 +6428,11 @@ function showScore() {
     : 'Осталось времени: ' + formatTime(secondsLeft) + '.';
   const subjectTitle = isMistakeReview
     ? 'Работа над ошибками'
-    : (['mixed', 'daily'].includes(currentModeId) ? 'разные предметы' : (selectedSubject && subjects[selectedSubject] ? getSubjectName(selectedSubject) : 'разные предметы'));
-  const difficultyTitle = isMistakeReview ? 'работа над ошибками' : difficultyLevels[selectedDifficulty].name;
+    : getTestSubjectLabel(currentModeId);
+  const difficultyTitle = isMistakeReview
+    ? 'работа над ошибками'
+    : (currentModeId === 'extraPrep' ? 'частые вопросы экзаменов' : difficultyLevels[selectedDifficulty].name);
+  const gradeTitle = getTestGradeLabel(currentModeId);
   const modeTitle = currentTestMode && currentTestMode.name ? currentTestMode.name : testModes[selectedMode].name;
   const scorebox = document.getElementById('scorebox');
   scorebox.style.display = 'block';
@@ -5946,7 +6441,7 @@ function showScore() {
     <div class="score-fraction">${score}/${questions.length}</div>
     <div class="score-desc">правильных ответов</div>
     <div class="score-grade">Оценка: ${grade}</div>
-    <div class="score-extra">${selectedGrade} класс · ${subjectTitle} · ${difficultyTitle} · ${modeTitle} · ${timeText}</div>
+    <div class="score-extra">${gradeTitle} · ${subjectTitle} · ${difficultyTitle} · ${modeTitle} · ${timeText}</div>
     ${renderMotivation(profileResult, pct)}
     ${renderResultInsights(profileResult)}
     <div class="score-actions">
@@ -5983,7 +6478,8 @@ function backToSelection() {
   document.getElementById('actions').style.display = 'none';
   document.getElementById('nextbtn').style.display = 'none';
   document.getElementById('prog').style.width = '0%';
-  document.getElementById('prog-label').textContent = '0 / ' + difficultyLevels[selectedDifficulty].count;
+  const targetLabel = selectedMode === 'extraPrep' ? testModes.extraPrep.count : difficultyLevels[selectedDifficulty].count;
+  document.getElementById('prog-label').textContent = '0 / ' + targetLabel;
   document.getElementById('timer').textContent = formatTime(TEST_SECONDS);
   document.getElementById('timer').classList.remove('warn');
 }
@@ -6759,6 +7255,7 @@ function calculateXpGain(pct, total, modeId, dailyCompletedNow) {
     mixed: 12,
     marathon: 28,
     daily: dailyCompletedNow ? DAILY_CHALLENGE_XP : 4,
+    extraPrep: 22,
     survival: 16,
     perfect: 14
   };
@@ -7044,7 +7541,7 @@ function updateMistakeReviewActivity(reviewMistakes, summary = {}) {
 }
 
 function shouldCountUnansweredAsMistakes() {
-  return finishedByTimer || selectedMode === 'exam';
+  return finishedByTimer || currentModeId === 'exam';
 }
 
 function finalizeProfileResult() {
@@ -7092,7 +7589,7 @@ function finalizeProfileResult() {
     result.xpToNext = reviewUpdate.xpToNext;
     result.monthlyUnlocked = reviewUpdate.monthlyUnlocked || [];
   } else if (currentTestMode.saveResult !== false) {
-    const saved = saveTestResultToProfile({ score, total, pct, mistakes: result.mistakes, modeId: selectedMode });
+    const saved = saveTestResultToProfile({ score, total, pct, mistakes: result.mistakes, modeId: currentModeId });
     result.progressDelta = saved.progressDelta;
     result.unlocked = saved.unlocked;
     result.xpEarned = saved.xpEarned;
@@ -7112,11 +7609,12 @@ function finalizeProfileResult() {
 }
 
 function suggestPreparationMode(pct, mistakes) {
-  if (selectedMode === 'daily') return 'завтра снова открыть «Ежедневный челлендж»';
+  if (currentModeId === 'daily') return 'завтра снова открыть «Ежедневный челлендж»';
+  if (currentModeId === 'extraPrep') return 'разобрать слабые темы этого курса в режиме «Работа над ошибками»';
   if (mistakes.length >= 4) return 'перейти в режим «Работа над ошибками»';
   if (pct >= 90) return 'попробовать «Марафон» или «100% режим»';
   if (pct < 55) return 'начать с «Быстрой тренировки»';
-  if (selectedMode !== 'exam') return 'закрепить результат в режиме «Реальный экзамен»';
+  if (currentModeId !== 'exam') return 'закрепить результат в режиме «Реальный экзамен»';
   return 'сделать смешанный вариант для проверки разных тем';
 }
 
@@ -7130,9 +7628,11 @@ function buildAIResultAnalysis(result, pct) {
   }
   const mistakes = result.mistakes || [];
   const weakTopics = summarizeMistakesByTopic(mistakes).slice(0, 3);
-  const subjectText = selectedSubject && subjects[selectedSubject] && !['mixed', 'daily'].includes(currentModeId)
-    ? 'по предмету «' + getSubjectName(selectedSubject) + '»'
-    : 'в смешанном тесте';
+  const subjectText = currentModeId === 'extraPrep'
+    ? 'в курсе «Дополнительная подготовка (БЕТА)»'
+    : (selectedSubject && subjects[selectedSubject] && !isCrossSubjectMode(currentModeId)
+      ? 'по предмету «' + getSubjectName(selectedSubject) + '»'
+      : 'в смешанном тесте');
   const strengthText = pct >= 85
     ? 'У тебя хороший результат ' + subjectText + '.'
     : pct >= 65
@@ -8833,6 +9333,12 @@ document.querySelectorAll('[data-difficulty]').forEach(button => {
 });
 document.getElementById('ai-input').addEventListener('keydown', event => {
   if (event.key === 'Enter') sendAIText();
+});
+document.getElementById('image-overlay').addEventListener('click', event => {
+  if (event.target && event.target.id === 'image-overlay') closeQuestionImage();
+});
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') closeQuestionImage();
 });
 initProfileSystem();
 renderSubjectChoices();
